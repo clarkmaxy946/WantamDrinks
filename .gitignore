@@ -1,5 +1,5 @@
 # Virtual Environment
-.venv/      # ✅ add this - your venv is named .venv
+.venv/     
 venv/
 env/
 __pycache__/
@@ -17,3 +17,4 @@ local_settings.py
 # Windows system files
 Thumbs.db
 desktop.ini
+

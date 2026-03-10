@@ -1,0 +1,19 @@
+# Virtual Environment
+.venv/      # ✅ add this - your venv is named .venv
+venv/
+env/
+__pycache__/
+*.py[cod]
+# Local Database
+db.sqlite3
+# Distribution/Build
+dist/
+build/
+*.egg-info/
+# Logs and Secrets
+.env
+*.log
+local_settings.py
+# Windows system files
+Thumbs.db
+desktop.ini

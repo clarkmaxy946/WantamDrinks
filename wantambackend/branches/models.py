@@ -9,8 +9,11 @@ class Branch(models.Model):
     is_active = models.BooleanField(default=True)  
     created_at = models.DateTimeField(auto_now_add=True)     
 
-    def __str__(self):
-        return f"{self.name} ({self.branch_id})"
-
     class Meta:
         verbose_name_plural = "Branches"
+        indexes = [
+            models.Index(fields=["name"]),
+        ]
+
+    def __str__(self):
+        return f"{self.name} ({self.branch_id})"

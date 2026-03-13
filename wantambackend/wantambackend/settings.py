@@ -120,7 +120,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Africa/Nairobi'
 
 USE_I18N = True
 
@@ -131,3 +131,25 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+
+
+# =============================================================
+# M-PESA DARAJA API CONFIGURATION
+# =============================================================
+
+# Safaricom API credentials
+# Store actual values in .env — never hardcode in production
+MPESA_CONSUMER_KEY = config('MPESA_CONSUMER_KEY', default='your_consumer_key_here')
+MPESA_CONSUMER_SECRET = config('MPESA_CONSUMER_SECRET', default='your_consumer_secret_here')
+MPESA_SHORTCODE = config('MPESA_SHORTCODE', default='your_shortcode_here')
+MPESA_PASSKEY = config('MPESA_PASSKEY', default='your_passkey_here')
+MPESA_CALLBACK_URL = config('MPESA_CALLBACK_URL', default='https://yourdomain.com/api/payments/callback/')
+
+# Safaricom API URLs
+# Sandbox — for development and testing
+MPESA_AUTH_URL = 'https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials'
+MPESA_STK_URL = 'https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest'
+
+# Production — uncomment these and comment out sandbox URLs when going live
+# MPESA_AUTH_URL = 'https://api.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials'
+# MPESA_STK_URL = 'https://api.safaricom.co.ke/mpesa/stkpush/v1/processrequest'

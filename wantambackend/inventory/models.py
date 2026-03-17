@@ -40,6 +40,10 @@ class Inventory(models.Model):
     @property
     def is_low(self):
         return self.stock <= self.low_stock_threshold
+    
+    @property
+    def is_in_stock(self):
+        return self.stock > 0
 
 
 class RestockLog(models.Model):

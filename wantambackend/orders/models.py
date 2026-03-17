@@ -1,7 +1,3 @@
-from django.db import models
-
-# Create your models here.
-# orders/models.py
 import uuid
 from django.db import models
 from django.conf import settings

@@ -18,12 +18,7 @@ from .serializers import (
 
 
 class RegisterView(APIView):
-    """
-    POST /api/auth/register/
-    Public — no token required.
-    Creates account and returns JWT tokens immediately.
-    User does not need to login separately after registration.
-    """
+    
     permission_classes = [AllowAny]
 
     def post(self, request):
@@ -55,22 +50,13 @@ class RegisterView(APIView):
 
 
 class LoginView(TokenObtainPairView):
-    """
-    POST /api/auth/login/
-    Public — no token required.
-    Authenticates with email + password.
-    Returns JWT access and refresh tokens.
-    """
+    
     permission_classes = [AllowAny]
     serializer_class = LoginSerializer
 
 
 class ProfileView(APIView):
-    """
-    GET   /api/auth/profile/ → view own profile
-    PATCH /api/auth/profile/ → update username or phone
-    Protected — requires JWT token.
-    """
+    
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -103,12 +89,7 @@ class ProfileView(APIView):
 
 
 class AdminUserListView(APIView):
-    """
-    GET /api/admin/users/
-    Admin only — requires is_staff=True.
-    Returns all registered users with total order count.
-    No select_related needed — no related model on CustomUser.
-    """
+    
     permission_classes = [IsAuthenticated, IsAdminUser]
 
     def get(self, request):
@@ -127,12 +108,7 @@ class AdminUserListView(APIView):
 
 
 class AdminUserDetailView(APIView):
-    """
-    GET    /api/admin/users/<user_id>/ → view single user
-    PATCH  /api/admin/users/<user_id>/ → deactivate/reactivate
-    DELETE /api/admin/users/<user_id>/ → delete user
-    Admin only — requires is_staff=True.
-    """
+    
     permission_classes = [IsAuthenticated, IsAdminUser]
 
     def get_user(self, user_id):

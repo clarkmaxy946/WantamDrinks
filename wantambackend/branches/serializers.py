@@ -58,7 +58,6 @@ class AdminBranchSerializer(serializers.ModelSerializer):
             'low_stock_items',
         ]
         read_only_fields = [
-            'branch_id',
             'created_at',
             'alert_count',
             'low_stock_items',

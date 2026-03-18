@@ -95,7 +95,7 @@ class LoginSerializer(TokenObtainPairSerializer):
     def get_token(cls, user):
         token = super().get_token(user)
         # Custom claims embedded in JWT payload
-        token['user_id'] = user.user_id
+        token['wnt_id'] = user.user_id
         token['email'] = user.email
         token['is_staff'] = user.is_staff
         return token
@@ -103,7 +103,7 @@ class LoginSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
         data = super().validate(attrs)
         # Extra fields in login response body
-        data['user_id'] = self.user.user_id
+        data['wnt_id'] = self.user.user_id
         data['email'] = self.user.email
         data['is_staff'] = self.user.is_staff
         return data

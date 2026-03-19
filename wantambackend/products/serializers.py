@@ -58,7 +58,7 @@ class AdminProductSerializer(serializers.ModelSerializer):
             'name',
             'price',
         ]
-        read_only_fields = ['product_id']   # Auto-generated — never editable
+        read_only_fields = []   # Auto-generated — never editable
 
     def validate_price(self, value):
         """

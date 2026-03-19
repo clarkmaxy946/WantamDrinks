@@ -6,17 +6,6 @@ from products.serializers import ProductSerializer
 
 
 class InventorySerializer(serializers.ModelSerializer):
-    """
-    Customer-facing inventory serializer.
-    Shows stock levels for a specific branch with full
-    branch and product context.
-
-    Adds is_in_stock flag to prevent customers from
-    attempting to buy unavailable items before reaching M-Pesa.
-
-    Used in:
-    - GET /api/inventory/<branch_id>/ → stock levels at a branch
-    """
 
     branch = BranchSerializer(read_only=True)
     product = ProductSerializer(read_only=True)
@@ -40,16 +29,7 @@ class InventorySerializer(serializers.ModelSerializer):
 
 
 class RestockLogSerializer(serializers.ModelSerializer):
-    """
-    Read-only serializer for restock history.
-    Shows the full audit trail of every restock event
-    for a specific inventory item.
 
-    Nested inside AdminInventorySerializer.
-    Limited to last 10 records at view level.
-    """
-
-    # Calls CustomUser.__str__ → "username (WNT-XXXXXX)"
     restocked_by = serializers.StringRelatedField(read_only=True)
 
     class Meta:
@@ -65,32 +45,16 @@ class RestockLogSerializer(serializers.ModelSerializer):
 
 
 class AdminInventorySerializer(serializers.ModelSerializer):
-    """
-    Admin-facing inventory serializer.
-    Full operational view with nested restock history.
-
-    Performance notes (enforced at view level):
-    - select_related('branch', 'product') — prevents N+1
-    - prefetch_related('restock_logs')    — prevents N+1 on logs
-    - restock_logs limited to last 10     — prevents huge payloads
-
-    Used in:
-    - GET   /api/admin/inventory/              → all inventory records
-    - GET   /api/admin/inventory/<branch_id>/  → inventory at one branch
-    - PATCH /api/admin/inventory/<branch_id>/<product_id>/ → update threshold
-    """
 
     branch = BranchSerializer(read_only=True)
     product = ProductSerializer(read_only=True)
-
     is_in_stock = serializers.SerializerMethodField()
     is_low = serializers.SerializerMethodField()
 
-    restock_history = RestockLogSerializer(
-        source='restock_logs',
-        many=True,
-        read_only=True
-    )
+    # Changed to SerializerMethodField to avoid
+    # "Cannot filter a query once a slice has been taken" error
+    # Limit of 10 applied here instead of queryset slice
+    restock_history = serializers.SerializerMethodField()
 
     class Meta:
         model = Inventory
@@ -118,21 +82,15 @@ class AdminInventorySerializer(serializers.ModelSerializer):
         return obj.is_in_stock  # ← model property
 
     def get_is_low(self, obj):
-        return obj.is_low       # ← model property
+        return obj.is_low  # ← model property
+
+    def get_restock_history(self, obj):
+        
+        logs = obj.restock_logs.all().order_by('-restocked_at')[:10]
+        return RestockLogSerializer(logs, many=True).data
 
 
 class RestockSerializer(serializers.Serializer):
-    """
-    Admin-only restock input serializer.
-    Accepts only the quantity to add — nothing else.
-
-    Connects directly to inventory/services.py → add_stock()
-    Does NOT overwrite stock — only increments it.
-    Current stock + quantity = new stock.
-
-    Used in:
-    - POST /api/admin/inventory/<branch_id>/<product_id>/restock/
-    """
 
     quantity = serializers.IntegerField(
         min_value=1,

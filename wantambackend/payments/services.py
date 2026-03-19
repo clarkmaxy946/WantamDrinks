@@ -7,7 +7,7 @@ from django.db import transaction
 from django.core.exceptions import ValidationError
 from .models import Payment
 from orders.models import Order
-from orders.services import confirm_order
+from orders.services import confirm_order, restore_order_stock
 
 
 
@@ -230,6 +230,8 @@ def _handle_failed_payment(payment, stk_callback, result_code, override_desc=Non
         payment.failure_reason = full_reason
         payment.raw_callback = stk_callback
         payment.save()
+        
+        restore_order_stock(payment.order)  
 
         # Update order to FAILED
         order = payment.order

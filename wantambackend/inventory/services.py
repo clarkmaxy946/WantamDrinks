@@ -81,5 +81,6 @@ def _trigger_low_stock_alert(inventory):
             branch=inventory.branch,
             product=inventory.product,
             stock_at_alert=inventory.stock,
-            threshold=inventory.low_stock_threshold
+            threshold=inventory.low_stock_threshold,
+            severity=severity
         )

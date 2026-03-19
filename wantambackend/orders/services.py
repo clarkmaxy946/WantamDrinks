@@ -1,6 +1,7 @@
 # orders/services.py
 from django.db import transaction
 from django.core.exceptions import ValidationError
+from inventory.services import check_low_stock
 from .models import Order, OrderItem
 from inventory.models import Inventory
 from analytics.services import update_sales_analytics
@@ -11,7 +12,7 @@ def place_order(user, branch, items):
 
     with transaction.atomic():
 
-        product_ids = [item['product'].id for item in items]
+        product_ids = [item['product'].product_id for item in items]
 
         locked_inventory = Inventory.objects.select_for_update().filter(
             branch=branch,
@@ -20,12 +21,12 @@ def place_order(user, branch, items):
 
         inventory_map = {inv.product_id: inv for inv in locked_inventory}
 
-       
+        # Validate stock for all items
         errors = []
         for item in items:
             product = item['product']
             quantity = item['quantity']
-            inventory = inventory_map.get(product.id)
+            inventory = inventory_map.get(product.product_id)
 
             if not inventory:
                 errors.append(
@@ -42,13 +43,13 @@ def place_order(user, branch, items):
         if errors:
             raise ValidationError(errors)
 
-       
+        # Calculate total
         total_price = sum(
             item['product'].price * item['quantity']
             for item in items
         )
 
-        
+        # Create PENDING order
         order = Order.objects.create(
             user=user,
             branch=branch,
@@ -56,16 +57,27 @@ def place_order(user, branch, items):
             status=Order.Status.PENDING
         )
 
-        
+        # Create order items and deduct stock immediately
+        # Prevents overselling — stock is reserved for this order
         for item in items:
+            product = item['product']
+            quantity = item['quantity']
+            inventory = inventory_map[product.product_id]
+
             OrderItem.objects.create(
                 order=order,
-                product=item['product'],
-                quantity=item['quantity'],
-                price_at_purchase=item['product'].price  # Snapshot price now
+                product=product,
+                quantity=quantity,
+                price_at_purchase=product.price  # Snapshot price now
             )
 
-        # Stock is NOT touched. Waiting for M-Pesa confirmation.
+            # Deduct stock immediately on order creation
+            inventory.stock -= quantity
+            inventory.save()
+
+            # Check if stock is low after deduction
+            check_low_stock(inventory)
+
         return order
 
 
@@ -74,17 +86,34 @@ def confirm_order(order, transaction_id):
 
     with transaction.atomic():
 
-        
+        # Guard against double processing
         if order.status != Order.Status.PENDING:
             raise ValidationError(
                 f"Order {order.order_id} is already {order.status}. "
                 f"Cannot process again."
             )
 
-       
-        items = order.items.select_related('product').all()
-        product_ids = [item.product.id for item in items]
+        # Mark order as COMPLETED
+        # Stock already deducted in place_order() — no deduction here
+        order.status = Order.Status.COMPLETED
+        order.transaction_id = transaction_id
+        order.save()
 
+        # Update analytics
+        update_sales_analytics(order)
+
+        return order
+
+
+def restore_order_stock(order):
+    
+
+    with transaction.atomic():
+
+        items = order.items.select_related('product').all()
+        product_ids = [item.product.product_id for item in items]
+
+        # Lock inventory rows before restoring
         locked_inventory = Inventory.objects.select_for_update().filter(
             branch=order.branch,
             product_id__in=product_ids
@@ -92,35 +121,9 @@ def confirm_order(order, transaction_id):
 
         inventory_map = {inv.product_id: inv for inv in locked_inventory}
 
-        
-        errors = []
+        # Restore stock for each item
         for item in items:
-            inventory = inventory_map.get(item.product.id)
-
-            if not inventory or inventory.stock < item.quantity:
-                available = inventory.stock if inventory else 0
-                errors.append(
-                    f"Stock changed for {item.product.name}. "
-                    f"Requested: {item.quantity}, Available: {available}."
-                )
-
-        if errors:
-            
-            order.status = Order.Status.FAILED
-            order.save()
-            raise ValidationError(errors)
-
-       
-        for item in items:
-            inventory = inventory_map[item.product.id]
-            inventory.stock -= item.quantity
-            inventory.save()
-
-        
-        order.status = Order.Status.COMPLETED
-        order.transaction_id = transaction_id
-        order.save()
-        
-        update_sales_analytics(order) 
-
-        return order
+            inventory = inventory_map.get(item.product.product_id)
+            if inventory:
+                inventory.stock += item.quantity
+                inventory.save()

@@ -1,3 +1,172 @@
-from django.shortcuts import render
+# payments/views.py
+from rest_framework import status
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
+from django.core.exceptions import ValidationError
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
+from .models import Payment
+from .serializers import (
+    InitiatePaymentSerializer,
+    PaymentStatusSerializer,
+    AdminPaymentSerializer,
+)
+from .services import initiate_stk_push, process_mpesa_callback
+from orders.models import Order
 
-# Create your views here.
+
+class InitiatePaymentView(APIView):
+    
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        serializer = InitiatePaymentSerializer(
+            data=request.data,
+            context={'request': request}
+        )
+        if not serializer.is_valid():
+            return Response(
+                serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Get the order — already validated in serializer
+        order = Order.objects.get(
+            order_id=serializer.validated_data['order_id']
+        )
+        phone_number = serializer.validated_data['phone_number']
+
+        # Call service to initiate STK push
+        try:
+            payment = initiate_stk_push(
+                order=order,
+                phone_number=phone_number
+            )
+        except ValidationError as e:
+            return Response(
+                {"error": e.messages if hasattr(e, 'messages') else str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        return Response(
+            {
+                "message": "M-Pesa prompt sent to your phone. "
+                           "Please enter your PIN to complete payment.",
+                "payment_id": payment.payment_id,
+                "order_id": order.order_id,
+                "amount": payment.amount,
+            },
+            status=status.HTTP_200_OK
+        )
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class MpesaCallbackView(APIView):
+    
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        # Pass raw JSON directly to service — no serializer needed
+        # Safaricom's JSON structure is handled internally
+        process_mpesa_callback(request.data)
+
+        # Always return 200 to Safaricom
+        # If we return anything else, Safaricom will keep retrying
+        return Response(
+            {"ResultCode": 0, "ResultDesc": "Accepted"},
+            status=status.HTTP_200_OK
+        )
+
+
+class PaymentStatusView(APIView):
+    
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, payment_id):
+        try:
+            payment = Payment.objects.select_related(
+                'order',
+                'user'
+            ).get(payment_id=payment_id)
+        except Payment.DoesNotExist:
+            return Response(
+                {"error": f"Payment '{payment_id}' not found."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        # Customer can only view their own payment
+        if payment.user != request.user and not request.user.is_staff:
+            return Response(
+                {"error": "You can only view your own payment status."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        serializer = PaymentStatusSerializer(payment)
+        return Response(
+            serializer.data,
+            status=status.HTTP_200_OK
+        )
+
+
+class AdminPaymentListView(APIView):
+    
+    permission_classes = [IsAuthenticated, IsAdminUser]
+
+    def get(self, request):
+        payments = Payment.objects.select_related(
+            'order__branch',
+            'user'
+        ).order_by('-created_at')
+
+        # Filter by status
+        payment_status = request.query_params.get('status')
+        if payment_status:
+            payments = payments.filter(
+                status=payment_status.upper()
+            )
+
+        # Filter by branch
+        branch_id = request.query_params.get('branch_id')
+        if branch_id:
+            payments = payments.filter(
+                order__branch__branch_id=branch_id
+            )
+
+        # Filter by date
+        date = request.query_params.get('date')
+        if date:
+            payments = payments.filter(created_at__date=date)
+
+        serializer = AdminPaymentSerializer(payments, many=True)
+        data = serializer.data
+        return Response(
+            {
+                "total_payments": len(data),
+                "payments": data
+            },
+            status=status.HTTP_200_OK
+        )
+
+
+class AdminPaymentDetailView(APIView):
+   
+    permission_classes = [IsAuthenticated, IsAdminUser]
+
+    def get(self, request, payment_id):
+        try:
+            payment = Payment.objects.select_related(
+                'order__branch',
+                'user'
+            ).get(payment_id=payment_id)
+        except Payment.DoesNotExist:
+            return Response(
+                {"error": f"Payment '{payment_id}' not found."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        serializer = AdminPaymentSerializer(payment)
+        return Response(
+            serializer.data,
+            status=status.HTTP_200_OK
+        )

@@ -1,4 +1,5 @@
 # analytics/views.py
+import calendar
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -49,12 +50,19 @@ class DailySalesReportView(APIView):
         product_id = request.query_params.get('product_id')
         if product_id:
             reports = reports.filter(product__product_id=product_id)
+        
+        totals = reports.aggregate(
+            grand_total_sold=Sum('total_sold'),
+            grand_total_revenue=Sum('total_revenue')
+        )   
 
         serializer = DailySalesReportSerializer(reports, many=True)
         data = serializer.data
         return Response(
             {
                 "total_records": len(data),
+                "grand_total_sold": totals['grand_total_sold'] or 0,
+                "grand_total_revenue": totals['grand_total_revenue'] or 0,
                 "reports": data
             },
             status=status.HTTP_200_OK
@@ -101,12 +109,27 @@ class MonthlySalesReportView(APIView):
         product_id = request.query_params.get('product_id')
         if product_id:
             reports = reports.filter(product__product_id=product_id)
+        
+        totals = reports.aggregate(
+            grand_total_sold=Sum('total_sold'),
+            grand_total_revenue=Sum('total_revenue')
+        )  
+        
+        month_name = None
+        if month:
+            try:
+                month_name = calendar.month_name[int(month)]
+            except (ValueError, IndexError):
+                month_name = None 
 
         serializer = MonthlySalesReportSerializer(reports, many=True)
         data = serializer.data
         return Response(
             {
                 "total_records": len(data),
+                "month_name": month_name,
+                "grand_total_sold": totals['grand_total_sold'] or 0,
+                "grand_total_revenue": totals['grand_total_revenue'] or 0,
                 "reports": data
             },
             status=status.HTTP_200_OK

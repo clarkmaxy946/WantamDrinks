@@ -109,6 +109,29 @@ class PaymentStatusView(APIView):
         )
 
 
+class CustomerPaymentHistoryView(APIView):
+    """
+    GET /api/payments/history/
+    Protected — requires JWT token.
+    Customer views their own payment history.
+    Most recent payments first.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        payments = Payment.objects.filter(
+            user=request.user
+        ).select_related(
+            'order__branch'
+        ).order_by('-created_at')
+
+        serializer = PaymentStatusSerializer(payments, many=True)
+        return Response(
+            serializer.data,
+            status=status.HTTP_200_OK
+        )
+
+
 class AdminPaymentListView(APIView):
     
     permission_classes = [IsAuthenticated, IsAdminUser]

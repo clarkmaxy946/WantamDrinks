@@ -54,12 +54,12 @@ def check_low_stock(inventory):
     
 
     if inventory.is_low:
-        _trigger_low_stock_alert(inventory)
+        trigger_low_stock_alert(inventory)
         return True
     return False
 
 
-def _trigger_low_stock_alert(inventory):
+def trigger_low_stock_alert(inventory):
     
     from alerts.models import StockAlert
 
@@ -69,18 +69,19 @@ def _trigger_low_stock_alert(inventory):
         is_resolved=False
     ).exists()
 
-    if not already_alerted:
+    if  already_alerted:
+        return
         
-        if inventory.stock <= 1:
-            severity = StockAlert.Severity.CRITICAL
-        else:
-            severity = StockAlert.Severity.LOW
+    if inventory.stock <= 1:
+        severity = StockAlert.Severity.CRITICAL
+    else:
+        severity = StockAlert.Severity.LOW
         
-        StockAlert.objects.create(
-            inventory=inventory,
-            branch=inventory.branch,
-            product=inventory.product,
-            stock_at_alert=inventory.stock,
-            threshold=inventory.low_stock_threshold,
-            severity=severity
-        )
+    StockAlert.objects.create(
+        inventory=inventory,
+        branch=inventory.branch,
+        product=inventory.product,
+        stock_at_alert=inventory.stock,
+        threshold=inventory.low_stock_threshold,
+        severity=severity
+    )

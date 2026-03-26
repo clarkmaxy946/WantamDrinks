@@ -195,6 +195,10 @@ def _handle_successful_payment(payment, stk_callback):
 
         
         confirm_order(payment.order, receipt_number)
+        
+            
+        
+        
 
     return payment
 

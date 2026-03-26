@@ -94,6 +94,7 @@ class AdminAlertResolveView(APIView):
     def post(self, request, alert_id):
         try:
             alert = StockAlert.objects.select_related(
+                'inventory',
                 'branch',
                 'product'
             ).get(id=alert_id)
@@ -117,7 +118,17 @@ class AdminAlertResolveView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        resolved_alert = serializer.save()
+        try:
+            resolved_alert = serializer.save()
+        except ValidationError as e:
+            error_detail = e.message_dict if hasattr(e, 'message_dict') else {"error": e.message}
+            return Response(
+                {
+                    "action_required": "restock",
+                    **error_detail
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
         return Response(
             {

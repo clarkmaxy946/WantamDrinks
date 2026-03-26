@@ -15,6 +15,26 @@ def resolve_alert(alert, resolved_by):
             f"Alert for {alert.product.name} at {alert.branch.name} "
             f"is already resolved."
         )
+        
+    inventory = alert.inventory
+    inventory.refresh_from_db()  # Always get the latest stock value
+ 
+    if inventory.stock <= inventory.low_stock_threshold:
+        # Stock is still below threshold — block resolution
+        # Tell the admin exactly what the situation is and where to restock
+        raise ValidationError(
+            {
+                "error": "Cannot resolve alert — stock is still below threshold.",
+                "current_stock": inventory.stock,
+                "threshold": inventory.low_stock_threshold,
+                "units_needed": inventory.low_stock_threshold - inventory.stock + 1,
+                "restock_url": (
+                    f"/api/admin/inventory/"
+                    f"{alert.branch.branch_id}/"
+                    f"{alert.product.product_id}/restock/"
+                ),
+            }
+        )    
 
     
     alert.is_resolved = True

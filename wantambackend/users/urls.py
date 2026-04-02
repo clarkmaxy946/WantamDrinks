@@ -16,4 +16,7 @@ urlpatterns = [
     path('auth/profile/', ProfileView.as_view(), name='profile'),
     path('admin/users/', AdminUserListView.as_view(), name='admin-users'),
     path('admin/users/<str:user_id>/', AdminUserDetailView.as_view(), name='admin-user-detail'),
+    path('auth/register/', RegisterView.as_view(), name='register'),
+    path('auth/login/', LoginView.as_view(), name='login'),
+    
 ]

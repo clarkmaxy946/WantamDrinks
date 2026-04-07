@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>WantamDrinks — Home</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { head: ['Syne','sans-serif'], body: ['DM Sans','sans-serif'] },
+          colors: {
+            primary: '#0A2540', accent: '#00C896', accent2: '#00A3FF',
+            muted: '#7A9AB0', wdtext: '#E8F4F8',
+          },
+          keyframes: {
+            fadeUp:  { from:{ opacity:'0', transform:'translateY(20px)' }, to:{ opacity:'1', transform:'translateY(0)' } },
+            shimmer: { '0%':{ backgroundPosition:'-200% 0' }, '100%':{ backgroundPosition:'200% 0' } },
+            spin:    { to:{ transform:'rotate(360deg)' } },
+            btnGlow: { '0%,100%':{ boxShadow:'0 0 20px rgba(128,0,255,0.5),0 0 60px rgba(0,163,255,0.3)' }, '50%':{ boxShadow:'0 0 40px rgba(128,0,255,0.8),0 0 100px rgba(0,163,255,0.5)' } },
+            pulse2:  { '0%,100%':{ opacity:'1', transform:'scale(1)' }, '50%':{ opacity:'0.4', transform:'scale(1.5)' } },
+          },
+          animation: {
+            fadeUp:  'fadeUp 0.6s ease both',
+            shimmer: 'shimmer 2s linear infinite',
+            spin:    'spin 0.8s linear infinite',
+            btnGlow: 'btnGlow 2.5s ease-in-out infinite',
+            pulse2:  'pulse2 2s ease-in-out infinite',
+          },
+        }
+      }
+    }
+  </script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'DM Sans', sans-serif; background: #0A2540; color: #E8F4F8; overflow: hidden; height: 100vh; }
+
+    /* ── Scrollbars ── */
+    .sb::-webkit-scrollbar { width: 4px; }
+    .sb::-webkit-scrollbar-track { background: transparent; }
+    .sb::-webkit-scrollbar-thumb { background: rgba(0,200,150,0.2); border-radius: 4px; }
+
+    /* ── Background ── */
+    .bg-scene {
+      position: absolute; inset: 0; z-index: 0;
+      background: url('/static/images/WantamDrinks background.png') center/cover no-repeat;
+      filter: blur(1px) brightness(2) saturate(1.3);
+      transform: scale(1.05);
+    }
+    .bg-overlay {
+      position: absolute; inset: 0; z-index: 1;
+      background: linear-gradient(135deg, rgba(10,37,64,0.9) 0%, rgba(10,37,64,0.65) 100%);
+    }
+
+    /* ── Nav item ── */
+    .nav-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 0.65rem 1rem; border-radius: 12px;
+      font-size: 0.875rem; color: #7A9AB0;
+      cursor: pointer; transition: all 0.2s;
+      border: 1px solid transparent;
+      text-decoration: none; user-select: none;
+    }
+    .nav-item:hover { background: rgba(0,200,150,0.07); border-color: rgba(0,200,150,0.18); color: #E8F4F8; }
+    .nav-item.active { background: rgba(0,200,150,0.1); border-color: rgba(0,200,150,0.3); color: #00C896; }
+
+    /* ── Branch dropdown ── */
+    .branch-dropdown { max-height: 0; overflow: hidden; transition: max-height 0.35s ease; }
+    .branch-dropdown.open { max-height: 280px; overflow-y: auto; }
+    .branch-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 0.5rem 1rem 0.5rem 2.5rem;
+      font-size: 0.82rem; color: #7A9AB0;
+      cursor: pointer; border-radius: 8px; transition: all 0.2s;
+    }
+    .branch-item:hover { background: rgba(0,200,150,0.06); color: #00C896; }
+    .branch-item.selected { color: #00C896; font-weight: 600; }
+
+    /* ── Chevron ── */
+    .chevron { transition: transform 0.3s; flex-shrink: 0; }
+    .chevron.open { transform: rotate(180deg); }
+
+    /* ── Product card ── */
+    .product-card {
+      background: rgba(15,52,96,0.45);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(0,200,150,0.15);
+      border-radius: 20px;
+      padding: 1.25rem 1rem 1rem;
+      display: flex; flex-direction: column; align-items: center;
+      transition: transform 0.25s, border-color 0.25s, box-shadow 0.25s;
+      cursor: pointer; position: relative; overflow: hidden;
+      animation: fadeUp 0.6s ease both;
+    }
+    .product-card::before {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(180deg, rgba(0,200,150,0.04) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    .product-card:hover {
+      transform: translateY(-6px);
+      border-color: rgba(0,200,150,0.4);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4), 0 0 30px rgba(0,200,150,0.1);
+    }
+    .product-card:nth-child(1) { animation-delay: 0.08s; }
+    .product-card:nth-child(2) { animation-delay: 0.16s; }
+    .product-card:nth-child(3) { animation-delay: 0.24s; }
+    .product-card:nth-child(n+4) { animation-delay: 0.32s; }
+
+    /* ── Price badge ── */
+    .price-badge {
+      background: rgba(10,37,64,0.75);
+      border: 1px solid rgba(0,200,150,0.25);
+      border-radius: 8px; padding: 0.35rem 1rem;
+      font-size: 0.88rem; color: #E8F4F8;
+      font-family: 'Syne', sans-serif; font-weight: 600;
+    }
+
+    /* ── Make Order button ── */
+    .make-order-btn {
+      background: linear-gradient(90deg, #7B2FF7, #00A3FF, #00C896);
+      background-size: 200% 100%;
+      border: none; border-radius: 14px;
+      padding: 1rem 2rem;
+      font-family: 'Syne', sans-serif;
+      font-size: 1.05rem; font-weight: 800;
+      color: white; cursor: pointer; width: 100%;
+      letter-spacing: 2px; text-transform: uppercase;
+      transition: background-position 0.4s, transform 0.15s;
+      animation: btnGlow 2.5s ease-in-out infinite;
+    }
+    .make-order-btn:hover { background-position: 100% 0; transform: translateY(-2px); }
+    .make-order-btn:active { transform: translateY(0); }
+    .make-order-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; animation: none; }
+
+    /* ── Search ── */
+    .search-input {
+      background: rgba(10,37,64,0.65);
+      border: 1px solid rgba(0,200,150,0.15);
+      border-radius: 10px; padding: 0.5rem 1rem 0.5rem 2.4rem;
+      font-family: 'DM Sans', sans-serif; font-size: 0.875rem;
+      color: #E8F4F8; outline: none; width: 200px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .search-input::placeholder { color: rgba(122,154,176,0.45); }
+    .search-input:focus { border-color: #00C896; box-shadow: 0 0 0 3px rgba(0,200,150,0.1); }
+
+    /* ── Skeleton ── */
+    .skeleton {
+      background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 10px;
+    }
+
+    /* ── Spinner ── */
+    .spinner {
+      border: 2px solid rgba(0,200,150,0.2);
+      border-top-color: #00C896;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    /* ── Inline panels ── */
+    #inlinePanel { display: none; }
+    #inlinePanel.show { display: block; }
+    #catalogueView.hide { display: none; }
+
+    /* ── Notif dot ── */
+    .notif-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: #00C896; flex-shrink: 0;
+      box-shadow: 0 0 6px rgba(0,200,150,0.6);
+      animation: pulse2 2s ease-in-out infinite;
+    }
+
+    /* ── Alert ── */
+    .alert-bar {
+      border-radius: 10px; padding: 0.7rem 1rem;
+      font-size: 0.84rem; display: none;
+      align-items: center; gap: 8px; margin-bottom: 1rem;
+    }
+    .alert-bar.show { display: flex; }
+    .alert-bar.error { background: rgba(255,107,107,0.1); border: 1px solid rgba(255,107,107,0.3); color: #ff9b9b; }
+    .alert-bar.warn  { background: rgba(255,179,71,0.1);  border: 1px solid rgba(255,179,71,0.3);  color: #ffb347; }
+    .alert-bar.ok    { background: rgba(0,200,150,0.1);   border: 1px solid rgba(0,200,150,0.3);   color: #00C896; }
+
+    /* ── Mobile sidebar overlay ── */
+    #sidebarOverlay { display: none; position: fixed; inset: 0; z-index: 25; background: rgba(0,0,0,0.5); }
+    #sidebarOverlay.show { display: block; }
+    @media (max-width: 768px) {
+      body { overflow: auto; }
+      #sidebar {
+        position: fixed; left: -280px; top: 0; bottom: 0; z-index: 30;
+        transition: left 0.3s ease;
+      }
+      #sidebar.open { left: 0; }
+      #mainArea { width: 100%; }
+    }
+    @media (min-width: 769px) {
+      #mobileMenuBtn { display: none; }
+    }
+  </style>
+</head>
+
+<body class="flex h-screen overflow-hidden">
+
+<!-- Mobile overlay -->
+<div id="sidebarOverlay" onclick="closeMobileSidebar()"></div>
+
+<!-- ══════════════════════════════════════════════
+     SIDEBAR
+══════════════════════════════════════════════ -->
+<aside id="sidebar" class="sb relative z-20 flex flex-col w-72 min-h-screen overflow-y-auto flex-shrink-0"
+       style="background:rgba(6,22,42,0.97);border-right:1px solid rgba(0,200,150,0.1);">
+
+  <!-- Logo -->
+  <div class="flex items-center gap-3 px-5 py-5 flex-shrink-0" style="border-bottom:1px solid rgba(0,200,150,0.1);">
+    <div class="relative w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden"
+         style="background:linear-gradient(135deg,#00C896,#00A3FF);box-shadow:0 0 20px rgba(0,200,150,0.4);">
+      <span class="font-head font-black text-sm" style="color:#0A2540;">WD</span>
+      <div class="absolute inset-0" style="background:linear-gradient(45deg,transparent 40%,rgba(255,255,255,0.15) 50%,transparent 60%);animation:shimmer 3s infinite;background-size:200% 100%;"></div>
+    </div>
+    <span class="font-head font-bold text-base text-wdtext">Wantam<span class="text-accent">Drinks</span></span>
+  </div>
+
+  <!-- Nav -->
+  <nav class="flex flex-col gap-1 px-3 pt-5 flex-1" role="navigation" aria-label="Main navigation">
+
+    <!-- My Profile -->
+    <button id="profileNav" class="nav-item w-full text-left"
+            aria-label="View my profile"
+            onclick="showPanel('profile', this)">
+      <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+      </svg>
+      My Profile
+    </button>
+
+    <!-- Branches -->
+    <div>
+      <button class="nav-item w-full" id="branchToggle"
+              aria-expanded="false" aria-controls="branchDropdown"
+              aria-label="Toggle branch list"
+              onclick="toggleBranches()">
+        <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+        </svg>
+        <span class="flex-1 text-left">Branches</span>
+        <svg id="branchChevron" class="chevron w-4 h-4" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="6 9 12 15 18 9"/>
+        </svg>
+      </button>
+      <div class="branch-dropdown sb" id="branchDropdown" role="listbox" aria-label="Branch list">
+        <div id="branchList" class="py-1">
+          <div class="flex items-center gap-2 px-4 py-3 text-xs text-muted">
+            <div class="spinner w-4 h-4 flex-shrink-0"></div> Loading branches…
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- My Past Transactions -->
+    <button class="nav-item w-full text-left"
+            aria-label="View past transactions"
+            onclick="showPanel('transactions', this)">
+      <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/>
+      </svg>
+      My Past Transactions
+    </button>
+
+  </nav>
+
+  <!-- Contact Us footer -->
+  <div class="mx-3 mb-4 mt-6 rounded-2xl p-4 flex-shrink-0"
+       style="background:rgba(10,37,64,0.6);border:1px solid rgba(0,200,150,0.12);">
+    <p class="font-head text-xs font-bold mb-3 text-wdtext tracking-wide">Contact Us</p>
+    <div class="flex flex-col gap-2">
+      <div class="flex items-center gap-2">
+        <div class="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
+             style="background:rgba(0,200,150,0.1);border:1px solid rgba(0,200,150,0.2);">
+          <svg aria-hidden="true" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#00C896" stroke-width="2">
+            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.6 3.48 2 2 0 0 1 3.57 1.32h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.86a16 16 0 0 0 6 6l.86-.86a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7a2 2 0 0 1 1.72 2.04z"/>
+          </svg>
+        </div>
+        <a href="tel:+254716984886" class="text-xs text-muted hover:text-accent transition-colors">+254 716 984 886</a>
+      </div>
+      <div class="flex items-center gap-2">
+        <div class="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
+             style="background:rgba(0,163,255,0.1);border:1px solid rgba(0,163,255,0.2);">
+          <svg aria-hidden="true" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#00A3FF" stroke-width="2">
+            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>
+          </svg>
+        </div>
+        <a href="mailto:support@wantamdrinks.com" class="text-xs text-muted hover:text-accent2 transition-colors">support@wantamdrinks.com</a>
+      </div>
+    </div>
+  </div>
+
+</aside>
+
+<!-- ══════════════════════════════════════════════
+     MAIN AREA
+══════════════════════════════════════════════ -->
+<div id="mainArea" class="relative flex-1 flex flex-col overflow-hidden">
+
+  <!-- Background layers -->
+  <div class="bg-scene" role="presentation"></div>
+  <div class="bg-overlay" role="presentation"></div>
+
+  <!-- ── Header ── -->
+  <header class="relative z-10 flex items-center justify-between px-5 md:px-8 pt-5 pb-2 flex-shrink-0">
+
+    <!-- Mobile menu button -->
+    <button id="mobileMenuBtn"
+            class="mr-3 p-2 rounded-xl transition-all flex-shrink-0"
+            style="background:rgba(15,52,96,0.5);border:1px solid rgba(0,200,150,0.15);"
+            aria-label="Open navigation menu"
+            onclick="openMobileSidebar()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7A9AB0" stroke-width="2">
+        <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+      </svg>
+    </button>
+
+    <h1 class="font-head font-black text-2xl md:text-3xl lg:text-4xl flex-1 min-w-0 truncate text-wdtext">
+      Welcome,&nbsp;<span id="usernameDisplay"
+        style="background:linear-gradient(90deg,#00C896,#00A3FF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">—</span>
+    </h1>
+
+    <div class="flex items-center gap-3 flex-shrink-0 ml-3">
+      <!-- Search (hidden on small screens) -->
+      <div class="relative hidden sm:block">
+        <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" aria-hidden="true"
+             style="color:#7A9AB0;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <label for="searchInput" class="sr-only">Search products</label>
+        <input class="search-input" id="searchInput" type="search"
+               placeholder="Search products…" autocomplete="off"
+               aria-label="Search products"
+               oninput="filterProducts()"/>
+      </div>
+
+      <!-- Avatar -->
+      <div class="flex items-center gap-2 px-3 py-2 rounded-xl cursor-pointer transition-all"
+           style="background:rgba(15,52,96,0.5);border:1px solid rgba(0,200,150,0.15);"
+           role="button" tabindex="0" aria-label="User profile"
+           onmouseover="this.style.borderColor='rgba(0,200,150,0.35)'"
+           onmouseout="this.style.borderColor='rgba(0,200,150,0.15)'"
+           onclick="showPanel('profile', document.getElementById('profileNav'))">
+        <div id="avatarInitial"
+             class="w-8 h-8 rounded-lg flex items-center justify-center font-head font-bold text-sm flex-shrink-0"
+             aria-hidden="true"
+             style="background:linear-gradient(135deg,#00C896,#00A3FF);color:#0A2540;">—</div>
+        <span class="text-sm hidden md:inline text-wdtext" id="headerUsername">—</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── Main Content ── -->
+  <main class="sb relative z-10 flex-1 overflow-y-auto px-5 md:px-8 pb-8 pt-4" role="main">
+
+    <!-- Global alert bar -->
+    <div class="alert-bar" id="alertBar" role="alert" aria-live="polite">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+      <span id="alertMsg"></span>
+      <button onclick="hideAlert()" class="ml-auto text-xs opacity-60 hover:opacity-100 transition-opacity"
+              aria-label="Dismiss alert">✕</button>
+    </div>
+
+    <!-- ── CATALOGUE VIEW ── -->
+    <div id="catalogueView">
+
+      <!-- Branch label -->
+      <div class="flex items-center gap-2 mb-5">
+        <div class="notif-dot" aria-hidden="true"></div>
+        <p class="text-sm">
+          <span style="color:#7A9AB0;">Now Viewing: </span>
+          <span id="activeBranchLabel" class="font-head font-semibold" style="color:#00C896;">Select a branch</span>
+          <span style="color:#E8F4F8;"> Catalogue</span>
+        </p>
+      </div>
+
+      <!-- Product grid — responsive: 1 col mobile, 2 cols tablet, 3 cols desktop -->
+      <div id="productGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-6"
+           role="list" aria-label="Product catalogue">
+        <!-- Skeletons on load -->
+        <div class="product-card" style="animation:none;" role="listitem" aria-hidden="true">
+          <div class="skeleton w-32 h-44 mb-4"></div>
+          <div class="skeleton w-20 h-4 mb-3"></div>
+          <div class="skeleton w-24 h-8"></div>
+        </div>
+        <div class="product-card" style="animation:none;" role="listitem" aria-hidden="true">
+          <div class="skeleton w-32 h-44 mb-4"></div>
+          <div class="skeleton w-20 h-4 mb-3"></div>
+          <div class="skeleton w-24 h-8"></div>
+        </div>
+        <div class="product-card" style="animation:none;" role="listitem" aria-hidden="true">
+          <div class="skeleton w-32 h-44 mb-4"></div>
+          <div class="skeleton w-20 h-4 mb-3"></div>
+          <div class="skeleton w-24 h-8"></div>
+        </div>
+      </div>
+
+      <!-- No results -->
+      <div id="noResults" class="hidden text-center py-16" role="status" aria-live="polite">
+        <svg class="mx-auto mb-3 w-12 h-12" aria-hidden="true" style="color:rgba(122,154,176,0.3);" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <p class="font-head text-lg" style="color:rgba(122,154,176,0.5);">No products found</p>
+        <button onclick="resetSearch()" class="mt-3 text-sm text-accent hover:underline">Clear search</button>
+      </div>
+
+      <!-- Make Order -->
+      <div class="mt-2">
+        <button class="make-order-btn" id="makeOrderBtn"
+                aria-label="Go to order page"
+                onclick="handleMakeOrder()">
+          Make Order
+        </button>
+      </div>
+
+      
+
+
+
+      <!-- Footer line -->
+      <div class="flex items-center justify-between mt-5 pt-3" style="border-top:1px solid rgba(0,200,150,0.08);">
+        <span class="text-xs" style="color:rgba(122,154,176,0.35);">Powered by WantamDrinks Platform</span>
+        <span class="text-xs font-head" style="color:rgba(0,200,150,0.35);">Supervisor: <span style="color:#00C896;">Wantam Drinks</span></span>
+      </div>
+    </div>
+
+    <!-- ── INLINE PANEL (profile / transactions) ── -->
+    <div id="inlinePanel" role="region">
+      <button onclick="closePanel()"
+              class="flex items-center gap-2 text-sm mb-6 transition-colors"
+              style="color:#7A9AB0;"
+              aria-label="Back to catalogue"
+              onmouseover="this.style.color='#00C896'" onmouseout="this.style.color='#7A9AB0'">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+        Back to Catalogue
+      </button>
+
+      <!-- Profile -->
+      <div id="profileContent" class="hidden" role="region" aria-label="My profile">
+        <div class="rounded-2xl p-6 md:p-8" style="background:rgba(15,52,96,0.5);border:1px solid rgba(0,200,150,0.15);">
+          <div class="flex flex-col sm:flex-row items-center sm:items-start gap-5">
+            <div id="profileAvatar"
+                 class="w-20 h-20 rounded-2xl flex items-center justify-center font-head font-black text-3xl flex-shrink-0"
+                 aria-hidden="true"
+                 style="background:linear-gradient(135deg,#00C896,#00A3FF);color:#0A2540;">—</div>
+            <div>
+              <h2 class="font-head font-bold text-2xl mb-1 text-wdtext" id="profileName">—</h2>
+              <p class="text-sm text-muted mb-1" id="profileEmail">—</p>
+              <p class="text-sm text-muted" id="profileId"></p>
+              <span class="inline-block mt-3 text-xs px-3 py-1 rounded-full font-semibold"
+                    id="profileBadge"
+                    style="background:rgba(0,200,150,0.1);border:1px solid rgba(0,200,150,0.25);color:#00C896;">Customer</span>
+            </div>
+          </div>
+          <div class="mt-6 pt-5" style="border-top:1px solid rgba(0,200,150,0.1);">
+            <p class="text-sm text-muted">Full profile editing coming soon. Visit <a href="/profile/" class="text-accent hover:underline">your profile page</a> for more options.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Transactions -->
+      <div id="transactionsContent" class="hidden" role="region" aria-label="Past transactions">
+        <div class="rounded-2xl p-6 md:p-8" style="background:rgba(15,52,96,0.5);border:1px solid rgba(0,200,150,0.15);">
+          <div class="flex items-center gap-3 mb-5">
+            <svg class="w-6 h-6" aria-hidden="true" style="color:#00C896;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/>
+            </svg>
+            <h2 class="font-head font-bold text-xl text-wdtext">Past Transactions</h2>
+          </div>
+          <div id="transactionsList">
+            <div class="flex items-center justify-center gap-3 py-10 text-muted text-sm">
+              <div class="spinner w-5 h-5"></div> Loading transactions…
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div><!-- end main -->
+
+<script>
+  const API = '/api';
+
+  /* ─────────────────────────────────────────────
+     AUTH — secure, with token refresh + guards
+  ───────────────────────────────────────────── */
+  const Auth = {
+    save(data) {
+      const keys = {
+        access_token:     data.access        || '',
+        refresh_token:    data.refresh       || '',
+        is_staff:         String(data.is_staff || false),
+        wnt_id:           String(data.wnt_id || data.user_id || ''),
+        email:            data.email         || '',
+        username:         data.username      || '',
+        token_expires_at: String(Date.now() + 14 * 60 * 1000),
+      };
+      Object.entries(keys).forEach(([k,v]) => sessionStorage.setItem(k,v));
+    },
+    clear() {
+      ['access_token','refresh_token','is_staff','wnt_id','email','username','token_expires_at']
+        .forEach(k => sessionStorage.removeItem(k));
+    },
+    isLoggedIn()  { return !!sessionStorage.getItem('access_token'); },
+    isStaff()     { return sessionStorage.getItem('is_staff') === 'true'; },
+    getUsername() { return sessionStorage.getItem('username') || ''; },
+    getEmail()    { return sessionStorage.getItem('email')    || ''; },
+    getId()       { return sessionStorage.getItem('wnt_id')   || ''; },
+
+    async refresh() {
+      const rt = sessionStorage.getItem('refresh_token');
+      if (!rt) return false;
+      try {
+        const res = await fetch(`${API}/auth/token/refresh/`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refresh: rt }),
+        });
+        if (!res.ok) { Auth.clear(); return false; }
+        const data = await res.json();
+        sessionStorage.setItem('access_token',     data.access || '');
+        sessionStorage.setItem('token_expires_at', String(Date.now() + 14 * 60 * 1000));
+        return true;
+      } catch { Auth.clear(); return false; }
+    },
+
+    async getValidToken() {
+      const exp = parseInt(sessionStorage.getItem('token_expires_at') || '0', 10);
+      if (Date.now() >= exp - 30000) {           // refresh 30s before expiry
+        const ok = await Auth.refresh();
+        if (!ok) { window.location.href = '/login/'; return null; }
+      }
+      return sessionStorage.getItem('access_token');
+    },
+
+    async fetch(url, options = {}) {
+      const token = await Auth.getValidToken();
+      if (!token) return null;
+      return fetch(url, {
+        ...options,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          ...(options.headers || {}),
+        },
+      });
+    },
+  };
+
+  /* ─── Guard ─── */
+  if (!Auth.isLoggedIn()) { window.location.href = '/login/'; }
+
+  /* ─── Populate UI with stored user info ─── */
+  function populateUser() {
+    const username = Auth.getUsername();
+    const initial  = username ? username.charAt(0).toUpperCase() : '?';
+
+    document.getElementById('usernameDisplay').textContent = username || 'there';
+    document.getElementById('headerUsername').textContent  = username || '';
+    document.getElementById('avatarInitial').textContent   = initial;
+    document.getElementById('profileAvatar').textContent   = initial;
+    document.getElementById('profileName').textContent     = username || '—';
+    document.getElementById('profileEmail').textContent    = Auth.getEmail() || '—';
+    document.getElementById('profileId').textContent       = Auth.getId() ? `ID: ${Auth.getId()}` : '';
+    if (Auth.isStaff()) {
+      document.getElementById('profileBadge').textContent = 'Staff';
+      document.getElementById('profileBadge').style.color = '#00A3FF';
+    }
+  }
+  populateUser();
+
+  /* ─────────────────────────────────────────────
+     ALERT HELPERS
+  ───────────────────────────────────────────── */
+  function showAlert(msg, type = 'error') {
+    const bar = document.getElementById('alertBar');
+    document.getElementById('alertMsg').textContent = msg;
+    bar.className = `alert-bar show ${type}`;
+  }
+  function hideAlert() {
+    document.getElementById('alertBar').className = 'alert-bar';
+  }
+
+  /* ─────────────────────────────────────────────
+     MOBILE SIDEBAR
+  ───────────────────────────────────────────── */
+  function openMobileSidebar() {
+    document.getElementById('sidebar').classList.add('open');
+    document.getElementById('sidebarOverlay').classList.add('show');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeMobileSidebar() {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('sidebarOverlay').classList.remove('show');
+    document.body.style.overflow = '';
+  }
+
+  /* ─────────────────────────────────────────────
+     BRANCHES
+  ───────────────────────────────────────────── */
+  let branchesOpen = false;
+  let branchesLoaded = false;
+
+  function toggleBranches() {
+    branchesOpen = !branchesOpen;
+    const dropdown = document.getElementById('branchDropdown');
+    const chevron  = document.getElementById('branchChevron');
+    const toggle   = document.getElementById('branchToggle');
+    dropdown.classList.toggle('open', branchesOpen);
+    chevron.classList.toggle('open',  branchesOpen);
+    toggle.classList.toggle('active', branchesOpen);
+    toggle.setAttribute('aria-expanded', String(branchesOpen));
+  }
+
+  async function loadBranches() {
+    if (branchesLoaded) return;
+    try {
+      const res = await fetch(`${API}/branches/`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const raw = await res.json();
+      const branches = Array.isArray(raw) ? raw : (raw.branches || raw.results || []);
+      renderBranches(branches);
+      branchesLoaded = true;
+    } catch (err) {
+      console.warn('Branch fetch failed:', err.message);
+      document.getElementById('branchList').innerHTML =
+        '<div class="branch-item text-xs" style="color:rgba(255,107,107,0.7);">Could not load branches</div>';
+    }
+  }
+
+  function renderBranches(branches) {
+    const list = document.getElementById('branchList');
+    if (!branches.length) {
+      list.innerHTML = '<div class="branch-item" style="color:rgba(122,154,176,0.4);">No branches available</div>';
+      return;
+    }
+    list.innerHTML = branches.map(b => {
+      // Safely escape branch name for display (prevent XSS)
+      const safeName = String(b.name || '').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      return `
+        <div class="branch-item" id="branch-${Number(b.id)}"
+             role="option" tabindex="0" aria-selected="false"
+             data-id="${Number(b.id)}" data-name="${safeName}"
+             onclick="selectBranch(${Number(b.id)}, this)"
+             onkeydown="if(event.key==='Enter')selectBranch(${Number(b.id)}, this)">
+          <svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"/>
+          </svg>
+          ${safeName}
+        </div>`;
+    }).join('');
+  }
+
+  async function selectBranch(branchId, el) {
+    const branchName = el.dataset.name;
+
+    // Update selection UI
+    document.querySelectorAll('.branch-item').forEach(i => {
+      i.classList.remove('selected');
+      i.setAttribute('aria-selected','false');
+    });
+    el.classList.add('selected');
+    el.setAttribute('aria-selected','true');
+
+    // Update label
+    document.getElementById('activeBranchLabel').textContent = branchName;
+
+    // Close dropdown
+    branchesOpen = false;
+    document.getElementById('branchDropdown').classList.remove('open');
+    document.getElementById('branchChevron').classList.remove('open');
+    document.getElementById('branchToggle').classList.remove('active');
+    document.getElementById('branchToggle').setAttribute('aria-expanded','false');
+
+    // Show catalogue
+    closePanel();
+    closeMobileSidebar();
+
+    // Load products for this branch
+    await loadProducts(branchId);
+  }
+
+  /* ─────────────────────────────────────────────
+     PRODUCTS
+  ───────────────────────────────────────────── */
+  let allProducts = [];
+
+  function showSkeletons() {
+    document.getElementById('productGrid').innerHTML = [1,2,3].map(() => `
+      <div class="product-card" style="animation:none;" role="listitem" aria-hidden="true">
+        <div class="skeleton w-32 h-44 mb-4"></div>
+        <div class="skeleton w-20 h-4 mb-3"></div>
+        <div class="skeleton w-24 h-8"></div>
+      </div>`).join('');
+    document.getElementById('noResults').classList.add('hidden');
+    hideAlert();
+  }
+
+  async function loadProducts(branchId) {
+    showSkeletons();
+    try {
+      // Use authenticated fetch for branch inventory
+      let res = null;
+      if (branchId) {
+        res = await Auth.fetch(`${API}/inventory/${branchId}/`);
+      }
+      // If branch endpoint fails or no branchId, fall back to general products
+      if (!res || !res.ok) {
+        res = await Auth.fetch(`${API}/products/`);
+      }
+      if (!res || !res.ok) throw new Error(`HTTP ${res ? res.status : 'no response'}`);
+
+      let raw;
+      try { raw = await res.json(); }
+      catch { throw new Error('Invalid JSON from server'); }
+
+      allProducts = Array.isArray(raw) ? raw : (raw.products || raw.results || raw.inventory || []);
+      renderProducts(allProducts);
+    } catch (err) {
+      console.error('Product load error:', err.message);
+      showAlert(`Could not load products: ${err.message}`, 'error');
+      document.getElementById('productGrid').innerHTML = `
+        <div class="col-span-3 text-center py-12">
+          <p class="font-head mb-4" style="color:rgba(255,107,107,0.7);">Could not load products.</p>
+          <button onclick="retryLoad()" class="px-4 py-2 rounded-xl text-sm font-semibold transition-all"
+                  style="background:rgba(0,200,150,0.1);border:1px solid rgba(0,200,150,0.25);color:#00C896;"
+                  aria-label="Retry loading products">
+            Retry
+          </button>
+        </div>`;
+    }
+  }
+
+  let lastBranchId = null;
+  async function selectBranchAndStore(id, el) {
+    lastBranchId = id;
+    await selectBranch(id, el);
+  }
+
+  function retryLoad() {
+    loadProducts(lastBranchId);
+  }
+
+  function renderProducts(products) {
+    const grid = document.getElementById('productGrid');
+    if (!products.length) {
+      grid.innerHTML = '';
+      document.getElementById('noResults').classList.remove('hidden');
+      return;
+    }
+    document.getElementById('noResults').classList.add('hidden');
+
+    grid.innerHTML = products.map((p, i) => {
+      // Safe price parsing — never crash on null/undefined
+      const price    = (p.price != null && !isNaN(parseFloat(p.price)))
+                         ? parseFloat(p.price).toFixed(2)
+                         : 'N/A';
+      const name     = p.name    ? String(p.name).replace(/</g,'&lt;') : 'Unknown';
+      const imgSrc   = p.image_url || p.image || '/static/images/placeholder.png';
+      const inStock  = p.stock == null ? null : Number(p.stock);
+      const stockHtml = inStock !== null
+        ? `<p class="mt-2 text-xs" style="color:${inStock > 0 ? 'rgba(0,200,150,0.7)' : 'rgba(255,107,107,0.7)'};">
+             ${inStock > 0 ? `${inStock} in stock` : 'Out of stock'}
+           </p>`
+        : '';
+
+      return `
+        <div class="product-card" style="animation-delay:${i * 0.08}s;"
+             role="listitem" aria-label="${name} — KES ${price}">
+          <div class="relative mb-3 flex items-center justify-center w-full" style="height:175px;">
+            <img
+              src="${imgSrc}"
+              alt="${name}"
+              loading="lazy"
+              style="max-height:165px;max-width:130px;object-fit:contain;filter:drop-shadow(0 10px 28px rgba(0,0,0,0.5));transition:transform 0.3s;"
+              onmouseover="this.style.transform='scale(1.07)'"
+              onmouseout="this.style.transform='scale(1)'"
+              onerror="this.onerror=null;this.src='/static/images/placeholder.png';"
+            />
+          </div>
+          <p class="font-body text-base mb-3 text-center text-wdtext">${name}</p>
+          <div class="price-badge" aria-label="Price: KES ${price}">KES ${price}</div>
+          ${stockHtml}
+        </div>`;
+    }).join('');
+  }
+
+  /* ─────────────────────────────────────────────
+     SEARCH
+  ───────────────────────────────────────────── */
+  function filterProducts() {
+    const q = (document.getElementById('searchInput').value || '').toLowerCase().trim();
+    if (!q) { renderProducts(allProducts); return; }
+    const filtered = allProducts.filter(p =>
+      p.name && p.name.toLowerCase().includes(q)
+    );
+    renderProducts(filtered);
+  }
+
+  function resetSearch() {
+    const el = document.getElementById('searchInput');
+    if (el) el.value = '';
+    renderProducts(allProducts);
+  }
+
+  /* ─────────────────────────────────────────────
+     MAKE ORDER
+  ───────────────────────────────────────────── */
+  function handleMakeOrder() {
+    if (!allProducts.length) {
+      showAlert('Please select a branch and wait for products to load before ordering.', 'warn');
+      return;
+    }
+    window.location.href = '/order/';
+  }
+
+  /* ─────────────────────────────────────────────
+     INLINE PANELS
+  ───────────────────────────────────────────── */
+  function showPanel(type, navEl) {
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    if (navEl) navEl.classList.add('active');
+
+    document.getElementById('catalogueView').classList.add('hide');
+    document.getElementById('inlinePanel').classList.add('show');
+    document.getElementById('profileContent').classList.add('hidden');
+    document.getElementById('transactionsContent').classList.add('hidden');
+
+    if (type === 'profile') {
+      document.getElementById('profileContent').classList.remove('hidden');
+    } else if (type === 'transactions') {
+      document.getElementById('transactionsContent').classList.remove('hidden');
+      loadTransactions();
+    }
+
+    closeMobileSidebar();
+  }
+
+  function closePanel() {
+    document.getElementById('inlinePanel').classList.remove('show');
+    document.getElementById('catalogueView').classList.remove('hide');
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  }
+
+  /* ─────────────────────────────────────────────
+     TRANSACTIONS (stub — ready for real API)
+  ───────────────────────────────────────────── */
+  let txLoaded = false;
+  async function loadTransactions() {
+    if (txLoaded) return;
+    const list = document.getElementById('transactionsList');
+    try {
+      const res = await Auth.fetch(`${API}/orders/`);
+      if (!res || !res.ok) throw new Error(`HTTP ${res ? res.status : 'no response'}`);
+      const raw = await res.json();
+      const orders = Array.isArray(raw) ? raw : (raw.results || raw.orders || []);
+      txLoaded = true;
+
+      if (!orders.length) {
+        list.innerHTML = `
+          <div class="text-center py-10">
+            <p class="text-muted text-sm">You have no past transactions yet.</p>
+            <button onclick="closePanel()" class="mt-3 text-sm text-accent hover:underline">Browse products</button>
+          </div>`;
+        return;
+      }
+
+      list.innerHTML = orders.map(o => {
+        const date   = o.created_at ? new Date(o.created_at).toLocaleDateString() : '—';
+        const amount = o.total != null ? `KES ${parseFloat(o.total).toFixed(2)}` : '—';
+        const status = (o.status || 'pending').toUpperCase();
+        const statusColor = o.status === 'completed' ? '#00C896' : o.status === 'failed' ? '#ff6b6b' : '#ffb347';
+        return `
+          <div class="flex items-center justify-between py-3 px-1" style="border-bottom:1px solid rgba(0,200,150,0.08);">
+            <div>
+              <p class="text-sm font-semibold text-wdtext">${o.id ? `#${o.id}` : 'Order'}</p>
+              <p class="text-xs text-muted">${date}</p>
+            </div>
+            <div class="text-right">
+              <p class="text-sm font-head font-bold text-wdtext">${amount}</p>
+              <p class="text-xs font-semibold" style="color:${statusColor};">${status}</p>
+            </div>
+          </div>`;
+      }).join('');
+    } catch (err) {
+      console.error('Transactions error:', err.message);
+      list.innerHTML = `
+        <div class="text-center py-10">
+          <p class="text-sm" style="color:rgba(255,107,107,0.7);">Could not load transactions.</p>
+          <button onclick="txLoaded=false;loadTransactions();" class="mt-3 text-sm text-accent hover:underline"
+                  aria-label="Retry loading transactions">Retry</button>
+        </div>`;
+    }
+  }
+
+  /* ─────────────────────────────────────────────
+     INIT — load branches only, NO pre-load of products
+     Products load only when a branch is selected
+  ───────────────────────────────────────────── */
+  loadBranches();
+</script>
+
+</body>
+</html>

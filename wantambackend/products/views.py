@@ -19,7 +19,7 @@ class ProductListView(APIView):
 
     def get(self, request):
         products = Product.objects.all()
-        serializer = ProductSerializer(products, many=True)
+        serializer = ProductSerializer(products, many=True, context={'request': request})
         return Response(
             serializer.data,
             status=status.HTTP_200_OK
@@ -64,7 +64,7 @@ class AdminProductListView(APIView):
 
     def get(self, request):
         products = Product.objects.all()
-        serializer = AdminProductSerializer(products, many=True)
+        serializer = AdminProductSerializer(products, many=True, context={'request': request})
         data = serializer.data
         return Response(
             {
@@ -75,13 +75,13 @@ class AdminProductListView(APIView):
         )
 
     def post(self, request):
-        serializer = AdminProductSerializer(data=request.data)
+        serializer = AdminProductSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
             product = serializer.save()
             return Response(
                 {
                     "message": f"Product '{product.name}' created successfully.",
-                    "data": AdminProductSerializer(product).data
+                    "data": AdminProductSerializer(product, context={'request': request}).data
                 },
                 status=status.HTTP_201_CREATED
             )
@@ -113,7 +113,7 @@ class AdminProductDetailView(APIView):
                 {"error": f"Product '{product_id}' not found."},
                 status=status.HTTP_404_NOT_FOUND
             )
-        serializer = AdminProductSerializer(product)
+        serializer = AdminProductSerializer(product, context={'request': request})
         return Response(
             serializer.data,
             status=status.HTTP_200_OK
@@ -129,9 +129,10 @@ class AdminProductDetailView(APIView):
         serializer = AdminProductSerializer(
             product,
             data=request.data,
-            partial=True
+            partial=True,
+            context={'request': request}
         )
-        if serializer.is_valid():
+        if serializer.is_valid(): 
             serializer.save()
             return Response(
                 {

@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>WantamDrinks — Quench Your Thirst</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            head: ["Syne", "sans-serif"],
+            body: ["DM Sans", "sans-serif"],
+          },
+          colors: {
+            np:      "#b44fff",
+            nc:      "#00e5ff",
+            na:      "#ffb347",
+            dark:    "#08040e",
+            wdmuted: "#a89bbf",
+            wdtext:  "#f0e8ff",
+          },
+          keyframes: {
+            fadeUp: { from: { opacity:"0", transform:"translateY(28px)" }, to: { opacity:"1", transform:"translateY(0)" } },
+            floatImg: { "0%,100%": { transform:"translateY(0px) rotate(-1deg)" }, "50%": { transform:"translateY(-16px) rotate(1deg)" } },
+            floatC1:  { "0%,100%": { transform:"translateY(0)" }, "50%": { transform:"translateY(-10px)" } },
+            floatC2:  { "0%,100%": { transform:"translateY(0)" }, "50%": { transform:"translateY(-8px)" } },
+            pulse2:   { "0%,100%": { opacity:"1", transform:"scale(1)" }, "50%": { opacity:"0.35", transform:"scale(1.6)" } },
+            shimmer:  { "0%": { left:"-100%" }, "100%": { left:"200%" } },
+            borderGlow: {
+              "0%,100%": { boxShadow:"0 0 0 1px rgba(180,79,255,0.4), 0 0 30px rgba(180,79,255,0.1)" },
+              "50%":      { boxShadow:"0 0 0 1px rgba(0,229,255,0.4), 0 0 30px rgba(0,229,255,0.1)" },
+            },
+          },
+          animation: {
+            fadeUp:   "fadeUp 0.85s ease both",
+            fadeUpD1: "fadeUp 0.85s 0.15s ease both",
+            fadeUpD2: "fadeUp 0.85s 0.3s ease both",
+            fadeUpD3: "fadeUp 0.85s 0.45s ease both",
+            floatImg: "floatImg 7s ease-in-out infinite",
+            floatC1:  "floatC1 5s ease-in-out infinite",
+            floatC2:  "floatC2 4s ease-in-out infinite 0.5s",
+            pulse2:   "pulse2 2.2s ease-in-out infinite",
+            borderGlow: "borderGlow 4s ease-in-out infinite",
+            shimmer:  "shimmer 7s linear infinite",
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    html, body { font-family: "DM Sans", sans-serif; }
+
+    /* Fixed blurred background */
+    .page-bg {
+      position: fixed; inset: 0; z-index: 0;
+      background: url('/static/images/WantamDrinks background.png') center center / cover no-repeat;
+      filter: blur(1px) brightness(1) saturate(1.2);
+      transform: scale(1.06);
+    }
+    /* Colour tint overlay */
+    .page-overlay {
+      position: fixed; inset: 0; z-index: 1; pointer-events: none;
+      background:
+        radial-gradient(ellipse 70% 55% at 10% 20%, rgba(180,79,255,0.18) 0%, transparent 65%),
+        radial-gradient(ellipse 55% 45% at 90% 80%, rgba(0,229,255,0.12) 0%, transparent 65%),
+        linear-gradient(180deg, rgba(8,4,20,0.6) 0%, rgba(8,4,20,0.08) 50%, rgba(8,4,20,0.75) 100%);
+    }
+    /* Film grain */
+    .page-grain {
+      position: fixed; inset: 0; z-index: 2; pointer-events: none; opacity: 0.03;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-size: 160px;
+    }
+
+    /* Glass card */
+    .glass-card {
+      background: rgba(8,4,20,0.6);
+      backdrop-filter: blur(22px) saturate(1.3);
+      -webkit-backdrop-filter: blur(22px) saturate(1.3);
+      border: 1px solid rgba(180,79,255,0.25);
+      animation: borderGlow 4s ease-in-out infinite;
+      position: relative; overflow: hidden;
+    }
+    .glass-card::before {
+      content: ""; position: absolute; top: 0; left: -100%; width: 55%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(180,79,255,0.05), transparent);
+      animation: shimmer 7s linear infinite; pointer-events: none;
+    }
+
+    /* Logo shine */
+    .logo-mark { position: relative; overflow: hidden; }
+    .logo-mark::after {
+      content: ""; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+      background: linear-gradient(45deg, transparent 40%, rgba(255,255,255,0.18) 50%, transparent 60%);
+      animation: shimmer 4s linear infinite;
+    }
+
+    /* Drinks image */
+    .drinks-frame {
+      position: relative;
+      filter: drop-shadow(0 30px 60px rgba(0,0,0,0.65)) drop-shadow(0 0 50px rgba(180,79,255,0.22));
+      animation: floatImg 7s ease-in-out infinite;
+    }
+    .drinks-frame img { border-radius: 20px; width: 100%; display: block; }
+    .drinks-frame::before {
+      content: ""; position: absolute; inset: -20px; border-radius: 36px;
+      background: radial-gradient(ellipse at center, rgba(180,79,255,0.15) 0%, transparent 70%);
+      animation: floatImg 7s ease-in-out infinite; z-index: -1;
+    }
+
+    /* Floating chips */
+    .chip {
+      position: absolute; backdrop-filter: blur(14px);
+      background: rgba(8,4,20,0.82); border-radius: 10px;
+      padding: 0.42rem 0.75rem; font-size: 0.7rem; font-weight: 600;
+      display: flex; align-items: center; gap: 5px;
+      box-shadow: 0 4px 18px rgba(0,0,0,0.5); white-space: nowrap;
+      font-family: "DM Sans", sans-serif;
+    }
+    .chip-cyan  { border: 1px solid rgba(0,229,255,0.5);  color:#00e5ff; top:10%;    left:-12%; animation: floatC1 5s ease-in-out infinite; }
+    .chip-amber { border: 1px solid rgba(255,179,71,0.5); color:#ffb347; bottom:22%; right:-10%; animation: floatC2 4s ease-in-out infinite 0.5s; }
+
+    /* Nav underline */
+    .nav-link { position: relative; }
+    .nav-link::after {
+      content: ""; position: absolute; bottom: -3px; left: 0; right: 0;
+      height: 1.5px; background: linear-gradient(90deg, #b44fff, #00e5ff);
+      transform: scaleX(0); transition: transform 0.25s ease;
+    }
+    .nav-link:hover::after { transform: scaleX(1); }
+
+    /* Gradient text */
+    .grad  { background: linear-gradient(90deg, #b44fff 0%, #00e5ff 55%, #ffb347 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .grad2 { background: linear-gradient(90deg, #b44fff, #00e5ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+
+    /* Neon divider */
+    .neon-div { height: 1px; background: linear-gradient(90deg, transparent, rgba(180,79,255,0.4), rgba(0,229,255,0.35), transparent); }
+
+    /* Feature card hover */
+    .feat { transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease; }
+    .feat:hover { transform: translateY(-5px); border-color: rgba(180,79,255,0.5); box-shadow: 0 18px 45px rgba(180,79,255,0.14); }
+
+    /* Hub row hover */
+    .hub-row { transition: transform 0.2s ease, border-color 0.2s ease; }
+    .hub-row:hover { transform: translateX(6px); }
+  </style>
+</head>
+
+<body class="bg-dark text-wdtext overflow-x-hidden">
+
+  <div class="page-bg"></div>
+  <div class="page-overlay"></div>
+  <div class="page-grain"></div>
+
+  <!-- ─── NAVBAR ─── -->
+  <nav id="navbar" class="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 md:px-12 h-[68px] transition-all duration-300"
+       style="background:rgba(8,4,20,0.76);backdrop-filter:blur(20px);border-bottom:1px solid rgba(180,79,255,0.15)">
+
+    <a href="/" class="flex items-center gap-3 no-underline">
+      <div class="logo-mark w-10 h-10 rounded-xl flex items-center justify-center font-head font-extrabold text-sm flex-shrink-0"
+           style="background:linear-gradient(135deg,#b44fff,#00e5ff);color:#08040e;box-shadow:0 0 18px rgba(180,79,255,0.55)">WD</div>
+      <span class="font-head font-bold text-[1.15rem] text-wdtext">Wantam<span class="text-np">Drinks</span></span>
+    </a>
+
+    <div class="hidden md:flex items-center gap-8">
+      <a href="#features" class="nav-link text-sm font-medium text-wdmuted hover:text-wdtext transition-colors no-underline">Features</a>
+      <a href="#hubs"     class="nav-link text-sm font-medium text-wdmuted hover:text-wdtext transition-colors no-underline">Our Hubs</a>
+      <a href="#contact"  class="nav-link text-sm font-medium text-wdmuted hover:text-wdtext transition-colors no-underline">Contact</a>
+    </div>
+
+    <div class="flex items-center gap-3">
+      <a href="/login/"
+         class="px-5 py-2 rounded-xl text-sm font-head font-semibold text-np no-underline transition-all hover:bg-np/10"
+         style="border:1px solid rgba(180,79,255,0.4)">Login</a>
+      <a href="/register/"
+         class="px-5 py-2 rounded-xl text-sm font-head font-bold text-dark no-underline transition-all hover:-translate-y-0.5"
+         style="background:linear-gradient(135deg,#b44fff,#00e5ff);box-shadow:0 3px 16px rgba(180,79,255,0.4)">Sign Up</a>
+    </div>
+  </nav>
+
+  <!-- ─── HERO ─── -->
+  <section class="relative z-10 min-h-screen flex items-center pt-[68px]">
+    <div class="w-full max-w-6xl mx-auto px-6 md:px-12 py-10 flex flex-col md:flex-row items-center gap-10 md:gap-14">
+
+      <!-- Left copy -->
+      <div class="flex-1 max-w-[520px]">
+
+        
+
+        <h1 class="animate-fadeUpD1 font-head font-extrabold text-wdtext leading-[1.06] mb-5"
+            style="font-size:clamp(2.4rem,5.2vw,3.6rem)">
+          Your favourite<br/>sodas,<br/><span class="grad">on demand.</span>
+        </h1>
+
+        <p class="animate-fadeUpD2 text-wdmuted leading-[1.75] mb-8 max-w-[430px]" style="font-size:0.98rem">
+          WantamDrinks lets you <span class="text-wdtext font-medium">browse live stock</span>,
+          place your order, and <span class="text-wdtext font-medium">pay with M-Pesa</span> —
+          all before you leave the house. Walk straight to the counter.
+          No queue. No waiting.
+        </p>
+
+        
+
+        <!-- Stats -->
+        <div class="animate-fadeUpD3 flex gap-7 flex-wrap">
+          <div class="flex flex-col pl-3" style="border-left:2px solid rgba(180,79,255,0.45)">
+            <span class="font-head font-extrabold text-np leading-none" style="font-size:1.5rem">5</span>
+            <span class="text-xs text-wdmuted mt-0.5">Hubs Nationwide</span>
+          </div>
+          <div class="flex flex-col pl-3" style="border-left:2px solid rgba(0,229,255,0.45)">
+            <span class="font-head font-extrabold text-nc leading-none" style="font-size:1.5rem">Live</span>
+            <span class="text-xs text-wdmuted mt-0.5">Real-time Stock</span>
+          </div>
+          <div class="flex flex-col pl-3" style="border-left:2px solid rgba(255,179,71,0.45)">
+            <span class="font-head font-extrabold text-na leading-none" style="font-size:1.5rem">M-Pesa</span>
+            <span class="text-xs text-wdmuted mt-0.5">Express Checkout</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: 3drinks image -->
+      <div class="flex-1 max-w-[480px] w-full hidden md:block animate-fadeUpD2">
+        <div class="drinks-frame relative">
+          <img src="/static/images/3drinks.png" alt="Fanta, Coca-Cola and Sprite"/>
+          <div class="chip chip-cyan">
+            <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            Live Stock
+          </div>
+          <div class="chip chip-amber">
+            <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+            M-Pesa Ready
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <div class="neon-div relative z-10 max-w-6xl mx-auto px-6"></div>
+
+  <!-- ─── FEATURES ─── -->
+  <section id="features" class="relative z-10 py-20">
+    <div class="max-w-6xl mx-auto px-6 md:px-12">
+
+      <p class="flex items-center gap-2 text-xs font-bold uppercase tracking-[1.5px] text-np mb-2">
+        <span class="w-6 h-[1.5px] bg-np inline-block"></span>Why WantamDrinks
+      </p>
+      <h2 class="font-head font-extrabold text-wdtext mb-3" style="font-size:clamp(1.75rem,3.2vw,2.4rem);line-height:1.12">
+        Built for <span class="grad2">speed &amp; convenience</span>
+      </h2>
+      <p class="text-wdmuted leading-relaxed max-w-[460px] mb-12" style="font-size:0.95rem">
+        We cut out the middleman. Order, pay, and collect — faster than you can say "can I get a Sprite?"
+      </p>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+
+        <div class="glass-card feat rounded-2xl p-6">
+          <div class="w-11 h-11 rounded-xl flex items-center justify-center mb-4"
+               style="background:rgba(180,79,255,0.12);border:1px solid rgba(180,79,255,0.28)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#b44fff" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          </div>
+          <h3 class="font-head font-bold text-wdtext mb-2 text-[1rem]">Real-time Stock</h3>
+          <p class="text-wdmuted text-sm leading-relaxed">See what's available at each hub right now. Stock updates live as orders come in — no surprises.</p>
+        </div>
+
+        <div class="glass-card feat rounded-2xl p-6">
+          <div class="w-11 h-11 rounded-xl flex items-center justify-center mb-4"
+               style="background:rgba(0,229,255,0.1);border:1px solid rgba(0,229,255,0.25)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00e5ff" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+          </div>
+          <h3 class="font-head font-bold text-wdtext mb-2 text-[1rem]">M-Pesa Express</h3>
+          <p class="text-wdmuted text-sm leading-relaxed">Pay instantly with M-Pesa STK Push. Confirmation in seconds, order locked in. No cash, no hassle.</p>
+        </div>
+
+        <div class="glass-card feat rounded-2xl p-6">
+          <div class="w-11 h-11 rounded-xl flex items-center justify-center mb-4"
+               style="background:rgba(255,179,71,0.1);border:1px solid rgba(255,179,71,0.25)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffb347" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
+          <h3 class="font-head font-bold text-wdtext mb-2 text-[1rem]">Skip the Queue</h3>
+          <p class="text-wdmuted text-sm leading-relaxed">Pre-order before you arrive. Your drinks are ready and waiting. Walk up, show your order, done.</p>
+        </div>
+
+        <div class="glass-card feat rounded-2xl p-6">
+          <div class="w-11 h-11 rounded-xl flex items-center justify-center mb-4"
+               style="background:rgba(180,79,255,0.12);border:1px solid rgba(180,79,255,0.28)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#b44fff" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          <h3 class="font-head font-bold text-wdtext mb-2 text-[1rem]">Secure &amp; Private</h3>
+          <p class="text-wdmuted text-sm leading-relaxed">JWT authentication with refresh tokens keeps your account safe. Your data stays yours — always.</p>
+        </div>
+
+        <div class="glass-card feat rounded-2xl p-6">
+          <div class="w-11 h-11 rounded-xl flex items-center justify-center mb-4"
+               style="background:rgba(0,229,255,0.1);border:1px solid rgba(0,229,255,0.25)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00e5ff" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+          <h3 class="font-head font-bold text-wdtext mb-2 text-[1rem]">For Everyone</h3>
+          <p class="text-wdmuted text-sm leading-relaxed">Buying for yourself, a party, or the whole office? WantamDrinks handles orders big and small.</p>
+        </div>
+
+        <div class="glass-card feat rounded-2xl p-6">
+          <div class="w-11 h-11 rounded-xl flex items-center justify-center mb-4"
+               style="background:rgba(255,179,71,0.1);border:1px solid rgba(255,179,71,0.25)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffb347" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          </div>
+          <h3 class="font-head font-bold text-wdtext mb-2 text-[1rem]">5 Hubs, 1 Network</h3>
+          <p class="text-wdmuted text-sm leading-relaxed">Spread across Kenya. There's always a hub near you — just pick the closest and order.</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <div class="neon-div relative z-10 max-w-6xl mx-auto px-6"></div>
+
+  <!-- ─── OUR HUBS ─── -->
+  <section id="hubs" class="relative z-10 py-20">
+    <div class="max-w-6xl mx-auto px-6 md:px-12">
+
+      <p class="flex items-center gap-2 text-xs font-bold uppercase tracking-[1.5px] text-nc mb-2">
+        <span class="w-6 h-[1.5px] bg-nc inline-block"></span>Coverage
+      </p>
+      <h2 class="font-head font-extrabold text-wdtext mb-3" style="font-size:clamp(1.75rem,3.2vw,2.4rem);line-height:1.12">
+        We're closer than <span class="grad2">you think</span>
+      </h2>
+      <p class="text-wdmuted leading-relaxed max-w-[460px] mb-12" style="font-size:0.95rem">
+        With 5 hubs spread across Kenya, a cold soda is never far away.
+      </p>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+
+        <!-- Big 5 -->
+        <div class="glass-card rounded-3xl p-10 text-center">
+          <div class="font-head font-extrabold grad leading-none mb-2" style="font-size:7rem">5</div>
+          <p class="text-wdmuted text-base mb-6">Hubs across Kenya</p>
+          <div class="flex justify-center gap-3 flex-wrap">
+            <span class="text-xs font-semibold text-np px-3 py-1.5 rounded-full"
+                  style="background:rgba(180,79,255,0.1);border:1px solid rgba(180,79,255,0.28)">Live Stock</span>
+            <span class="text-xs font-semibold text-nc px-3 py-1.5 rounded-full"
+                  style="background:rgba(0,229,255,0.08);border:1px solid rgba(0,229,255,0.22)">M-Pesa Enabled</span>
+            <span class="text-xs font-semibold text-na px-3 py-1.5 rounded-full"
+                  style="background:rgba(255,179,71,0.08);border:1px solid rgba(255,179,71,0.22)">Fast Collection</span>
+          </div>
+        </div>
+
+        <!-- Hub rows -->
+        <div class="flex flex-col gap-4">
+
+          <div class="glass-card hub-row rounded-2xl p-5 flex items-center gap-4 hover:border-nc/45">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 text-nc"
+                 style="background:rgba(0,229,255,0.1);border:1px solid rgba(0,229,255,0.25)">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            </div>
+            <div>
+              <h4 class="font-head font-bold text-wdtext text-sm mb-0.5">Nationwide Reach</h4>
+              <p class="text-wdmuted text-xs leading-relaxed">Strategically placed so collection is always convenient wherever you are in Kenya.</p>
+            </div>
+          </div>
+
+          <div class="glass-card hub-row rounded-2xl p-5 flex items-center gap-4 hover:border-np/45">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 text-np"
+                 style="background:rgba(180,79,255,0.1);border:1px solid rgba(180,79,255,0.25)">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            </div>
+            <div>
+              <h4 class="font-head font-bold text-wdtext text-sm mb-0.5">Live Availability</h4>
+              <p class="text-wdmuted text-xs leading-relaxed">Each hub updates stock in real time. Know what's available before you even order.</p>
+            </div>
+          </div>
+
+          <div class="glass-card hub-row rounded-2xl p-5 flex items-center gap-4 hover:border-na/45">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 text-na"
+                 style="background:rgba(255,179,71,0.1);border:1px solid rgba(255,179,71,0.25)">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
+            <div>
+              <h4 class="font-head font-bold text-wdtext text-sm mb-0.5">Ready in Minutes</h4>
+              <p class="text-wdmuted text-xs leading-relaxed">Orders are prepared the moment payment confirms. Show up and collect — zero waiting time.</p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="neon-div relative z-10 max-w-6xl mx-auto px-6"></div>
+
+  <!-- ─── FOOTER / CONTACT ─── -->
+  <footer id="contact" class="relative z-10 py-7 px-6 md:px-12"
+          style="background:rgba(8,4,20,0.88);backdrop-filter:blur(20px);border-top:1px solid rgba(180,79,255,0.15)">
+    <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-5">
+
+      <!-- Logo -->
+      <a href="/" class="flex items-center gap-3 no-underline flex-shrink-0">
+        <div class="logo-mark w-9 h-9 rounded-xl flex items-center justify-center font-head font-extrabold text-xs flex-shrink-0"
+             style="background:linear-gradient(135deg,#b44fff,#00e5ff);color:#08040e;box-shadow:0 0 14px rgba(180,79,255,0.45)">WD</div>
+        <span class="font-head font-bold text-wdtext" style="font-size:1rem">Wantam<span class="text-np">Drinks</span></span>
+      </a>
+
+      <!-- Contact details -->
+      <div class="flex flex-col sm:flex-row items-center gap-4 sm:gap-8">
+
+        <a href="tel:+254716984886"
+           class="flex items-center gap-2.5 text-sm text-wdmuted hover:text-wdtext transition-colors no-underline group">
+          <div class="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
+               style="background:rgba(180,79,255,0.1);border:1px solid rgba(180,79,255,0.28)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#b44fff" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.58 3.49 2 2 0 0 1 3.55 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.69a16 16 0 0 0 5.36 5.36l.87-.87a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+          </div>
+          +254 716984886
+        </a>
+
+        <a href="mailto:hello@wantamdrinks.co.ke"
+           class="flex items-center gap-2.5 text-sm text-wdmuted hover:text-wdtext transition-colors no-underline group">
+          <div class="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
+               style="background:rgba(0,229,255,0.08);border:1px solid rgba(0,229,255,0.22)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#00e5ff" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          </div>
+          clarkmaxwell946@gmail.com
+        </a>
+
+      </div>
+
+      <p class="text-xs text-wdmuted">&copy; 2026 WantamDrinks. All rights reserved.</p>
+
+    </div>
+  </footer>
+
+  <script>
+    window.addEventListener("scroll", () => {
+      document.getElementById("navbar").style.background =
+        window.scrollY > 50 ? "rgba(8,4,20,0.96)" : "rgba(8,4,20,0.76)";
+    });
+  </script>
+
+</body>
+</html> 

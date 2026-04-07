@@ -30,8 +30,9 @@ urlpatterns = [
     path('api/', include('alerts.urls')),
     path('api/', include('analytics.urls')),
     
-    path('',              TemplateView.as_view(template_name='login.html'),    name='login'),
+    path('', TemplateView.as_view(template_name='index.html'), name='landing-page'),
     path('login/',        TemplateView.as_view(template_name='login.html'),    name='login-page'),
     path('register/',     TemplateView.as_view(template_name='register.html'), name='register-page'),
-    path('', TemplateView.as_view(template_name='home.html'), name='home'),
+    path('dashboard/',    TemplateView.as_view(template_name='dashboard.html'), name='dashboard-page'),
+    
 ]

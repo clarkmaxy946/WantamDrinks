@@ -97,6 +97,7 @@ class LoginSerializer(TokenObtainPairSerializer):
         # Custom claims embedded in JWT payload
         token['wnt_id'] = user.user_id
         token['email'] = user.email
+        token['username'] = user.username
         token['is_staff'] = user.is_staff
         return token
 
@@ -105,6 +106,7 @@ class LoginSerializer(TokenObtainPairSerializer):
         # Extra fields in login response body
         data['wnt_id'] = self.user.user_id
         data['email'] = self.user.email
+        data['username'] = self.user.username
         data['is_staff'] = self.user.is_staff
         return data
 

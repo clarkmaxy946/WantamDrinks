@@ -7,7 +7,14 @@ from .views import (
     ProfileView,
     AdminUserListView,
     AdminUserDetailView,
+    
+    PasswordResetRequestView,
+    PasswordResetConfirmView,
+    PasswordChangeView,
 )
+
+
+
 
 urlpatterns = [
     path('auth/register/', RegisterView.as_view(), name='register'),
@@ -18,5 +25,9 @@ urlpatterns = [
     path('admin/users/<str:user_id>/', AdminUserDetailView.as_view(), name='admin-user-detail'),
     path('auth/register/', RegisterView.as_view(), name='register'),
     path('auth/login/', LoginView.as_view(), name='login'),
+    
+    path('auth/forgot-password/', PasswordResetRequestView.as_view()),
+    path('auth/reset-password/<uidb64>/<token>/', PasswordResetConfirmView.as_view()),
+    path('auth/change-password/', PasswordChangeView.as_view()),
     
 ]

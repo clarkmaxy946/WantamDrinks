@@ -215,3 +215,102 @@ class AdminUserDetailSerializer(serializers.ModelSerializer):
             'created_at',
             'is_staff',
         ]
+class PasswordChangeSerializer(serializers.Serializer):
+    """
+    Allows an authenticated user to change their own password.
+    Requires the current password as proof of identity before accepting
+    a new one — prevents account takeover if a session is left open.
+ 
+    Used by: ProfileView (recommend adding a PUT /auth/change-password/ route)
+ 
+    Fields:
+        current_password  — must match the user's stored hash
+        new_password      — runs through AUTH_PASSWORD_VALIDATORS
+        confirm_password  — must match new_password
+    """
+ 
+    current_password = serializers.CharField(
+        write_only=True,
+        required=True,
+        style={'input_type': 'password'},
+    )
+    new_password = serializers.CharField(
+        write_only=True,
+        required=True,
+        style={'input_type': 'password'},
+    )
+    confirm_password = serializers.CharField(
+        write_only=True,
+        required=True,
+        style={'input_type': 'password'},
+    )
+ 
+    def validate_current_password(self, value):
+        user = self.context['request'].user
+        if not user.check_password(value):
+            raise serializers.ValidationError("Current password is incorrect.")
+        return value
+ 
+    def validate(self, attrs):
+        if attrs['new_password'] != attrs['confirm_password']:
+            raise serializers.ValidationError({
+                'confirm_password': "Passwords do not match."
+            })
+ 
+        if attrs['new_password'] == attrs['current_password']:
+            raise serializers.ValidationError({
+                'new_password': "New password must differ from your current password."
+            })
+ 
+        # Runs ALL validators defined in AUTH_PASSWORD_VALIDATORS
+        # including your custom WantamPasswordValidator
+        try:
+            validate_password(attrs['new_password'])
+        except DjangoValidationError as e:
+            raise serializers.ValidationError({'new_password': list(e.messages)})
+ 
+        return attrs
+ 
+    def save(self):
+        user = self.context['request'].user
+        user.set_password(self.validated_data['new_password'])
+        user.save()
+        return user
+ 
+ 
+class PasswordResetConfirmSerializer(serializers.Serializer):
+    """
+    Validates the new password submitted via the forgot-password reset link.
+    Keeps all password logic in the serializer layer — the view only handles
+    token/uid decoding and the final user.save().
+ 
+    Used by: PasswordResetConfirmView in password_reset_views.py
+ 
+    Fields:
+        new_password      — runs through AUTH_PASSWORD_VALIDATORS
+        confirm_password  — must match new_password
+    """
+ 
+    new_password = serializers.CharField(
+        write_only=True,
+        required=True,
+        style={'input_type': 'password'},
+    )
+    confirm_password = serializers.CharField(
+        write_only=True,
+        required=True,
+        style={'input_type': 'password'},
+    )
+ 
+    def validate(self, attrs):
+        if attrs['new_password'] != attrs['confirm_password']:
+            raise serializers.ValidationError({
+                'confirm_password': "Passwords do not match."
+            })
+ 
+        # Runs ALL validators defined in AUTH_PASSWORD_VALIDATORS
+        try:
+            validate_password(attrs['new_password'])
+        except DjangoValidationError as e:
+            raise serializers.ValidationError({'new_password': list(e.messages)})
+ 

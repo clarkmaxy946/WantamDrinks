@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>WantamDrinks — Forgot Password</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --neon-purple: #b44fff;
+      --neon-cyan:   #00e5ff;
+      --neon-amber:  #ffb347;
+      --neon-pink:   #ff4fa3;
+      --neon-green:  #00e5a0;
+      --glass-bg:    rgba(8, 4, 20, 0.78);
+      --glass-border:rgba(180, 79, 255, 0.35);
+      --text:        #f0e8ff;
+      --muted:       #a89bbf;
+      --error:       #ff5c7a;
+      --success:     #00e5a0;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+      background: #08040e url('/static/images/WantamDrinks background.png') center center / cover no-repeat fixed;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      overflow-x: hidden;
+      overflow-y: auto;
+      position: relative;
+      padding: 2rem 1rem 3rem;
+    }
+
+    /* Dark overlay */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(8,4,20,0.65) 0%, rgba(20,5,40,0.55) 50%, rgba(8,4,20,0.72) 100%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Scanline texture */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 1;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0,0,0,0.04) 2px,
+        rgba(0,0,0,0.04) 4px
+      );
+    }
+
+    /* ── ANIMATIONS ─────────────────────────────────── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(28px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes neonPulse {
+      0%,100% { text-shadow: 0 0 8px var(--neon-purple), 0 0 20px var(--neon-purple), 0 0 40px var(--neon-purple); }
+      50%      { text-shadow: 0 0 4px var(--neon-cyan), 0 0 12px var(--neon-cyan), 0 0 24px var(--neon-cyan); }
+    }
+    @keyframes borderGlow {
+      0%,100% { box-shadow: 0 0 0 1px rgba(180,79,255,0.5), 0 0 30px rgba(180,79,255,0.15), inset 0 0 30px rgba(180,79,255,0.05); }
+      50%     { box-shadow: 0 0 0 1px rgba(0,229,255,0.5), 0 0 30px rgba(0,229,255,0.15), inset 0 0 30px rgba(0,229,255,0.05); }
+    }
+    @keyframes spin     { to { transform: rotate(360deg); } }
+    @keyframes shimmer  { 0% { left: -100%; } 100% { left: 200%; } }
+    @keyframes successPop {
+      0%   { transform: scale(0.6); opacity: 0; }
+      60%  { transform: scale(1.1); }
+      100% { transform: scale(1);   opacity: 1; }
+    }
+    @keyframes checkDraw { to { stroke-dashoffset: 0; } }
+    @keyframes countDown { from { width: 100%; } to { width: 0%; } }
+
+    .animate-fadeUp  { animation: fadeUp 0.7s ease both; }
+    .animate-fadeUp2 { animation: fadeUp 0.7s 0.12s ease both; }
+
+    /* ── PAGE SWITCHER ──────────────────────────────── */
+    .page         { display: none; }
+    .page.active  { display: block; }
+
+    /* ── WRAPPER ────────────────────────────────────── */
+    .wrapper {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding-top: 2rem;
+    }
+
+    /* ── FORM CARD ──────────────────────────────────── */
+    .form-card {
+      background: var(--glass-bg);
+      backdrop-filter: blur(28px) saturate(1.5);
+      -webkit-backdrop-filter: blur(28px) saturate(1.5);
+      border-radius: 24px;
+      border: 1px solid var(--glass-border);
+      animation: borderGlow 4s ease-in-out infinite;
+      padding: 2.5rem;
+      width: 100%;
+      max-width: 480px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .form-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: -100%;
+      width: 60%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(180,79,255,0.06), transparent);
+      animation: shimmer 6s infinite;
+      pointer-events: none;
+    }
+
+    /* ── LOGO MARK ──────────────────────────────────── */
+    .logo-mark {
+      width: 48px; height: 48px;
+      border-radius: 13px;
+      background: linear-gradient(135deg, #b44fff, #00e5ff);
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1rem; color: #08040e;
+      box-shadow: 0 0 20px rgba(180,79,255,0.6);
+      flex-shrink: 0;
+    }
+
+    /* ── ICON CIRCLE ────────────────────────────────── */
+    .icon-circle {
+      width: 76px; height: 76px; border-radius: 50%;
+      background: rgba(180,79,255,0.1);
+      border: 1.5px solid rgba(180,79,255,0.35);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 1.35rem;
+      box-shadow: 0 0 28px rgba(180,79,255,0.2);
+    }
+
+    /* ── NEON LABEL ─────────────────────────────────── */
+    .neon-label {
+      font-size: .72rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 1.2px;
+      color: var(--muted); margin-bottom: .45rem; display: block;
+    }
+
+    /* ── INPUT ──────────────────────────────────────── */
+    .neon-input {
+      width: 100%;
+      background: rgba(5,2,14,0.7);
+      border: 1px solid rgba(180,79,255,0.25);
+      border-radius: 12px;
+      padding: .85rem 1rem .85rem 2.65rem;
+      font-family: 'DM Sans', sans-serif; font-size: .92rem;
+      color: var(--text); outline: none;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .neon-input::placeholder { color: rgba(168,155,191,0.4); }
+    .neon-input:focus {
+      border-color: var(--neon-purple);
+      box-shadow: 0 0 0 3px rgba(180,79,255,0.15), 0 0 12px rgba(180,79,255,0.2);
+    }
+    .neon-input.invalid {
+      border-color: var(--error) !important;
+      box-shadow: 0 0 0 3px rgba(255,92,122,0.12);
+    }
+    .neon-input.valid-field {
+      border-color: rgba(0,229,160,0.5);
+      box-shadow: 0 0 0 3px rgba(0,229,160,0.08);
+    }
+    input:-webkit-autofill {
+      -webkit-box-shadow: 0 0 0 30px #08040e inset !important;
+      -webkit-text-fill-color: #f0e8ff !important;
+    }
+
+    /* ── PASSWORD STRENGTH ──────────────────────────── */
+    .strength-bar  { height: 3px; border-radius: 2px; background: rgba(255,255,255,0.08); margin-top: 8px; overflow: hidden; }
+    .strength-fill { height: 100%; border-radius: 2px; transition: width .3s, background .3s; width: 0%; }
+
+    /* ── TOGGLE PW ──────────────────────────────────── */
+    .toggle-pw {
+      position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+      background: none; border: none; cursor: pointer;
+      color: var(--muted); padding: 0; transition: color .2s;
+    }
+    .toggle-pw:hover { color: var(--neon-purple); }
+
+    /* ── NEON BUTTON ────────────────────────────────── */
+    .neon-btn {
+      width: 100%;
+      background: linear-gradient(135deg, #b44fff, #00e5ff);
+      border: none; border-radius: 12px;
+      padding: .95rem; cursor: pointer;
+      font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1rem;
+      color: #08040e; letter-spacing: .3px;
+      transition: transform .15s, box-shadow .15s, opacity .15s;
+      box-shadow: 0 4px 24px rgba(180,79,255,0.45);
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      position: relative; overflow: hidden;
+      text-decoration: none;
+    }
+    .neon-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(180,79,255,0.55); }
+    .neon-btn:disabled { opacity: .55; cursor: not-allowed; transform: none; }
+    .neon-btn .spinner {
+      display: none; width: 18px; height: 18px;
+      border: 2px solid rgba(8,4,20,.3); border-top-color: #08040e;
+      border-radius: 50%; animation: spin .7s linear infinite;
+    }
+    .neon-btn.loading .btn-text { display: none; }
+    .neon-btn.loading .spinner  { display: block; }
+
+    /* ── OUTLINE BUTTON ─────────────────────────────── */
+    .outline-btn {
+      width: 100%; background: transparent;
+      border: 1px solid rgba(180,79,255,0.35); border-radius: 12px;
+      padding: .85rem; cursor: pointer;
+      font-family: 'Syne', sans-serif; font-weight: 600; font-size: .9rem;
+      color: var(--neon-purple); letter-spacing: .3px;
+      transition: border-color .2s, background .2s, color .2s;
+      display: flex; align-items: center; justify-content: center; gap: 7px;
+      text-decoration: none;
+    }
+    .outline-btn:hover { background: rgba(180,79,255,0.08); border-color: rgba(180,79,255,0.6); }
+
+    /* ── ALERT BOX ──────────────────────────────────── */
+    .alert-box { display: none; border-radius: 10px; padding: .8rem 1rem; font-size: .85rem; margin-bottom: 1rem; align-items: flex-start; gap: 8px; }
+    .alert-box.show { display: flex; }
+
+    /* ── FIELD ERROR ────────────────────────────────── */
+    .field-error { display: none; font-size: .75rem; color: var(--error); margin-top: 4px; }
+    .field-error.show { display: block; }
+
+    /* ── DIVIDER ────────────────────────────────────── */
+    .neon-divider {
+      width: 100%; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(180,79,255,0.4), rgba(0,229,255,0.4), transparent);
+      margin: 1.25rem 0;
+    }
+
+    /* ── SUCCESS CIRCLE ─────────────────────────────── */
+    .success-circle {
+      width: 84px; height: 84px; border-radius: 50%;
+      background: linear-gradient(135deg, rgba(0,229,160,0.15), rgba(0,229,255,0.1));
+      border: 1.5px solid rgba(0,229,160,0.5);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 1.5rem;
+      box-shadow: 0 0 32px rgba(0,229,160,0.25);
+      animation: successPop .5s cubic-bezier(.34,1.56,.64,1) both;
+    }
+    .success-circle svg .check {
+      stroke-dasharray: 50;
+      stroke-dashoffset: 50;
+      animation: checkDraw .5s .3s ease forwards;
+    }
+
+    /* ── COUNTDOWN BAR ──────────────────────────────── */
+    .countdown-bar  { height: 3px; border-radius: 2px; background: linear-gradient(90deg, var(--neon-purple), var(--neon-cyan)); margin-top: 1rem; }
+    .countdown-fill { height: 100%; border-radius: 2px; background: rgba(255,255,255,0.15); animation: countDown 5s linear forwards; }
+
+    /* ── CODE HINT BOX ──────────────────────────────── */
+    .code-hint {
+      background: rgba(180,79,255,0.06);
+      border: 1px solid rgba(180,79,255,0.2);
+      border-radius: 10px; padding: .75rem 1rem;
+      font-size: .82rem; color: var(--muted); line-height: 1.6;
+    }
+
+    /* ── RESEND TIMER ───────────────────────────────── */
+    #resendTimer { font-size: .8rem; color: var(--muted); text-align: center; margin-top: .75rem; }
+    #resendBtn {
+      background: none; border: none; cursor: pointer;
+      font-size: .8rem; color: var(--neon-purple); text-decoration: underline;
+      font-family: 'DM Sans', sans-serif; padding: 0;
+    }
+    #resendBtn:disabled { color: var(--muted); text-decoration: none; cursor: not-allowed; }
+
+    /* ── INVALID TOKEN ALERT ────────────────────────── */
+    .token-error-alert {
+      background: rgba(255,92,122,0.1);
+      border: 1px solid rgba(255,92,122,0.3);
+      color: #ff9bb5;
+      border-radius: 10px; padding: .8rem 1rem;
+      font-size: .85rem; margin-bottom: 1rem;
+      display: flex; align-items: flex-start; gap: 8px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="wrapper">
+
+  <!-- ═══════════════════════════════════════════════
+       PAGE 1 — FORGOT PASSWORD (enter email)
+  ═══════════════════════════════════════════════ -->
+  <div class="form-card animate-fadeUp page active" id="pageForgot">
+
+    <!-- Logo row -->
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:1.75rem">
+      <div class="logo-mark">WD</div>
+      <span style="font-family:Syne,sans-serif;font-weight:700;font-size:1.15rem;color:#f0e8ff">
+        Wantam<span style="color:#b44fff">Drinks</span>
+      </span>
+    </div>
+
+    <!-- Icon -->
+    <div class="icon-circle">
+      <svg xmlns="http://www.w3.org/2000/svg" width="34" height="34" viewBox="0 0 24 24" fill="none"
+           stroke="#b44fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        <circle cx="12" cy="16" r="1" fill="#b44fff"/>
+      </svg>
+    </div>
+
+    <h2 style="font-family:Syne,sans-serif;font-weight:700;font-size:1.5rem;color:#f0e8ff;text-align:center;margin-bottom:.35rem">
+      Forgot your password?
+    </h2>
+    <p style="font-size:.875rem;color:#a89bbf;text-align:center;margin-bottom:1.5rem;line-height:1.65">
+      No stress. Enter your registered email and we'll send a reset link straight to your inbox.
+    </p>
+
+    <!-- Alert -->
+    <div class="alert-box" id="forgotAlert" role="alert" aria-live="polite">
+      <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:1px">
+        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+      <span id="forgotAlertMsg"></span>
+    </div>
+
+    <form id="forgotForm" novalidate>
+      <div style="margin-bottom:1.4rem">
+        <label class="neon-label">Email Address</label>
+        <div style="position:relative">
+          <input type="email" id="forgotEmail" class="neon-input" placeholder="you@gmail.com"
+                 autocomplete="email" required/>
+          <svg style="position:absolute;left:13px;top:50%;transform:translateY(-50%);width:16px;height:16px;
+                      color:#a89bbf;pointer-events:none"
+               xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2">
+            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+            <polyline points="22,6 12,13 2,6"/>
+          </svg>
+        </div>
+        <div class="field-error" id="forgotEmailErr">Please enter a valid email address.</div>
+      </div>
+
+      <button type="submit" id="forgotBtn" class="neon-btn" style="margin-bottom:1rem">
+        <span class="btn-text">Send Reset Link</span>
+        <div class="spinner"></div>
+      </button>
+    </form>
+
+    <div class="neon-divider"></div>
+    <p style="text-align:center;font-size:.875rem;color:#a89bbf">
+      Remembered it?
+      <a href="/login/" style="color:#b44fff;text-decoration:none;font-weight:500"
+         onmouseover="this.style.textDecoration='underline'"
+         onmouseout="this.style.textDecoration='none'">Back to login</a>
+    </p>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       PAGE 2 — EMAIL SENT (confirmation)
+  ═══════════════════════════════════════════════ -->
+  <div class="form-card page" id="pageEmailSent" style="text-align:center">
+
+    <div class="logo-mark" style="margin:0 auto 1.75rem">WD</div>
+
+    <div class="success-circle">
+      <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none">
+        <path class="check" d="M5 13l4 4L19 7"
+              stroke="#00e5a0" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+
+    <h2 style="font-family:Syne,sans-serif;font-weight:700;font-size:1.5rem;color:#f0e8ff;margin-bottom:.5rem">
+      Check your inbox
+    </h2>
+    <p style="font-size:.875rem;color:#a89bbf;line-height:1.7;margin-bottom:.5rem">
+      If <strong id="sentToEmail" style="color:#b44fff"></strong> is registered, a reset link is on its way.
+      Check your spam folder too.
+    </p>
+    <p style="font-size:.8rem;color:rgba(168,155,191,0.6);margin-bottom:1.5rem">Link expires in 3 days.</p>
+
+    <div class="code-hint" style="margin-bottom:1.5rem;text-align:left">
+      <strong style="color:#f0e8ff;font-size:.82rem">Didn't receive it?</strong><br/>
+      Double-check for typos in your email, wait a minute for delivery, or use the resend button below.
+    </div>
+
+    <div id="resendTimer">
+      Resend available in <span id="timerCount" style="color:#b44fff;font-weight:600">60s</span>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:.75rem;margin-top:1.25rem">
+      <button id="resendBtn" class="outline-btn" disabled onclick="resendEmail()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2">
+          <polyline points="1 4 1 10 7 10"/>
+          <path d="M3.51 15a9 9 0 1 0 .49-3.77"/>
+        </svg>
+        Resend Reset Link
+      </button>
+      <a href="/login/" class="outline-btn"
+         style="text-decoration:none;border-color:rgba(168,155,191,0.25);color:var(--muted)">
+        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2">
+          <line x1="19" y1="12" x2="5" y2="12"/>
+          <polyline points="12 19 5 12 12 5"/>
+        </svg>
+        Back to Login
+      </a>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       PAGE 3 — RESET PASSWORD (set new password)
+
+       HOW uidb64 & token are read:
+       Django's password-reset email should link to this
+       static page with query params, e.g.:
+         /forgot_reset.html?uidb64=ABC&token=XYZ-...
+       The JS below reads those params from the URL.
+  ═══════════════════════════════════════════════ -->
+  <div class="form-card page" id="pageResetPassword">
+
+    <!-- Logo row -->
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:1.75rem">
+      <div class="logo-mark">WD</div>
+      <span style="font-family:Syne,sans-serif;font-weight:700;font-size:1.15rem;color:#f0e8ff">
+        Wantam<span style="color:#b44fff">Drinks</span>
+      </span>
+    </div>
+
+    <!-- Icon -->
+    <div class="icon-circle">
+      <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none"
+           stroke="#b44fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+      </svg>
+    </div>
+
+    <h2 style="font-family:Syne,sans-serif;font-weight:700;font-size:1.5rem;color:#f0e8ff;text-align:center;margin-bottom:.35rem">
+      Set new password
+    </h2>
+    <p style="font-size:.875rem;color:#a89bbf;text-align:center;margin-bottom:1.5rem;line-height:1.65">
+      Choose a strong password you haven't used before.
+    </p>
+
+    <!-- General alert (API errors) -->
+    <div class="alert-box" id="resetAlert" role="alert" aria-live="polite">
+      <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:1px">
+        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+      <span id="resetAlertMsg"></span>
+    </div>
+
+    <!-- Invalid / missing token warning (shown when params are missing from URL) -->
+    <div class="token-error-alert" id="invalidTokenAlert" style="display:none">
+      <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:1px">
+        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+      <span>
+        This reset link is invalid or has expired.
+        <a href="/forgot/" style="color:#b44fff;text-decoration:underline">Request a new one.</a>
+      </span>
+    </div>
+
+    <form id="resetForm" novalidate>
+      <!-- New password -->
+      <div style="margin-bottom:1.1rem">
+        <label class="neon-label">New Password</label>
+        <div style="position:relative">
+          <input type="password" id="newPassword" class="neon-input" style="padding-right:2.75rem"
+                 placeholder="Min. 8 characters" autocomplete="new-password" required/>
+          <svg style="position:absolute;left:13px;top:50%;transform:translateY(-50%);width:16px;height:16px;
+                      color:#a89bbf;pointer-events:none"
+               xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+          <button type="button" class="toggle-pw" id="toggleNew" aria-label="Toggle new password visibility">
+            <svg id="eyeNew" xmlns="http://www.w3.org/2000/svg" width="17" height="17"
+                 viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Strength bar -->
+        <div class="strength-bar">
+          <div class="strength-fill" id="strengthFill"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-top:4px">
+          <span id="strengthLabel" style="font-size:.72rem;color:var(--muted)"></span>
+          <span style="font-size:.72rem;color:rgba(168,155,191,0.5)">Required: 8+ chars</span>
+        </div>
+        <div class="field-error" id="newPasswordErr">Password must be at least 8 characters.</div>
+      </div>
+
+      <!-- Confirm password -->
+      <div style="margin-bottom:1.5rem">
+        <label class="neon-label">Confirm New Password</label>
+        <div style="position:relative">
+          <input type="password" id="confirmPassword" class="neon-input" style="padding-right:2.75rem"
+                 placeholder="Repeat your new password" autocomplete="new-password" required/>
+          <svg style="position:absolute;left:13px;top:50%;transform:translateY(-50%);width:16px;height:16px;
+                      color:#a89bbf;pointer-events:none"
+               xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+          <button type="button" class="toggle-pw" id="toggleConfirm" aria-label="Toggle confirm password visibility">
+            <svg id="eyeConfirm" xmlns="http://www.w3.org/2000/svg" width="17" height="17"
+                 viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+            </svg>
+          </button>
+        </div>
+        <div class="field-error" id="confirmPasswordErr">Passwords do not match.</div>
+      </div>
+
+      <button type="submit" id="resetBtn" class="neon-btn">
+        <span class="btn-text">Reset Password</span>
+        <div class="spinner"></div>
+      </button>
+    </form>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       PAGE 4 — RESET SUCCESS
+  ═══════════════════════════════════════════════ -->
+  <div class="form-card page" id="pageResetSuccess" style="text-align:center">
+
+    <div class="logo-mark" style="margin:0 auto 1.75rem">WD</div>
+
+    <div class="success-circle">
+      <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none">
+        <path class="check" d="M5 13l4 4L19 7"
+              stroke="#00e5a0" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+
+    <h2 style="font-family:Syne,sans-serif;font-weight:700;font-size:1.5rem;color:#f0e8ff;margin-bottom:.5rem">
+      Password reset!
+    </h2>
+    <p style="font-size:.875rem;color:#a89bbf;line-height:1.7;margin-bottom:1.5rem">
+      Your password has been updated successfully. You can now sign in with your new credentials.
+    </p>
+
+    <p style="font-size:.8rem;color:rgba(168,155,191,0.5);margin-bottom:.5rem">
+      Redirecting to login in <span id="redirectCount" style="color:#b44fff;font-weight:600">5</span>s…
+    </p>
+    <div class="countdown-bar">
+      <div class="countdown-fill" id="countdownFill"></div>
+    </div>
+
+    <div style="margin-top:1.5rem">
+      <a href="/login/" class="neon-btn" style="text-decoration:none">
+        <span>Go to Login</span>
+      </a>
+    </div>
+  </div>
+
+</div><!-- /wrapper -->
+
+
+<script>
+  var API = '/api';
+  var san = function(s) { return s.replace(/[<>'"]/g, ''); };
+
+  /* CSRF HELPER - reads the csrftoken cookie Django sets */
+  function getCsrfToken() {
+    var name  = 'csrftoken';
+    var value = '; ' + document.cookie;
+    var parts = value.split('; ' + name + '=');
+    if (parts.length === 2) return parts.pop().split(';').shift();
+    return '';
+  }
+
+  /* Every POST carries credentials + CSRF header */
+  function apiFetch(url, body) {
+    return fetch(url, {
+      method:      'POST',
+      credentials: 'same-origin',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken':  getCsrfToken()
+      },
+      body: JSON.stringify(body)
+    });
+  }
+
+  /* PAGE SWITCHER */
+  function showPage(id) {
+    document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); });
+    var page = document.getElementById(id);
+    if (!page) return;
+    page.classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    page.style.animation = 'none';
+    requestAnimationFrame(function() {
+      page.style.animation = '';
+      page.classList.add('animate-fadeUp');
+    });
+  }
+
+  /* ALERT HELPERS */
+  function setAlert(boxId, msgId, msg, type) {
+    type = type || 'error';
+    var box   = document.getElementById(boxId);
+    var msgEl = document.getElementById(msgId);
+    msgEl.textContent  = msg;
+    box.classList.add('show');
+    box.style.display  = 'flex';
+    var styles = {
+      error:   { bg: 'rgba(255,92,122,0.1)',  border: 'rgba(255,92,122,0.3)',  color: '#ff9bb5' },
+      success: { bg: 'rgba(0,229,160,0.08)',  border: 'rgba(0,229,160,0.3)',   color: '#00e5a0' },
+      warning: { bg: 'rgba(255,179,71,0.1)',  border: 'rgba(255,179,71,0.3)',  color: '#ffb347' }
+    };
+    var s = styles[type] || styles.error;
+    box.style.background = s.bg;
+    box.style.border     = '1px solid ' + s.border;
+    box.style.color      = s.color;
+  }
+  function hideAlert(boxId) {
+    var box = document.getElementById(boxId);
+    box.classList.remove('show');
+    box.style.display = 'none';
+  }
+
+  /* FIELD ERROR HELPERS */
+  function showErr(inputId, errId, msg) {
+    document.getElementById(errId).textContent = msg;
+    document.getElementById(errId).classList.add('show');
+    document.getElementById(inputId).classList.add('invalid');
+  }
+  function clearErr(inputId, errId) {
+    document.getElementById(errId).classList.remove('show');
+    document.getElementById(inputId).classList.remove('invalid');
+  }
+
+  /* LOADING STATE */
+  function setLoading(btnId, loading) {
+    var btn = document.getElementById(btnId);
+    btn.classList.toggle('loading', loading);
+    btn.disabled = loading;
+  }
+
+  /*
+    DETECT WHETHER THIS IS A RESET-PASSWORD LINK
+    =============================================
+    Strategy 1 (path-based, Django default):
+      URL: /reset-password/<uidb64>/<token>/
+    Strategy 2 (query-param fallback):
+      URL: /forgot/?uidb64=MQ&token=abc-def
+
+    The reset form POSTs to:
+      /api/auth/reset-password/<uidb64>/<token>/
+  */
+  var _uidb64 = null;
+  var _token  = null;
+
+  var pathMatch = window.location.pathname.match(/\/reset-password\/([^/]+)\/([^/]+)\/?$/);
+  if (pathMatch) {
+    _uidb64 = pathMatch[1];
+    _token  = pathMatch[2];
+  }
+
+  if (!_uidb64 || !_token) {
+    var urlParams = new URLSearchParams(window.location.search);
+    var qUid   = urlParams.get('uidb64');
+    var qToken = urlParams.get('token');
+    if (qUid && qToken) {
+      _uidb64 = qUid;
+      _token  = qToken;
+    }
+  }
+
+  if (_uidb64 && _token) {
+    showPage('pageResetPassword');
+  }
+
+  /* PASSWORD STRENGTH METER */
+  document.getElementById('newPassword').addEventListener('input', function() {
+    var val = this.value;
+    clearErr('newPassword', 'newPasswordErr');
+    this.classList.remove('invalid', 'valid-field');
+
+    var score = 0;
+    if (val.length >= 8)           score++;
+    if (/[A-Z]/.test(val))         score++;
+    if (/[0-9]/.test(val))         score++;
+    if (/[^A-Za-z0-9]/.test(val))  score++;
+
+    var fill   = document.getElementById('strengthFill');
+    var label  = document.getElementById('strengthLabel');
+    var colors = ['#ff5c7a', '#ffb347', '#00e5ff', '#00e5a0'];
+    var labels = ['Weak', 'Fair', 'Good', 'Strong'];
+    var widths = ['25%', '50%', '75%', '100%'];
+
+    if (val.length === 0) { fill.style.width = '0'; label.textContent = ''; return; }
+    var idx = Math.min(score - 1, 3);
+    var i   = idx < 0 ? 0 : idx;
+    fill.style.width      = widths[i];
+    fill.style.background = colors[i];
+    label.style.color     = colors[i];
+    label.textContent     = labels[i];
+
+    var confirm = document.getElementById('confirmPassword').value;
+    if (confirm) {
+      if (confirm === val) clearErr('confirmPassword', 'confirmPasswordErr');
+      else showErr('confirmPassword', 'confirmPasswordErr', 'Passwords do not match.');
+    }
+  });
+
+  document.getElementById('confirmPassword').addEventListener('input', function() {
+    clearErr('confirmPassword', 'confirmPasswordErr');
+    this.classList.remove('invalid', 'valid-field');
+    var newPw = document.getElementById('newPassword').value;
+    if (this.value && this.value !== newPw) {
+      showErr('confirmPassword', 'confirmPasswordErr', 'Passwords do not match.');
+    } else if (this.value && this.value === newPw) {
+      this.classList.add('valid-field');
+    }
+  });
+
+  /* TOGGLE PASSWORD VISIBILITY */
+  function makeToggle(btnId, inputId, iconId) {
+    document.getElementById(btnId).addEventListener('click', function() {
+      var input = document.getElementById(inputId);
+      var icon  = document.getElementById(iconId);
+      var show  = input.type === 'password';
+      input.type = show ? 'text' : 'password';
+      icon.innerHTML = show
+        ? '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1=\"1\" y1=\"1\" x2=\"23\" y2=\"23\"/>'
+        : '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx=\"12\" cy=\"12\" r=\"3\"/>';
+    });
+  }
+  makeToggle('toggleNew',     'newPassword',     'eyeNew');
+  makeToggle('toggleConfirm', 'confirmPassword', 'eyeConfirm');
+
+  /* FORGOT FORM SUBMIT */
+  var lastEmail = '';
+
+  document.getElementById('forgotForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    hideAlert('forgotAlert');
+
+    var email = document.getElementById('forgotEmail').value.trim();
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      showErr('forgotEmail', 'forgotEmailErr', 'Please enter a valid email address.');
+      return;
+    }
+    clearErr('forgotEmail', 'forgotEmailErr');
+    lastEmail = email;
+
+    setLoading('forgotBtn', true);
+    try {
+      await apiFetch(API + '/auth/forgot-password/', { email: san(email) });
+      document.getElementById('sentToEmail').textContent = email;
+      showPage('pageEmailSent');
+      startResendTimer();
+    } catch(err) {
+      setAlert('forgotAlert', 'forgotAlertMsg',
+        'Unable to connect. Check your connection and try again.', 'error');
+    } finally {
+      setLoading('forgotBtn', false);
+    }
+  });
+
+  document.getElementById('forgotEmail').addEventListener('input', function() {
+    clearErr('forgotEmail', 'forgotEmailErr');
+  });
+
+  /* RESEND TIMER */
+  var resendInterval = null;
+
+  function startResendTimer(seconds) {
+    seconds = seconds || 60;
+    var btn     = document.getElementById('resendBtn');
+    var countEl = document.getElementById('timerCount');
+    var timerEl = document.getElementById('resendTimer');
+    btn.disabled        = true;
+    var left            = seconds;
+    countEl.textContent   = left + 's';
+    timerEl.style.display = 'block';
+    clearInterval(resendInterval);
+    resendInterval = setInterval(function() {
+      left--;
+      countEl.textContent = left + 's';
+      if (left <= 0) {
+        clearInterval(resendInterval);
+        btn.disabled          = false;
+        timerEl.style.display = 'none';
+      }
+    }, 1000);
+  }
+
+  async function resendEmail() {
+    if (!lastEmail) return;
+    document.getElementById('resendBtn').disabled = true;
+    try {
+      await apiFetch(API + '/auth/forgot-password/', { email: san(lastEmail) });
+    } catch(err) {}
+    startResendTimer(60);
+  }
+
+  /* RESET PASSWORD FORM SUBMIT */
+  document.getElementById('resetForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    hideAlert('resetAlert');
+
+    var newPw  = document.getElementById('newPassword').value;
+    var confPw = document.getElementById('confirmPassword').value;
+    var valid  = true;
+
+    if (!newPw || newPw.length < 8) {
+      showErr('newPassword', 'newPasswordErr', 'Password must be at least 8 characters.');
+      valid = false;
+    }
+    if (!confPw) {
+      showErr('confirmPassword', 'confirmPasswordErr', 'Please confirm your password.');
+      valid = false;
+    } else if (newPw !== confPw) {
+      showErr('confirmPassword', 'confirmPasswordErr', 'Passwords do not match.');
+      valid = false;
+    }
+    if (!valid) return;
+
+    if (!_uidb64 || !_token) {
+      document.getElementById('invalidTokenAlert').style.display = 'flex';
+      return;
+    }
+
+    setLoading('resetBtn', true);
+    try {
+      var res  = await apiFetch(
+        API + '/auth/reset-password/' + _uidb64 + '/' + _token + '/',
+        { new_password: newPw, confirm_password: confPw }
+      );
+      var data = await res.json();
+
+      if (res.ok) {
+        showPage('pageResetSuccess');
+        startRedirectCountdown(5);
+      } else {
+        var msg =
+          (data.new_password     && data.new_password[0])     ||
+          (data.confirm_password && data.confirm_password[0]) ||
+          (data.non_field_errors && data.non_field_errors[0]) ||
+          (data.token            && data.token[0])            ||
+          data.detail                                         ||
+          data.error                                          ||
+          'Something went wrong. Please try again.';
+        setAlert('resetAlert', 'resetAlertMsg', msg, 'error');
+      }
+    } catch(err) {
+      setAlert('resetAlert', 'resetAlertMsg',
+        'Unable to connect. Check your connection and try again.', 'error');
+    } finally {
+      setLoading('resetBtn', false);
+    }
+  });
+
+  /* REDIRECT COUNTDOWN */
+  function startRedirectCountdown(seconds) {
+    var el   = document.getElementById('redirectCount');
+    var left = seconds;
+    var iv   = setInterval(function() {
+      left--;
+      el.textContent = left;
+      if (left <= 0) {
+        clearInterval(iv);
+        window.location.href = '/login/';
+      }
+    }, 1000);
+  }
+</script>
+</body>
+</html>

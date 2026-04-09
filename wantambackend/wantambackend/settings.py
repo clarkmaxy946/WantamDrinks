@@ -178,3 +178,20 @@ SIMPLE_JWT = {
     'USER_ID_FIELD': 'id',       
     'USER_ID_CLAIM': 'user_id',
 }
+
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '.ngrok-free.dev']
+
+FRONTEND_URL = "http://127.0.0.1:8000"  # used to build the link in the email
+PASSWORD_RESET_TIMEOUT = 259200   
+
+
+# =============================================================
+# EMAIL CONFIGURATION
+# =============================================================
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = config('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
+DEFAULT_FROM_EMAIL = f'WantamDrinks <{config("EMAIL_HOST_USER")}>'# 3 days in seconds (Django default)

@@ -7,6 +7,7 @@ from .views import (
     CustomerPaymentHistoryView,
     AdminPaymentListView,
     AdminPaymentDetailView,
+    TimeoutPaymentView,
 )
 
 urlpatterns = [
@@ -15,6 +16,7 @@ urlpatterns = [
     path('payments/callback/', MpesaCallbackView.as_view(), name='payment-callback'),
     path('payments/history/', CustomerPaymentHistoryView.as_view(), name='payment-history'),
     path('payments/<str:payment_id>/status/', PaymentStatusView.as_view(), name='payment-status'),
+    path('payments/<str:payment_id>/timeout/', TimeoutPaymentView.as_view(), name='payment-timeout'),
 
     # Admin endpoints
     path('admin/payments/', AdminPaymentListView.as_view(), name='admin-payments'),

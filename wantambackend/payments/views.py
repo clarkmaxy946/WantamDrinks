@@ -12,6 +12,8 @@ from .serializers import (
     PaymentStatusSerializer,
     AdminPaymentSerializer,
 )
+from django.db import transaction
+from orders.services import restore_order_stock
 from .services import initiate_stk_push, process_mpesa_callback
 from orders.models import Order
 
@@ -191,5 +193,62 @@ class AdminPaymentDetailView(APIView):
         serializer = AdminPaymentSerializer(payment)
         return Response(
             serializer.data,
+            status=status.HTTP_200_OK
+        )
+class TimeoutPaymentView(APIView):
+    """
+    POST /api/payments/<payment_id>/timeout/
+    Called by the frontend when polling expires without a Safaricom callback.
+    Only acts if payment is still PENDING — ignores SUCCESS/FAILED/CANCELLED.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, payment_id):
+        try:
+            payment = Payment.objects.select_related(
+                'order', 'user'
+            ).get(payment_id=payment_id)
+        except Payment.DoesNotExist:
+            return Response(
+                {"error": f"Payment '{payment_id}' not found."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        # Only the owner can timeout their own payment
+        if payment.user != request.user:
+            return Response(
+                {"error": "You can only timeout your own payments."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        # If Safaricom already responded, do nothing — return current state
+        if payment.status != Payment.Status.PENDING:
+            return Response(
+                {
+                    "message": f"Payment is already {payment.status}. No changes made.",
+                    "status": payment.status,
+                },
+                status=status.HTTP_200_OK
+            )
+
+        # Payment is still PENDING — mark it failed and restore stock
+        with transaction.atomic():
+            payment.status = Payment.Status.FAILED
+            payment.failure_reason = "Payment timed out — no response from Safaricom."
+            payment.save()
+
+            # Restore reserved stock back to inventory
+            restore_order_stock(payment.order)
+
+            # Mark order as FAILED
+            order = payment.order
+            order.status = Order.Status.FAILED
+            order.save()
+
+        return Response(
+            {
+                "message": "Payment marked as timed out. Stock has been restored.",
+                "status": payment.status,
+            },
             status=status.HTTP_200_OK
         )

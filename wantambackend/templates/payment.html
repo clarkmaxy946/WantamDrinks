@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>WantamDrinks — Payment</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { head: ['Syne','sans-serif'], body: ['DM Sans','sans-serif'] },
+          colors: {
+            primary: '#0A2540', accent: '#00C896', accent2: '#00A3FF',
+            muted: '#7A9AB0', wdtext: '#E8F4F8',
+          },
+          keyframes: {
+            fadeUp:  { from:{ opacity:'0', transform:'translateY(20px)' }, to:{ opacity:'1', transform:'translateY(0)' } },
+            shimmer: { '0%':{ backgroundPosition:'-200% 0' }, '100%':{ backgroundPosition:'200% 0' } },
+            spin:    { to:{ transform:'rotate(360deg)' } },
+            btnGlow: { '0%,100%':{ boxShadow:'0 0 20px rgba(128,0,255,0.5),0 0 60px rgba(0,163,255,0.3)' }, '50%':{ boxShadow:'0 0 40px rgba(128,0,255,0.8),0 0 100px rgba(0,163,255,0.5)' } },
+            pulse2:  { '0%,100%':{ opacity:'1', transform:'scale(1)' }, '50%':{ opacity:'0.4', transform:'scale(1.5)' } },
+            checkDraw: { from:{ strokeDashoffset:'100' }, to:{ strokeDashoffset:'0' } },
+            xDraw:     { from:{ strokeDashoffset:'100' }, to:{ strokeDashoffset:'0' } },
+            ripple:    { '0%':{ transform:'scale(0)', opacity:'1' }, '100%':{ transform:'scale(4)', opacity:'0' } },
+            countUp:   { from:{ opacity:'0', transform:'translateY(8px)' }, to:{ opacity:'1', transform:'translateY(0)' } },
+            ping2:     { '0%':{ transform:'scale(1)', opacity:'0.8' }, '100%':{ transform:'scale(2.2)', opacity:'0' } },
+          },
+          animation: {
+            fadeUp:    'fadeUp 0.6s ease both',
+            shimmer:   'shimmer 2s linear infinite',
+            spin:      'spin 0.8s linear infinite',
+            btnGlow:   'btnGlow 2.5s ease-in-out infinite',
+            pulse2:    'pulse2 2s ease-in-out infinite',
+            checkDraw: 'checkDraw 0.6s ease forwards',
+            xDraw:     'xDraw 0.5s ease forwards',
+            ripple:    'ripple 0.6s ease-out',
+            countUp:   'countUp 0.5s ease both',
+            ping2:     'ping2 1.5s ease-out infinite',
+          },
+        }
+      }
+    }
+  </script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'DM Sans', sans-serif; background: #0A2540; color: #E8F4F8; height: 100vh; overflow: hidden; display: flex; }
+
+    .sb::-webkit-scrollbar { width: 4px; }
+    .sb::-webkit-scrollbar-track { background: transparent; }
+    .sb::-webkit-scrollbar-thumb { background: rgba(0,200,150,0.2); border-radius: 4px; }
+
+    .bg-scene {
+      position: absolute; inset: 0; z-index: 0;
+      background: url('/static/images/WantamDrinks background.png') center/cover no-repeat;
+      filter: blur(1px) brightness(2) saturate(1.3);
+      transform: scale(1.05);
+    }
+    .bg-overlay {
+      position: absolute; inset: 0; z-index: 1;
+      background: linear-gradient(135deg, rgba(10,37,64,0.9) 0%, rgba(10,37,64,0.65) 100%);
+    }
+
+    /* ── Sidebar identical to dashboard ── */
+    .nav-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 0.65rem 1rem; border-radius: 12px;
+      font-size: 0.875rem; color: #7A9AB0;
+      cursor: pointer; transition: all 0.2s;
+      border: 1px solid transparent;
+      text-decoration: none; user-select: none;
+    }
+    .nav-item:hover { background: rgba(0,200,150,0.07); border-color: rgba(0,200,150,0.18); color: #E8F4F8; }
+    .nav-item.active { background: rgba(0,200,150,0.1); border-color: rgba(0,200,150,0.3); color: #00C896; }
+
+    .logout-btn {
+      display: flex; align-items: center; gap: 12px;
+      padding: 0.65rem 1rem; border-radius: 12px;
+      font-size: 0.875rem; color: rgba(255,107,107,0.75);
+      cursor: pointer; transition: all 0.2s;
+      border: 1px solid transparent; width: 100%;
+    }
+    .logout-btn:hover { background: rgba(255,107,107,0.08); border-color: rgba(255,107,107,0.22); color: #ff6b6b; }
+
+    /* ── Payment page glass card ── */
+    .pay-card {
+      background: rgba(15,52,96,0.45);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(0,200,150,0.18);
+      border-radius: 24px;
+      animation: fadeUp 0.55s ease both;
+    }
+
+    /* ── Phone input ── */
+    .phone-input {
+      background: rgba(10,37,64,0.65);
+      border: 1px solid rgba(0,200,150,0.2);
+      border-radius: 12px;
+      padding: 0.85rem 1rem 0.85rem 3.2rem;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 1rem; color: #E8F4F8;
+      outline: none; width: 100%;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      letter-spacing: 0.5px;
+    }
+    .phone-input:focus { border-color: #00C896; box-shadow: 0 0 0 3px rgba(0,200,150,0.1); }
+    .phone-input::placeholder { color: #4a7090; }
+
+    /* ── Pay button ── */
+    .pay-btn {
+      background: linear-gradient(90deg, #7B2FF7, #00A3FF, #00C896);
+      background-size: 200% 100%;
+      border: none; border-radius: 14px;
+      padding: 1rem 2rem;
+      font-family: 'Syne', sans-serif;
+      font-size: 1.05rem; font-weight: 800;
+      color: white; cursor: pointer; width: 100%;
+      letter-spacing: 2px; text-transform: uppercase;
+      transition: background-position 0.4s, transform 0.15s;
+      animation: btnGlow 2.5s ease-in-out infinite;
+    }
+    .pay-btn:hover { background-position: 100% 0; transform: translateY(-2px); }
+    .pay-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; animation: none; }
+
+    /* ── Cancel button ── */
+    .cancel-btn {
+      background: rgba(255,107,107,0.07);
+      border: 1px solid rgba(255,107,107,0.25);
+      border-radius: 14px;
+      padding: 0.9rem 2rem;
+      font-family: 'Syne', sans-serif;
+      font-size: 0.92rem; font-weight: 700;
+      color: rgba(255,107,107,0.85);
+      cursor: pointer; width: 100%;
+      letter-spacing: 1.5px; text-transform: uppercase;
+      transition: all 0.2s;
+    }
+    .cancel-btn:hover { background: rgba(255,107,107,0.14); border-color: rgba(255,107,107,0.5); color: #ff6b6b; transform: translateY(-1px); }
+    .cancel-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+    /* ── Dashboard btn (used on result screens) ── */
+    .dash-btn {
+      background: rgba(0,200,150,0.1);
+      border: 1px solid rgba(0,200,150,0.3);
+      border-radius: 14px;
+      padding: 0.9rem 2rem;
+      font-family: 'Syne', sans-serif;
+      font-size: 0.95rem; font-weight: 700;
+      color: #00C896;
+      cursor: pointer; width: 100%;
+      letter-spacing: 1.5px; text-transform: uppercase;
+      transition: all 0.2s;
+    }
+    .dash-btn:hover { background: rgba(0,200,150,0.18); transform: translateY(-1px); }
+
+    /* ── Alert bar ── */
+    .alert-bar {
+      border-radius: 10px; padding: 0.7rem 1rem;
+      font-size: 0.84rem; display: none;
+      align-items: center; gap: 8px; margin-bottom: 1rem;
+    }
+    .alert-bar.show { display: flex; }
+    .alert-bar.error { background: rgba(255,107,107,0.1); border: 1px solid rgba(255,107,107,0.3); color: #ff9b9b; }
+    .alert-bar.ok    { background: rgba(0,200,150,0.1);   border: 1px solid rgba(0,200,150,0.3);   color: #00C896; }
+
+    /* ── Skeleton ── */
+    .skeleton {
+      background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 10px;
+    }
+
+    /* ── Spinner ── */
+    .spinner {
+      border: 2px solid rgba(0,200,150,0.2);
+      border-top-color: #00C896;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      display: inline-block;
+    }
+
+    /* ── SVG check / X ── */
+    .check-path { stroke-dasharray: 100; stroke-dashoffset: 100; animation: checkDraw 0.6s ease 0.3s forwards; }
+    .x-path     { stroke-dasharray: 100; stroke-dashoffset: 100; animation: xDraw 0.5s ease 0.3s forwards; }
+
+    /* ── Polling ring ── */
+    .polling-ring {
+      width: 64px; height: 64px; border-radius: 50%;
+      border: 2px solid rgba(0,163,255,0.15);
+      border-top-color: #00A3FF;
+      animation: spin 1.2s linear infinite;
+      margin: 0 auto;
+    }
+    .polling-ring-outer {
+      width: 80px; height: 80px; border-radius: 50%;
+      border: 1px solid rgba(0,163,255,0.08);
+      border-top-color: rgba(0,163,255,0.25);
+      animation: spin 2s linear infinite reverse;
+      position: absolute; top: -8px; left: -8px;
+    }
+
+    /* ── Order item row ── */
+    .order-item-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0.6rem 0;
+      border-bottom: 1px solid rgba(0,200,150,0.07);
+    }
+    .order-item-row:last-child { border-bottom: none; }
+
+    /* ── Notif dot ── */
+    .notif-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: #00C896;
+      box-shadow: 0 0 6px rgba(0,200,150,0.6);
+      animation: pulse2 2s ease-in-out infinite;
+      flex-shrink: 0;
+    }
+
+    /* ── Section views ── */
+    .view { display: none; }
+    .view.active { display: block; }
+
+    /* ── Mobile ── */
+    #sidebarOverlay { display: none; position: fixed; inset: 0; z-index: 25; background: rgba(0,0,0,0.5); }
+    #sidebarOverlay.show { display: block; }
+
+    @media (max-width: 768px) {
+      body { overflow: auto; }
+      #sidebar { position: fixed; left: -280px; top: 0; bottom: 0; z-index: 30; transition: left 0.3s ease; }
+      #sidebar.open { left: 0; }
+    }
+    @media (min-width: 769px) { #mobileMenuBtn { display: none; } }
+  </style>
+</head>
+
+<body class="flex h-screen overflow-hidden">
+
+<div id="sidebarOverlay" onclick="closeMobileSidebar()"></div>
+
+<!-- ══════════════════════════════════════════════
+     SIDEBAR  (identical to dashboard)
+══════════════════════════════════════════════ -->
+<aside id="sidebar" class="sb relative z-20 flex flex-col w-72 min-h-screen overflow-y-auto flex-shrink-0"
+       style="background:rgba(6,22,42,0.97);border-right:1px solid rgba(0,200,150,0.1);">
+
+  <!-- Logo -->
+  <div class="flex items-center gap-3 px-5 py-5 flex-shrink-0" style="border-bottom:1px solid rgba(0,200,150,0.1);">
+    <div class="relative w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden"
+         style="background:linear-gradient(135deg,#00C896,#00A3FF);box-shadow:0 0 20px rgba(0,200,150,0.4);">
+      <span class="font-head font-black text-sm" style="color:#0A2540;">WD</span>
+      <div class="absolute inset-0" style="background:linear-gradient(45deg,transparent 40%,rgba(255,255,255,0.15) 50%,transparent 60%);animation:shimmer 3s infinite;background-size:200% 100%;"></div>
+    </div>
+    <span class="font-head font-bold text-base text-wdtext">Wantam<span style="color:#00C896;">Drinks</span></span>
+  </div>
+
+  <nav class="flex flex-col gap-1 px-3 pt-5 flex-1">
+    <a href="/dashboard/" class="nav-item">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+        <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+      </svg>
+      Dashboard
+    </a>
+    <div class="nav-item active" style="cursor:default;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/>
+      </svg>
+      Payment
+    </div>
+  </nav>
+
+  <div class="px-3 mt-4">
+    <button class="logout-btn" onclick="handleLogout()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+      </svg>
+      Log Out
+    </button>
+  </div>
+
+  <div class="mx-3 mb-4 mt-3 rounded-2xl p-4 flex-shrink-0" style="background:rgba(10,37,64,0.6);border:1px solid rgba(0,200,150,0.12);">
+    <p class="font-head text-xs font-bold mb-3 text-wdtext">Contact Us</p>
+    <div class="flex flex-col gap-2">
+      <a href="tel:+254716984886" class="text-xs text-muted hover:text-accent transition-colors flex items-center gap-2">
+        📞 +254 716 984 886
+      </a>
+      <a href="/cdn-cgi/l/email-protection#92fbfcf4fdd2e5f3fce6f3fff6e0fbfcf9e1bcf1fdff" class="text-xs text-muted hover:text-accent transition-colors flex items-center gap-2">
+        📧 <span class="__cf_email__" data-cfemail="375e5951587740565943565a53455e595c441954585a">clarkmaxwell946@gmail.com</span>
+      </a>
+    </div>
+  </div>
+</aside>
+
+<!-- ══════════════════════════════════════════════
+     MAIN AREA
+══════════════════════════════════════════════ -->
+<div class="relative flex-1 flex flex-col overflow-hidden">
+  <div class="bg-scene"></div>
+  <div class="bg-overlay"></div>
+
+  <!-- Header -->
+  <header class="relative z-10 flex items-center justify-between px-5 md:px-8 pt-5 pb-2">
+    <button id="mobileMenuBtn" class="mr-3 p-2 rounded-xl" style="background:rgba(15,52,96,0.5);border:1px solid rgba(0,200,150,0.15);" onclick="openMobileSidebar()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7A9AB0" stroke-width="2">
+        <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+      </svg>
+    </button>
+    <h1 class="font-head font-black text-2xl md:text-3xl flex-1 truncate text-wdtext">
+      Secure&nbsp;<span style="background:linear-gradient(90deg,#00C896,#00A3FF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Payment</span>
+    </h1>
+    <div class="flex items-center gap-2 px-3 py-2 rounded-xl"
+         style="background:rgba(15,52,96,0.5);border:1px solid rgba(0,200,150,0.15);">
+      <div id="avatarInitial" class="w-8 h-8 rounded-lg flex items-center justify-center font-head font-bold text-sm" style="background:linear-gradient(135deg,#00C896,#00A3FF);color:#0A2540;">—</div>
+      <span class="text-sm hidden md:inline text-wdtext" id="headerUsername">—</span>
+    </div>
+  </header>
+
+  <main class="sb relative z-10 flex-1 overflow-y-auto px-5 md:px-8 pb-8 pt-4">
+
+    <!-- ══════ VIEW: PAYMENT FORM ══════ -->
+    <div id="viewPayment" class="view active">
+
+      <!-- Back to dashboard -->
+      <a href="/dashboard/" class="flex items-center gap-2 text-sm mb-6 text-muted hover:text-accent transition-colors" style="width:fit-content;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+        Back to Dashboard
+      </a>
+
+      <div class="max-w-xl">
+
+        <!-- Alert -->
+        <div class="alert-bar" id="payAlertBar">
+          <span id="payAlertMsg"></span>
+          <button onclick="hidePayAlert()" class="ml-auto text-lg leading-none">✕</button>
+        </div>
+
+        <!-- Order Summary Card -->
+        <div class="pay-card p-6 mb-5" id="orderSummaryCard">
+          <!-- Loading skeleton -->
+          <div id="orderSkeleton">
+            <div class="skeleton h-5 w-40 mb-4 rounded"></div>
+            <div class="skeleton h-4 w-full mb-2 rounded"></div>
+            <div class="skeleton h-4 w-3/4 mb-2 rounded"></div>
+            <div class="skeleton h-4 w-1/2 mb-5 rounded"></div>
+            <div class="skeleton h-8 w-36 rounded ml-auto"></div>
+          </div>
+
+          <!-- Loaded content -->
+          <div id="orderDetails" class="hidden">
+            <div class="flex items-center justify-between mb-4">
+              <div class="flex items-center gap-2">
+                <div class="notif-dot"></div>
+                <h2 class="font-head font-bold text-lg text-wdtext">Order Summary</h2>
+              </div>
+              <div class="px-3 py-1 rounded-lg font-head font-bold text-xs tracking-widest"
+                   style="background:rgba(0,200,150,0.1);border:1px solid rgba(0,200,150,0.25);color:#00C896;"
+                   id="orderIdBadge">—</div>
+            </div>
+
+            <!-- Branch -->
+            <div class="flex items-center gap-2 mb-4 text-sm" style="color:#7A9AB0;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#00C896" stroke-width="2">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+              </svg>
+              <span id="orderBranch">—</span>
+            </div>
+
+            <!-- Items -->
+            <div id="orderItemsList" class="mb-4"></div>
+
+            <!-- Total -->
+            <div class="flex items-center justify-between pt-3 mt-1"
+                 style="border-top:1px solid rgba(0,200,150,0.15);">
+              <span class="font-head font-bold text-sm tracking-widest" style="color:#7A9AB0;text-transform:uppercase;">Total</span>
+              <div class="flex items-baseline gap-1.5">
+                <span class="text-xs font-head" style="color:#7A9AB0;">KES</span>
+                <span class="font-head font-black text-2xl" id="orderTotal" style="color:#00C896;animation:countUp 0.5s ease both;">0.00</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Payment Input Card -->
+        <div class="pay-card p-6 mb-5" id="payInputCard">
+          <h3 class="font-head font-bold text-base text-wdtext mb-1">M-Pesa Payment</h3>
+          <p class="text-sm mb-5" style="color:#7A9AB0;">Enter the M-Pesa number to receive the payment prompt.</p>
+
+          <div class="relative mb-5">
+            <!-- Phone icon -->
+            <div class="absolute left-3 top-1/2 -translate-y-1/2 flex items-center gap-1 pointer-events-none">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00C896" stroke-width="2">
+                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>
+              </svg>
+            </div>
+            <input
+              type="tel"
+              id="phoneInput"
+              class="phone-input"
+              placeholder="0712 345 678"
+              maxlength="10"
+              autocomplete="tel"
+            />
+          </div>
+
+          <p class="text-xs mb-5" style="color:rgba(122,154,176,0.6);">
+            Must be a valid Safaricom number starting with 07 or 01 — 10 digits total.
+          </p>
+
+          <!-- Pay button -->
+          <button class="pay-btn mb-3" id="payBtn" onclick="initiatePayment()">
+            Pay via M-Pesa
+          </button>
+
+          <!-- Cancel order button -->
+          <button class="cancel-btn" id="cancelBtn" onclick="confirmCancel()">
+            Cancel Order
+          </button>
+        </div>
+
+      </div>
+    </div><!-- end viewPayment -->
+
+    <!-- ══════ VIEW: POLLING / AWAITING ══════ -->
+    <div id="viewPolling" class="view">
+      <div class="max-w-md mx-auto mt-8">
+        <div class="pay-card p-10 text-center">
+          <!-- Spinning rings -->
+          <div class="relative w-20 h-20 mx-auto mb-8">
+            <div class="polling-ring"></div>
+            <div class="polling-ring-outer"></div>
+            <div class="absolute inset-0 flex items-center justify-center">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#00A3FF" stroke-width="1.5">
+                <rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/>
+              </svg>
+            </div>
+          </div>
+
+          <h2 class="font-head font-bold text-xl text-wdtext mb-2">M-Pesa Prompt Sent</h2>
+          <p class="text-sm mb-6" style="color:#7A9AB0;">
+            A payment request has been sent to <span id="pollPhone" class="font-bold text-wdtext">—</span>.
+            Enter your M-Pesa PIN on your phone to complete the payment.
+          </p>
+
+          <div class="rounded-xl p-4 mb-6" style="background:rgba(0,163,255,0.07);border:1px solid rgba(0,163,255,0.2);">
+            <p class="text-sm font-head font-semibold mb-1" style="color:#00A3FF;">Checking payment status…</p>
+            <div class="flex items-center justify-center gap-2 mt-2">
+              <span class="spinner w-4 h-4"></span>
+              <span class="text-xs" id="pollCountdown" style="color:rgba(122,154,176,0.7);">Checking in 5s</span>
+            </div>
+          </div>
+
+          <p class="text-xs" style="color:rgba(122,154,176,0.5);">
+            Do not close this page. This will automatically update once payment is confirmed.
+          </p>
+        </div>
+      </div>
+    </div><!-- end viewPolling -->
+
+    <!-- ══════ VIEW: SUCCESS ══════ -->
+    <div id="viewSuccess" class="view">
+      <div class="max-w-md mx-auto mt-8">
+        <div class="pay-card p-10 text-center">
+
+          <!-- Animated green tick -->
+          <div class="relative w-24 h-24 mx-auto mb-8">
+            <!-- Ping rings -->
+            <div class="absolute inset-0 rounded-full"
+                 style="background:rgba(0,200,150,0.08);animation:ping2 1.5s ease-out infinite;"></div>
+            <div class="absolute inset-0 rounded-full"
+                 style="background:rgba(0,200,150,0.05);animation:ping2 1.5s ease-out 0.4s infinite;"></div>
+            <!-- Circle -->
+            <div class="absolute inset-0 rounded-full flex items-center justify-center"
+                 style="background:rgba(0,200,150,0.12);border:2px solid rgba(0,200,150,0.4);">
+              <svg width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path class="check-path" d="M10 22 L19 31 L34 13"
+                      stroke="#00C896" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+          </div>
+
+          <h2 class="font-head font-black text-2xl text-wdtext mb-2">Payment Successful!</h2>
+          <p class="text-sm mb-2" style="color:#7A9AB0;">Your order has been confirmed and is being processed.</p>
+
+          <!-- Receipt number -->
+          <div class="inline-flex items-center gap-2 px-4 py-2 rounded-xl mb-6 mt-2"
+               style="background:rgba(0,200,150,0.1);border:1px solid rgba(0,200,150,0.25);">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#00C896" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/>
+              <line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>
+            </svg>
+            <span class="text-xs font-head font-bold tracking-wider" style="color:#00C896;">Receipt: <span id="receiptNumber">—</span></span>
+          </div>
+
+          <!-- Amount paid -->
+          <div class="rounded-2xl p-5 mb-6"
+               style="background:rgba(10,37,64,0.65);border:1px solid rgba(0,200,150,0.15);">
+            <p class="text-xs mb-1 font-head uppercase tracking-widest" style="color:#7A9AB0;">Amount Paid</p>
+            <div class="flex items-baseline justify-center gap-2">
+              <span class="text-sm font-head" style="color:#7A9AB0;">KES</span>
+              <span class="font-head font-black text-3xl" id="successAmount" style="color:#00C896;">0.00</span>
+            </div>
+            <p class="text-xs mt-2" style="color:rgba(122,154,176,0.6);">Order <span id="successOrderId" class="text-wdtext font-semibold">—</span></p>
+          </div>
+
+          <button class="dash-btn" onclick="goToDashboard()">
+            Back to Dashboard
+          </button>
+        </div>
+      </div>
+    </div><!-- end viewSuccess -->
+
+    <!-- ══════ VIEW: FAILURE ══════ -->
+    <div id="viewFailure" class="view">
+      <div class="max-w-md mx-auto mt-8">
+        <div class="pay-card p-10 text-center">
+
+          <!-- Animated red X -->
+          <div class="relative w-24 h-24 mx-auto mb-8">
+            <div class="absolute inset-0 rounded-full"
+                 style="background:rgba(255,107,107,0.07);animation:ping2 1.5s ease-out infinite;"></div>
+            <div class="absolute inset-0 rounded-full flex items-center justify-center"
+                 style="background:rgba(255,107,107,0.1);border:2px solid rgba(255,107,107,0.35);">
+              <svg width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path class="x-path" d="M13 13 L31 31" stroke="#ff6b6b" stroke-width="3.5" stroke-linecap="round"/>
+                <path class="x-path" d="M31 13 L13 31" stroke="#ff6b6b" stroke-width="3.5" stroke-linecap="round" style="animation-delay:0.1s"/>
+              </svg>
+            </div>
+          </div>
+
+          <h2 class="font-head font-black text-2xl text-wdtext mb-2">Payment Failed</h2>
+          <p class="text-sm mb-5" id="failureReason" style="color:#7A9AB0;">
+            Your payment could not be completed.
+          </p>
+
+          <!-- What happened box -->
+          <div class="rounded-2xl p-5 mb-6 text-left"
+               style="background:rgba(255,107,107,0.06);border:1px solid rgba(255,107,107,0.18);">
+            <p class="text-xs font-head font-bold uppercase tracking-widest mb-2" style="color:rgba(255,107,107,0.7);">What happened?</p>
+            <p class="text-sm" id="failureDetail" style="color:rgba(232,244,248,0.7);">
+              The payment could not be processed. This may be due to insufficient funds, an incorrect PIN, or a cancelled request.
+            </p>
+          </div>
+
+          <!-- Try again note -->
+          <div class="rounded-xl p-3 mb-6 text-sm"
+               style="background:rgba(0,163,255,0.07);border:1px solid rgba(0,163,255,0.18);color:rgba(122,154,176,0.9);">
+            Your reserved stock has been released. Please place a new order to try again.
+          </div>
+
+          <button class="dash-btn" onclick="goToDashboard()">
+            Back to Dashboard
+          </button>
+        </div>
+      </div>
+    </div><!-- end viewFailure -->
+
+    <!-- ══════ VIEW: CANCEL CONFIRM ══════ -->
+    <div id="viewCancelConfirm" class="view">
+      <div class="max-w-md mx-auto mt-8">
+        <div class="pay-card p-10 text-center">
+
+          <div class="w-20 h-20 mx-auto mb-7 rounded-full flex items-center justify-center"
+               style="background:rgba(255,159,67,0.1);border:2px solid rgba(255,159,67,0.3);">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2">
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+              <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+            </svg>
+          </div>
+
+          <h2 class="font-head font-bold text-xl text-wdtext mb-2">Cancel This Order?</h2>
+          <p class="text-sm mb-6" style="color:#7A9AB0;">
+            This will cancel your order and release all reserved stock back to inventory.
+            This action <span class="text-wdtext font-semibold">cannot be undone.</span>
+          </p>
+
+          <!-- Order ref -->
+          <div class="rounded-xl p-3 mb-7 text-sm"
+               style="background:rgba(10,37,64,0.65);border:1px solid rgba(0,200,150,0.12);">
+            <span style="color:#7A9AB0;">Order: </span>
+            <span class="font-head font-bold text-wdtext" id="cancelOrderRef">—</span>
+          </div>
+
+          <!-- Alert in cancel view -->
+          <div class="alert-bar mb-4" id="cancelAlertBar">
+            <span id="cancelAlertMsg"></span>
+            <button onclick="hideCancelAlert()" class="ml-auto text-lg">✕</button>
+          </div>
+
+          <button class="cancel-btn mb-3" id="confirmCancelBtn" onclick="executeCancelOrder()">
+            Yes, Cancel Order
+          </button>
+          <button class="dash-btn" onclick="showView('viewPayment')">
+            Keep My Order
+          </button>
+        </div>
+      </div>
+    </div><!-- end viewCancelConfirm -->
+
+    <!-- ══════ VIEW: ORDER CANCELLED ══════ -->
+    <div id="viewCancelled" class="view">
+      <div class="max-w-md mx-auto mt-8">
+        <div class="pay-card p-10 text-center">
+
+          <div class="w-20 h-20 mx-auto mb-7 rounded-full flex items-center justify-center"
+               style="background:rgba(122,154,176,0.1);border:2px solid rgba(122,154,176,0.25);">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#7A9AB0" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="15" y1="9" x2="9" y2="15"/>
+              <line x1="9" y1="9" x2="15" y2="15"/>
+            </svg>
+          </div>
+
+          <h2 class="font-head font-bold text-xl text-wdtext mb-2">Order Cancelled</h2>
+          <p class="text-sm mb-6" style="color:#7A9AB0;">
+            Your order has been cancelled and all reserved stock has been returned to inventory.
+          </p>
+
+          <div class="rounded-xl p-3 mb-7 text-sm"
+               style="background:rgba(10,37,64,0.65);border:1px solid rgba(122,154,176,0.12);">
+            <span style="color:#7A9AB0;">Order </span>
+            <span class="font-head font-bold text-wdtext" id="cancelledOrderRef">—</span>
+            <span style="color:#7A9AB0;"> has been cancelled.</span>
+          </div>
+
+          <button class="dash-btn" onclick="goToDashboard()">
+            Back to Dashboard
+          </button>
+        </div>
+      </div>
+    </div><!-- end viewCancelled -->
+
+  </main>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     SCRIPTS
+══════════════════════════════════════════════ -->
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+  const API = '/api';
+
+  /* ─────────── AUTH ─────────── */
+  const Auth = {
+    async getValidToken() {
+      const token = sessionStorage.getItem('access_token');
+      if (!token) { window.location.href = '/login/'; return null; }
+      const exp = parseInt(sessionStorage.getItem('token_expires_at') || '0');
+      if (Date.now() >= exp - 30000) {
+        const rt = sessionStorage.getItem('refresh_token');
+        try {
+          const res = await fetch(`${API}/auth/token/refresh/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ refresh: rt }),
+          });
+          const data = await res.json();
+          sessionStorage.setItem('access_token', data.access);
+          sessionStorage.setItem('token_expires_at', String(Date.now() + 14 * 60 * 1000));
+        } catch { window.location.href = '/login/'; return null; }
+      }
+      return sessionStorage.getItem('access_token');
+    },
+    async fetch(url, options = {}) {
+      const token = await Auth.getValidToken();
+      return fetch(url, {
+        ...options,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          ...(options.headers || {}),
+        },
+      });
+    }
+  };
+
+  /* ─────────── STATE ─────────── */
+  let orderId     = null;
+  let orderData   = null;
+  let paymentId   = null;
+  let pollTimer   = null;
+  let pollCount   = 0;
+  const MAX_POLLS = 60;   /* 60 × 5s = 5 minutes — Safaricom can take this long */
+  const POLL_INTERVAL = 5000;
+
+  /* ─────────── UTILS ─────────── */
+  function getOrderIdFromUrl() {
+    return new URLSearchParams(window.location.search).get('order_id');
+  }
+
+  function showView(id) {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function handleLogout() { sessionStorage.clear(); window.location.href = '/login/'; }
+
+  function openMobileSidebar() {
+    document.getElementById('sidebar').classList.add('open');
+    document.getElementById('sidebarOverlay').classList.add('show');
+  }
+  function closeMobileSidebar() {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('sidebarOverlay').classList.remove('show');
+  }
+  function goToDashboard() { window.location.href = '/dashboard/'; }
+
+  /* ─────────── ALERTS ─────────── */
+  function showPayAlert(msg, type = 'error') {
+    const bar = document.getElementById('payAlertBar');
+    document.getElementById('payAlertMsg').textContent = msg;
+    bar.className = `alert-bar show ${type === 'ok' ? 'ok' : 'error'}`;
+    if (type === 'ok') setTimeout(hidePayAlert, 5000);
+  }
+  function hidePayAlert() { document.getElementById('payAlertBar').className = 'alert-bar'; }
+
+  function showCancelAlert(msg, type = 'error') {
+    const bar = document.getElementById('cancelAlertBar');
+    document.getElementById('cancelAlertMsg').textContent = msg;
+    bar.className = `alert-bar show ${type === 'ok' ? 'ok' : 'error'}`;
+  }
+  function hideCancelAlert() { document.getElementById('cancelAlertBar').className = 'alert-bar'; }
+
+  /* ─────────── LOAD PROFILE ─────────── */
+  async function fetchProfile() {
+    try {
+      const res  = await Auth.fetch(`${API}/auth/profile/`);
+      const user = await res.json();
+      const init = user.username ? user.username.charAt(0).toUpperCase() : '?';
+      document.getElementById('avatarInitial').textContent  = init;
+      document.getElementById('headerUsername').textContent = user.username;
+
+      /* Pre-fill phone if available */
+      const ph = user.phone_number || user.phone || '';
+      if (ph) document.getElementById('phoneInput').value = ph;
+    } catch { /* silent */ }
+  }
+
+  /* ─────────── LOAD ORDER ─────────── */
+  async function fetchOrder(id) {
+    try {
+      const res  = await Auth.fetch(`${API}/orders/${id}/`);
+      if (!res.ok) {
+        showPayAlert('Order not found or you do not have permission to view it.');
+        return;
+      }
+      const data = await res.json();
+      orderData  = data;
+      renderOrderSummary(data);
+    } catch {
+      showPayAlert('Failed to load order details. Please refresh the page.');
+    }
+  }
+
+  function renderOrderSummary(order) {
+    document.getElementById('orderSkeleton').classList.add('hidden');
+    document.getElementById('orderDetails').classList.remove('hidden');
+
+    document.getElementById('orderIdBadge').textContent = order.order_id || order.id || '—';
+    document.getElementById('orderBranch').textContent  = order.branch?.name || order.branch_name || '—';
+
+    /* Items */
+    const items  = order.items || [];
+    const listEl = document.getElementById('orderItemsList');
+
+    if (items.length) {
+      listEl.innerHTML = items.map(item => {
+        const name  = item.product?.name || item.product_name || item.name || '—';
+        const qty   = item.quantity || 0;
+        const price = parseFloat(item.price_at_purchase || item.price || 0);
+        const sub   = (qty * price).toFixed(2);
+        return `
+          <div class="order-item-row">
+            <div class="flex items-center gap-2">
+              <span class="text-sm text-wdtext">${name}</span>
+              <span class="text-xs px-1.5 py-0.5 rounded-md font-head font-bold"
+                    style="background:rgba(0,200,150,0.1);color:#00C896;">×${qty}</span>
+            </div>
+            <span class="text-sm font-head font-semibold text-wdtext">KES ${sub}</span>
+          </div>`;
+      }).join('');
+    } else {
+      listEl.innerHTML = '<p class="text-sm py-2" style="color:rgba(122,154,176,0.6);">No item details available.</p>';
+    }
+
+    const total = parseFloat(order.total_price || order.total || 0).toFixed(2);
+    document.getElementById('orderTotal').textContent = total;
+  }
+
+  /* ─────────── INITIATE PAYMENT ─────────── */
+  async function initiatePayment() {
+    const phone = document.getElementById('phoneInput').value.trim();
+
+    /* Basic client-side validation */
+    if (!phone) { showPayAlert('Please enter your M-Pesa phone number.'); return; }
+    if (!/^(07|01)\d{8}$/.test(phone)) {
+      showPayAlert('Phone number must be 10 digits starting with 07 or 01.');
+      return;
+    }
+    if (!orderId) { showPayAlert('No order ID found. Please go back and place your order again.'); return; }
+
+    const btn = document.getElementById('payBtn');
+    btn.disabled  = true;
+    btn.innerHTML = `<span class="spinner inline-block w-5 h-5 mr-2" style="vertical-align:middle;border-width:2px;"></span> Sending Prompt…`;
+
+    try {
+      const res  = await Auth.fetch(`${API}/payments/initiate/`, {
+        method: 'POST',
+        body:   JSON.stringify({ order_id: orderId, phone_number: phone }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        /* Flatten DRF error shapes */
+        const errRaw = data.order_id?.[0] || data.phone_number?.[0]
+                    || data.error || data.detail
+                    || 'Payment initiation failed. Please try again.';
+        const errMsg = Array.isArray(errRaw) ? errRaw.join(' ') : String(errRaw);
+        showPayAlert(errMsg);
+        btn.disabled  = false;
+        btn.innerHTML = 'Pay via M-Pesa';
+        return;
+      }
+
+      paymentId = data.payment_id;
+      document.getElementById('pollPhone').textContent = phone;
+      showView('viewPolling');
+      startPolling();
+
+    } catch {
+      showPayAlert('Network error. Please check your connection and try again.');
+      btn.disabled  = false;
+      btn.innerHTML = 'Pay via M-Pesa';
+    }
+  }
+
+  /* ─────────── POLLING ─────────── */
+  function startPolling() {
+    pollCount = 0;
+    clearTimeout(pollTimer);
+    scheduleNextPoll();
+  }
+
+  function scheduleNextPoll() {
+    let countdown = Math.floor(POLL_INTERVAL / 1000);
+    const cdEl    = document.getElementById('pollCountdown');
+
+    const tick = setInterval(() => {
+      countdown -= 1;
+      if (cdEl) cdEl.textContent = countdown > 0 ? `Checking in ${countdown}s` : 'Checking…';
+      if (countdown <= 0) clearInterval(tick);
+    }, 1000);
+
+    pollTimer = setTimeout(async () => {
+      clearInterval(tick);
+      await doPoll();
+    }, POLL_INTERVAL);
+  }
+
+  async function doPoll() {
+    pollCount++;
+
+    try {
+      const res  = await Auth.fetch(`${API}/payments/${paymentId}/status/`);
+      const data = await res.json();
+
+      if (!res.ok) {
+        /* If payment not found, something went wrong server-side — show failure */
+        showFailure('Payment record not found. Please contact support.', data.error || '');
+        return;
+      }
+
+      const st = data.status;
+
+      if (st === 'SUCCESS') {
+        document.getElementById('receiptNumber').textContent = data.receipt_number || '—';
+        document.getElementById('successAmount').textContent = parseFloat(data.amount || 0).toFixed(2);
+        document.getElementById('successOrderId').textContent = data.order_id || orderId || '—';
+        showView('viewSuccess');
+        return;
+      }
+
+      if (st === 'FAILED' || st === 'CANCELLED') {
+        showFailure(data.status_message || 'Payment failed.', '');
+        return;
+      }
+
+      /* Still PENDING */
+      if (pollCount >= MAX_POLLS) {
+        await handlePollTimeout();
+        return;
+      }
+
+      scheduleNextPoll();
+
+    } catch {
+      if (pollCount >= MAX_POLLS) {
+        await handlePollTimeout();
+        return;
+      }
+      scheduleNextPoll();
+    }
+  }
+
+  function showFailure(reason, detail) {
+    clearTimeout(pollTimer);
+    document.getElementById('failureReason').textContent = reason || 'Your payment could not be completed.';
+    document.getElementById('failureDetail').textContent = detail
+      || 'The payment could not be processed. This may be due to insufficient funds, an incorrect PIN, or a cancelled request.';
+    showView('viewFailure');
+  }
+
+  /* ─────────── POLL TIMEOUT — tell backend to fail the payment ─────────── */
+  async function handlePollTimeout() {
+    clearTimeout(pollTimer);
+
+    /* Tell the backend to mark payment as FAILED and restore stock.
+       Safe to call even if Safaricom responds at the last second —
+       the endpoint guards against overwriting SUCCESS/FAILED/CANCELLED. */
+    try {
+      const res  = await Auth.fetch(`${API}/payments/${paymentId}/timeout/`, { method: 'POST' });
+      const data = await res.json();
+
+      /* Race condition: Safaricom callback arrived just before we called timeout
+         — backend ignored our request and returns the real SUCCESS status */
+      if (res.ok && data.status === 'SUCCESS') {
+        /* Do one final status fetch to get receipt + amount */
+        const statusRes  = await Auth.fetch(`${API}/payments/${paymentId}/status/`);
+        const statusData = await statusRes.json();
+        document.getElementById('receiptNumber').textContent  = statusData.receipt_number || '—';
+        document.getElementById('successAmount').textContent  = parseFloat(statusData.amount || 0).toFixed(2);
+        document.getElementById('successOrderId').textContent = statusData.order_id || orderId || '—';
+        showView('viewSuccess');
+        return;
+      }
+
+      /* Backend confirmed it timed out and stock was restored */
+      showFailure(
+        'Payment timed out — no response received from Safaricom.',
+        'Your reserved stock has been released. Please place a new order to try again.'
+      );
+
+    } catch {
+      /* Network error calling the timeout endpoint — we cannot guarantee
+         stock was released, so warn the user to contact support */
+      showFailure(
+        'Payment timed out and we could not reach the server.',
+        'Please contact support or check your order status in Past Transactions to confirm whether stock was released.'
+      );
+    }
+  }
+
+  /* ─────────── CANCEL ORDER ─────────── */
+  function confirmCancel() {
+    if (!orderId) { showPayAlert('No order ID found.'); return; }
+    document.getElementById('cancelOrderRef').textContent   = orderId;
+    document.getElementById('cancelledOrderRef').textContent = orderId;
+    showView('viewCancelConfirm');
+  }
+
+  async function executeCancelOrder() {
+    const btn = document.getElementById('confirmCancelBtn');
+    btn.disabled  = true;
+    btn.innerHTML = `<span class="spinner inline-block w-4 h-4 mr-2" style="vertical-align:middle;border-width:2px;"></span> Cancelling…`;
+
+    try {
+      const res  = await Auth.fetch(`${API}/orders/${orderId}/cancel/`, { method: 'POST' });
+      const data = await res.json();
+
+      if (!res.ok) {
+        const errRaw = data.error || data.detail || 'Failed to cancel order. Please try again.';
+        const errMsg = Array.isArray(errRaw) ? errRaw.join(' ') : String(errRaw);
+        showCancelAlert(errMsg);
+        btn.disabled  = false;
+        btn.innerHTML = 'Yes, Cancel Order';
+        return;
+      }
+
+      /* Success — stock restored by backend (restore_order_stock) */
+      showView('viewCancelled');
+
+    } catch {
+      showCancelAlert('Network error. Please check your connection and try again.');
+      btn.disabled  = false;
+      btn.innerHTML = 'Yes, Cancel Order';
+    }
+  }
+
+  /* ─────────── INIT ─────────── */
+  document.addEventListener('DOMContentLoaded', () => {
+    orderId = getOrderIdFromUrl();
+
+    if (!orderId) {
+      showPayAlert('No order ID provided. Please go back and place your order again.');
+      document.getElementById('payInputCard').style.opacity      = '0.4';
+      document.getElementById('payInputCard').style.pointerEvents = 'none';
+      document.getElementById('payBtn').disabled = true;
+    } else {
+      fetchOrder(orderId);
+    }
+ 
+    fetchProfile();
+  });
+</script>
+</body>
+</html>

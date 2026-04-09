@@ -1,0 +1,358 @@
+<!-- ORDER PANEL — drop this inside #inlinePanel in dashboard.html -->
+<!-- Usage: showPanel('order', navEl) triggers this, closePanel() hides it -->
+
+<div id="orderContent" class="hidden">
+
+  <!-- ── Panel Header ── -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
+    <div>
+      <h2 class="font-head font-bold text-2xl text-wdtext">Make an Order</h2>
+      <p class="text-sm mt-0.5" style="color:#7A9AB0;">
+        Select quantities and place your order below.
+      </p>
+    </div>
+    <!-- Active branch pill -->
+    <div class="flex items-center gap-2 px-4 py-2 rounded-xl flex-shrink-0"
+         style="background:rgba(0,200,150,0.08);border:1px solid rgba(0,200,150,0.2);">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#00C896" stroke-width="2.5">
+        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+        <circle cx="12" cy="10" r="3"/>
+      </svg>
+      <span class="text-sm font-head font-semibold" style="color:#00C896;" id="orderBranchLabel">—</span>
+    </div>
+  </div>
+
+  <!-- ── Alert bar (order-scoped) ── -->
+  <div class="alert-bar" id="orderAlertBar" style="margin-bottom:1rem;">
+    <span id="orderAlertMsg"></span>
+    <button onclick="hideOrderAlert()" class="ml-auto text-lg leading-none">✕</button>
+  </div>
+
+  <!-- ── Product Grid with Quantity Selectors ── -->
+  <div id="orderProductGrid"
+       class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-6">
+    <!-- Skeletons shown on load -->
+    <div class="product-card skeleton h-72"></div>
+    <div class="product-card skeleton h-72"></div>
+    <div class="product-card skeleton h-72"></div>
+  </div>
+
+  <div id="orderNoProducts" class="hidden text-center py-12">
+    <p class="font-head text-lg" style="color:rgba(122,154,176,0.5);">No products available at this branch.</p>
+  </div>
+
+  <!-- ── Order Summary + Place Order ── -->
+  <div class="rounded-2xl p-5 md:p-6 mt-2"
+       style="background:rgba(10,37,64,0.65);border:1px solid rgba(0,200,150,0.18);backdrop-filter:blur(16px);">
+
+    <h3 class="font-head font-bold text-base text-wdtext mb-4">Order Summary</h3>
+
+    <!-- Selected items list -->
+    <div id="orderSummaryList" class="space-y-2 mb-4 min-h-[2rem]">
+      <p class="text-sm" style="color:rgba(122,154,176,0.6);">No items selected yet.</p>
+    </div>
+
+    <div style="border-top:1px solid rgba(0,200,150,0.12);" class="pt-4 mb-5">
+      <div class="flex items-center justify-between">
+        <span class="font-head font-bold text-sm" style="color:#7A9AB0;text-transform:uppercase;letter-spacing:1.5px;">Total</span>
+        <!-- Readonly total — value set by JS, not user-editable -->
+        <div class="flex items-center gap-2">
+          <span class="text-xs" style="color:#7A9AB0;">KES</span>
+          <input
+            type="text"
+            id="orderTotalDisplay"
+            value="0.00"
+            readonly
+            class="text-right font-head font-black text-2xl bg-transparent outline-none border-none"
+            style="color:#00C896;width:120px;cursor:default;"
+            tabindex="-1"
+          />
+        </div>
+      </div>
+    </div>
+
+    <!-- Place Order Button -->
+    <button
+      id="placeOrderBtn"
+      onclick="submitOrder()"
+      class="make-order-btn"
+      disabled
+    >
+      Place Order
+    </button>
+
+    <p class="text-center text-xs mt-3" style="color:rgba(122,154,176,0.5);">
+      You will be redirected to the payment page after placing your order.
+    </p>
+  </div>
+
+</div>
+
+
+<!-- ══════════════════════════════════════════════
+     ORDER PANEL JAVASCRIPT
+══════════════════════════════════════════════ -->
+<script>
+(function () {
+
+  /* ── State ─────────────────────────────── */
+  let orderProducts  = [];   // full product list for current branch
+  let orderCart      = {};   // { product_id: quantity }
+  let orderBranchId  = null; // branch_id string e.g. "BRN-NBI"
+
+  /* ── Alert helpers ──────────────────────── */
+  function showOrderAlert(msg, type = 'error') {
+    const bar = document.getElementById('orderAlertBar');
+    document.getElementById('orderAlertMsg').textContent = msg;
+    bar.className = `alert-bar show ${type === 'ok' ? 'ok' : 'error'}`;
+    if (type === 'ok') setTimeout(hideOrderAlert, 5000);
+  }
+  window.hideOrderAlert = function () {
+    document.getElementById('orderAlertBar').className = 'alert-bar';
+  };
+
+  /* ── Load products for the order panel ──── */
+  async function loadOrderProducts(branchId, branchName) {
+    orderBranchId = branchId;
+    orderCart = {};
+
+    const label = document.getElementById('orderBranchLabel');
+    if (label) label.textContent = branchName || '—';
+
+    const grid = document.getElementById('orderProductGrid');
+    grid.innerHTML = [1,2,3].map(() =>
+      `<div class="product-card skeleton h-72"></div>`
+    ).join('');
+
+    document.getElementById('orderNoProducts').classList.add('hidden');
+    updateSummary();
+
+    try {
+      /* Try inventory endpoint first (branch-specific stock),
+         fall back to generic products endpoint */
+      let res = await Auth.fetch(`/api/inventory/${branchId}/`);
+      if (!res.ok) res = await Auth.fetch(`/api/products/`);
+      const raw = await res.json();
+      orderProducts = Array.isArray(raw)
+        ? raw
+        : (raw.results || raw.products || raw.inventory || []);
+
+      renderOrderGrid();
+    } catch (err) {
+      grid.innerHTML = '';
+      showOrderAlert('Failed to load products. Please try again.');
+    }
+  }
+
+  /* ── Render product cards with qty steppers ── */
+  function renderOrderGrid() {
+    const grid = document.getElementById('orderProductGrid');
+    const noP  = document.getElementById('orderNoProducts');
+
+    if (!orderProducts.length) {
+      grid.innerHTML = '';
+      noP.classList.remove('hidden');
+      return;
+    }
+
+    noP.classList.add('hidden');
+    grid.innerHTML = orderProducts.map((p, i) => {
+      const pid   = p.product_id || p.id;
+      const name  = p.name || '—';
+      const price = parseFloat(p.price || 0);
+      const img   = p.image_url || p.image || '/static/images/placeholder.png';
+      const stock = p.stock !== undefined ? p.stock : 99;
+      const qty   = orderCart[pid] || 0;
+
+      return `
+        <div class="product-card" style="animation-delay:${i * 0.05}s;position:relative;">
+          <!-- Out-of-stock overlay -->
+          ${stock === 0 ? `
+          <div style="position:absolute;inset:0;background:rgba(10,37,64,0.75);border-radius:20px;display:flex;align-items:center;justify-content:center;z-index:5;">
+            <span class="font-head text-sm font-bold" style="color:rgba(255,107,107,0.8);">Out of Stock</span>
+          </div>` : ''}
+
+          <!-- Product image -->
+          <div class="h-36 flex items-center justify-center mb-3">
+            <img
+              src="${img}"
+              alt="${name}"
+              class="max-h-full max-w-[120px] drop-shadow-2xl object-contain transition-transform hover:scale-110 duration-300"
+              onerror="this.src='/static/images/placeholder.png'"
+            />
+          </div>
+
+          <!-- Name & price -->
+          <p class="font-body text-wdtext text-center font-medium text-sm mb-1 px-1 leading-snug">${name}</p>
+          <div class="price-badge mb-4">KES ${price.toFixed(2)}</div>
+
+          <!-- Stock badge -->
+          ${stock !== undefined && stock <= 10 && stock > 0 ? `
+          <p class="text-xs mb-2" style="color:#f59e0b;">Only ${stock} left</p>` : ''}
+
+          <!-- Quantity stepper -->
+          <div class="flex items-center gap-3 mt-auto" data-pid="${pid}">
+            <button
+              onclick="changeQty('${pid}', -1, ${price}, ${stock})"
+              class="w-9 h-9 rounded-xl flex items-center justify-center font-bold text-lg transition-all"
+              style="background:rgba(0,200,150,0.1);border:1px solid rgba(0,200,150,0.25);color:#00C896;"
+              ${qty === 0 || stock === 0 ? 'disabled style="opacity:0.35;cursor:not-allowed;background:rgba(0,200,150,0.1);border:1px solid rgba(0,200,150,0.25);color:#00C896;"' : ''}
+              id="btn-minus-${pid}"
+            >−</button>
+
+            <input
+              type="number"
+              id="qty-${pid}"
+              value="${qty}"
+              min="0"
+              max="${stock}"
+              readonly
+              class="w-10 text-center bg-transparent outline-none border-none font-head font-bold text-base text-wdtext"
+              style="cursor:default;"
+              tabindex="-1"
+            />
+
+            <button
+              onclick="changeQty('${pid}', 1, ${price}, ${stock})"
+              class="w-9 h-9 rounded-xl flex items-center justify-center font-bold text-lg transition-all"
+              style="background:rgba(0,200,150,0.1);border:1px solid rgba(0,200,150,0.25);color:#00C896;"
+              ${qty >= stock || stock === 0 ? 'disabled style="opacity:0.35;cursor:not-allowed;background:rgba(0,200,150,0.1);border:1px solid rgba(0,200,150,0.25);color:#00C896;"' : ''}
+              id="btn-plus-${pid}"
+            >+</button>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  /* ── Quantity change handler ─────────────── */
+  window.changeQty = function (pid, delta, price, stock) {
+    const current = orderCart[pid] || 0;
+    const next    = Math.max(0, Math.min(stock, current + delta));
+
+    if (next === 0) {
+      delete orderCart[pid];
+    } else {
+      orderCart[pid] = next;
+    }
+
+    /* Update qty display */
+    const qtyEl = document.getElementById(`qty-${pid}`);
+    if (qtyEl) qtyEl.value = next;
+
+    /* Update stepper button states */
+    const btnMinus = document.getElementById(`btn-minus-${pid}`);
+    const btnPlus  = document.getElementById(`btn-plus-${pid}`);
+    if (btnMinus) btnMinus.disabled = next === 0;
+    if (btnPlus)  btnPlus.disabled  = next >= stock;
+
+    updateSummary();
+  };
+
+  /* ── Update summary panel & total ─────────── */
+  function updateSummary() {
+    const summaryEl  = document.getElementById('orderSummaryList');
+    const totalEl    = document.getElementById('orderTotalDisplay');
+    const placeBtn   = document.getElementById('placeOrderBtn');
+
+    const cartKeys = Object.keys(orderCart);
+
+    if (!cartKeys.length) {
+      summaryEl.innerHTML = `<p class="text-sm" style="color:rgba(122,154,176,0.6);">No items selected yet.</p>`;
+      if (totalEl) totalEl.value = '0.00';
+      if (placeBtn) placeBtn.disabled = true;
+      return;
+    }
+
+    let total = 0;
+    const lines = cartKeys.map(pid => {
+      const product = orderProducts.find(p => (p.product_id || p.id) == pid);
+      if (!product) return '';
+      const qty     = orderCart[pid];
+      const price   = parseFloat(product.price || 0);
+      const sub     = qty * price;
+      total        += sub;
+      return `
+        <div class="flex items-center justify-between py-1.5" style="border-bottom:1px solid rgba(0,200,150,0.07);">
+          <div class="flex items-center gap-2">
+            <span class="text-sm text-wdtext">${product.name}</span>
+            <span class="text-xs px-1.5 py-0.5 rounded-md font-head font-bold"
+                  style="background:rgba(0,200,150,0.1);color:#00C896;">×${qty}</span>
+          </div>
+          <span class="text-sm font-head font-semibold text-wdtext">KES ${sub.toFixed(2)}</span>
+        </div>`;
+    });
+
+    summaryEl.innerHTML = lines.join('');
+    if (totalEl) totalEl.value = total.toFixed(2);
+    if (placeBtn) placeBtn.disabled = false;
+  }
+
+  /* ── Submit order ─────────────────────────── */
+  window.submitOrder = async function () {
+    const btn = document.getElementById('placeOrderBtn');
+    if (!btn || btn.disabled) return;
+
+    const cartKeys = Object.keys(orderCart);
+    if (!cartKeys.length) {
+      showOrderAlert('Please select at least one item.');
+      return;
+    }
+    if (!orderBranchId) {
+      showOrderAlert('No branch selected. Please select a branch first.');
+      return;
+    }
+
+    /* Build payload matching OrderCreateSerializer */
+    const payload = {
+      branch_id: orderBranchId,
+      items: cartKeys.map(pid => ({
+        product_id: pid,
+        quantity:   orderCart[pid],
+      })),
+    };
+
+    /* Loading state */
+    btn.disabled     = true;
+    btn.innerHTML    = `<span class="spinner inline-block w-5 h-5 mr-2"></span> Placing Order…`;
+
+    try {
+      const res  = await Auth.fetch('/api/orders/', {
+        method: 'POST',
+        body:   JSON.stringify(payload),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        /* Surface API validation errors */
+        const errMsg =
+          data.error
+          || (Array.isArray(data.error) ? data.error.join(' ') : null)
+          || data.detail
+          || data.items?.[0]
+          || data.branch_id?.[0]
+          || 'Order failed. Please try again.';
+        showOrderAlert(typeof errMsg === 'string' ? errMsg : JSON.stringify(errMsg));
+        btn.disabled  = false;
+        btn.innerHTML = 'Place Order';
+        return;
+      }
+
+      /* Success — redirect to payment with order_id */
+      const orderId = data.data?.order_id || data.order_id || '';
+      showOrderAlert('Order placed! Redirecting to payment…', 'ok');
+      setTimeout(() => {
+        window.location.href = `/payment/?order_id=${orderId}`;
+      }, 1200);
+
+    } catch (err) {
+      showOrderAlert('Network error. Please check your connection.');
+      btn.disabled  = false;
+      btn.innerHTML = 'Place Order';
+    }
+  };
+
+  /* ── Expose loader so dashboard can call it ── */
+  window.loadOrderPanel = loadOrderProducts;
+
+})();
+</script>

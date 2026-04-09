@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>WantamDrinks — Home</title>
+  <title>WantamDrinks — Dashboard</title>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -37,12 +37,10 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: 'DM Sans', sans-serif; background: #0A2540; color: #E8F4F8; overflow: hidden; height: 100vh; }
 
-    /* ── Scrollbars ── */
     .sb::-webkit-scrollbar { width: 4px; }
     .sb::-webkit-scrollbar-track { background: transparent; }
     .sb::-webkit-scrollbar-thumb { background: rgba(0,200,150,0.2); border-radius: 4px; }
 
-    /* ── Background ── */
     .bg-scene {
       position: absolute; inset: 0; z-index: 0;
       background: url('/static/images/WantamDrinks background.png') center/cover no-repeat;
@@ -54,7 +52,6 @@
       background: linear-gradient(135deg, rgba(10,37,64,0.9) 0%, rgba(10,37,64,0.65) 100%);
     }
 
-    /* ── Nav item ── */
     .nav-item {
       display: flex; align-items: center; gap: 12px;
       padding: 0.65rem 1rem; border-radius: 12px;
@@ -66,7 +63,6 @@
     .nav-item:hover { background: rgba(0,200,150,0.07); border-color: rgba(0,200,150,0.18); color: #E8F4F8; }
     .nav-item.active { background: rgba(0,200,150,0.1); border-color: rgba(0,200,150,0.3); color: #00C896; }
 
-    /* ── Branch dropdown ── */
     .branch-dropdown { max-height: 0; overflow: hidden; transition: max-height 0.35s ease; }
     .branch-dropdown.open { max-height: 280px; overflow-y: auto; }
     .branch-item {
@@ -78,11 +74,9 @@
     .branch-item:hover { background: rgba(0,200,150,0.06); color: #00C896; }
     .branch-item.selected { color: #00C896; font-weight: 600; }
 
-    /* ── Chevron ── */
     .chevron { transition: transform 0.3s; flex-shrink: 0; }
     .chevron.open { transform: rotate(180deg); }
 
-    /* ── Product card ── */
     .product-card {
       background: rgba(15,52,96,0.45);
       backdrop-filter: blur(16px);
@@ -105,12 +99,7 @@
       border-color: rgba(0,200,150,0.4);
       box-shadow: 0 20px 60px rgba(0,0,0,0.4), 0 0 30px rgba(0,200,150,0.1);
     }
-    .product-card:nth-child(1) { animation-delay: 0.08s; }
-    .product-card:nth-child(2) { animation-delay: 0.16s; }
-    .product-card:nth-child(3) { animation-delay: 0.24s; }
-    .product-card:nth-child(n+4) { animation-delay: 0.32s; }
 
-    /* ── Price badge ── */
     .price-badge {
       background: rgba(10,37,64,0.75);
       border: 1px solid rgba(0,200,150,0.25);
@@ -119,7 +108,6 @@
       font-family: 'Syne', sans-serif; font-weight: 600;
     }
 
-    /* ── Make Order button ── */
     .make-order-btn {
       background: linear-gradient(90deg, #7B2FF7, #00A3FF, #00C896);
       background-size: 200% 100%;
@@ -133,10 +121,8 @@
       animation: btnGlow 2.5s ease-in-out infinite;
     }
     .make-order-btn:hover { background-position: 100% 0; transform: translateY(-2px); }
-    .make-order-btn:active { transform: translateY(0); }
     .make-order-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; animation: none; }
 
-    /* ── Search ── */
     .search-input {
       background: rgba(10,37,64,0.65);
       border: 1px solid rgba(0,200,150,0.15);
@@ -145,10 +131,8 @@
       color: #E8F4F8; outline: none; width: 200px;
       transition: border-color 0.2s, box-shadow 0.2s;
     }
-    .search-input::placeholder { color: rgba(122,154,176,0.45); }
     .search-input:focus { border-color: #00C896; box-shadow: 0 0 0 3px rgba(0,200,150,0.1); }
 
-    /* ── Skeleton ── */
     .skeleton {
       background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%);
       background-size: 200% 100%;
@@ -156,7 +140,6 @@
       border-radius: 10px;
     }
 
-    /* ── Spinner ── */
     .spinner {
       border: 2px solid rgba(0,200,150,0.2);
       border-top-color: #00C896;
@@ -164,12 +147,10 @@
       animation: spin 0.8s linear infinite;
     }
 
-    /* ── Inline panels ── */
     #inlinePanel { display: none; }
     #inlinePanel.show { display: block; }
     #catalogueView.hide { display: none; }
 
-    /* ── Notif dot ── */
     .notif-dot {
       width: 7px; height: 7px; border-radius: 50%;
       background: #00C896; flex-shrink: 0;
@@ -177,7 +158,6 @@
       animation: pulse2 2s ease-in-out infinite;
     }
 
-    /* ── Alert ── */
     .alert-bar {
       border-radius: 10px; padding: 0.7rem 1rem;
       font-size: 0.84rem; display: none;
@@ -185,30 +165,37 @@
     }
     .alert-bar.show { display: flex; }
     .alert-bar.error { background: rgba(255,107,107,0.1); border: 1px solid rgba(255,107,107,0.3); color: #ff9b9b; }
-    .alert-bar.warn  { background: rgba(255,179,71,0.1);  border: 1px solid rgba(255,179,71,0.3);  color: #ffb347; }
     .alert-bar.ok    { background: rgba(0,200,150,0.1);   border: 1px solid rgba(0,200,150,0.3);   color: #00C896; }
 
-    /* ── Mobile sidebar overlay ── */
+    .logout-btn {
+      display: flex; align-items: center; gap: 12px;
+      padding: 0.65rem 1rem; border-radius: 12px;
+      font-size: 0.875rem; color: rgba(255,107,107,0.75);
+      cursor: pointer; transition: all 0.2s;
+      border: 1px solid transparent; width: 100%;
+    }
+    .logout-btn:hover { background: rgba(255,107,107,0.08); border-color: rgba(255,107,107,0.22); color: #ff6b6b; }
+
     #sidebarOverlay { display: none; position: fixed; inset: 0; z-index: 25; background: rgba(0,0,0,0.5); }
     #sidebarOverlay.show { display: block; }
+
+    /* Qty stepper button hover state */
+    .qty-btn:not(:disabled):hover {
+      background: rgba(0,200,150,0.2) !important;
+      border-color: rgba(0,200,150,0.5) !important;
+    }
+
     @media (max-width: 768px) {
       body { overflow: auto; }
-      #sidebar {
-        position: fixed; left: -280px; top: 0; bottom: 0; z-index: 30;
-        transition: left 0.3s ease;
-      }
+      #sidebar { position: fixed; left: -280px; top: 0; bottom: 0; z-index: 30; transition: left 0.3s ease; }
       #sidebar.open { left: 0; }
-      #mainArea { width: 100%; }
     }
-    @media (min-width: 769px) {
-      #mobileMenuBtn { display: none; }
-    }
+    @media (min-width: 769px) { #mobileMenuBtn { display: none; } }
   </style>
 </head>
 
 <body class="flex h-screen overflow-hidden">
 
-<!-- Mobile overlay -->
 <div id="sidebarOverlay" onclick="closeMobileSidebar()"></div>
 
 <!-- ══════════════════════════════════════════════
@@ -228,46 +215,32 @@
   </div>
 
   <!-- Nav -->
-  <nav class="flex flex-col gap-1 px-3 pt-5 flex-1" role="navigation" aria-label="Main navigation">
+  <nav class="flex flex-col gap-1 px-3 pt-5 flex-1">
 
-    <!-- My Profile -->
-    <button id="profileNav" class="nav-item w-full text-left"
-            aria-label="View my profile"
-            onclick="showPanel('profile', this)">
-      <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <button id="profileNav" class="nav-item w-full" onclick="showPanel('profile', this)">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
       </svg>
       My Profile
     </button>
 
-    <!-- Branches -->
     <div>
-      <button class="nav-item w-full" id="branchToggle"
-              aria-expanded="false" aria-controls="branchDropdown"
-              aria-label="Toggle branch list"
-              onclick="toggleBranches()">
-        <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <button class="nav-item w-full" id="branchToggle" onclick="toggleBranches()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
         </svg>
         <span class="flex-1 text-left">Branches</span>
-        <svg id="branchChevron" class="chevron w-4 h-4" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <svg id="branchChevron" class="chevron w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <polyline points="6 9 12 15 18 9"/>
         </svg>
       </button>
-      <div class="branch-dropdown sb" id="branchDropdown" role="listbox" aria-label="Branch list">
-        <div id="branchList" class="py-1">
-          <div class="flex items-center gap-2 px-4 py-3 text-xs text-muted">
-            <div class="spinner w-4 h-4 flex-shrink-0"></div> Loading branches…
-          </div>
-        </div>
+      <div class="branch-dropdown sb" id="branchDropdown">
+        <div id="branchList" class="py-1"></div>
       </div>
     </div>
 
-    <!-- My Past Transactions -->
-    <button class="nav-item w-full text-left"
-            aria-label="View past transactions"
-            onclick="showPanel('transactions', this)">
-      <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <button class="nav-item w-full text-left" onclick="showPanel('transactions', this)">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/>
       </svg>
       My Past Transactions
@@ -275,283 +248,278 @@
 
   </nav>
 
-  <!-- Contact Us footer -->
-  <div class="mx-3 mb-4 mt-6 rounded-2xl p-4 flex-shrink-0"
-       style="background:rgba(10,37,64,0.6);border:1px solid rgba(0,200,150,0.12);">
-    <p class="font-head text-xs font-bold mb-3 text-wdtext tracking-wide">Contact Us</p>
-    <div class="flex flex-col gap-2">
-      <div class="flex items-center gap-2">
-        <div class="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
-             style="background:rgba(0,200,150,0.1);border:1px solid rgba(0,200,150,0.2);">
-          <svg aria-hidden="true" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#00C896" stroke-width="2">
-            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.6 3.48 2 2 0 0 1 3.57 1.32h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.86a16 16 0 0 0 6 6l.86-.86a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7a2 2 0 0 1 1.72 2.04z"/>
-          </svg>
-        </div>
-        <a href="tel:+254716984886" class="text-xs text-muted hover:text-accent transition-colors">+254 716 984 886</a>
-      </div>
-      <div class="flex items-center gap-2">
-        <div class="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
-             style="background:rgba(0,163,255,0.1);border:1px solid rgba(0,163,255,0.2);">
-          <svg aria-hidden="true" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#00A3FF" stroke-width="2">
-            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>
-          </svg>
-        </div>
-        <a href="mailto:clarkmaxwell946@gmail.com" class="text-xs text-muted hover:text-accent2 transition-colors">clarkmaxwell946@gmail.com</a>
-      </div>
-    </div>
+  <div class="px-3 mt-4">
+    <button class="logout-btn" onclick="handleLogout()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+      </svg>
+      Log Out
+    </button>
   </div>
 
+  <div class="mx-3 mb-4 mt-3 rounded-2xl p-4 flex-shrink-0" style="background:rgba(10,37,64,0.6);border:1px solid rgba(0,200,150,0.12);">
+    <p class="font-head text-xs font-bold mb-3 text-wdtext">Contact Us</p>
+    <div class="flex flex-col gap-2">
+      <a href="tel:+254716984886" class="text-xs text-muted hover:text-accent transition-colors flex items-center gap-2">
+        📞 +254 716 984 886
+      </a>
+      <a href="/cdn-cgi/l/email-protection#75161914071e18140d021019194c4143351218141c195b161a18" class="text-xs text-muted hover:text-accent2 transition-colors flex items-center gap-2">
+        📧 <span class="__cf_email__" data-cfemail="8ae9e6ebf8e1e7ebf2fdefe6e6b3bebccaede7ebe3e6a4e9e5e7">[email&#160;protected]</span>
+      </a>
+    </div>
+  </div>
 </aside>
 
 <!-- ══════════════════════════════════════════════
      MAIN AREA
 ══════════════════════════════════════════════ -->
 <div id="mainArea" class="relative flex-1 flex flex-col overflow-hidden">
+  <div class="bg-scene"></div>
+  <div class="bg-overlay"></div>
 
-  <!-- Background layers -->
-  <div class="bg-scene" role="presentation"></div>
-  <div class="bg-overlay" role="presentation"></div>
-
-  <!-- ── Header ── -->
-  <header class="relative z-10 flex items-center justify-between px-5 md:px-8 pt-5 pb-2 flex-shrink-0">
-
-    <!-- Mobile menu button -->
-    <button id="mobileMenuBtn"
-            class="mr-3 p-2 rounded-xl transition-all flex-shrink-0"
-            style="background:rgba(15,52,96,0.5);border:1px solid rgba(0,200,150,0.15);"
-            aria-label="Open navigation menu"
-            onclick="openMobileSidebar()">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7A9AB0" stroke-width="2">
-        <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
-      </svg>
+  <header class="relative z-10 flex items-center justify-between px-5 md:px-8 pt-5 pb-2">
+    <button id="mobileMenuBtn" class="mr-3 p-2 rounded-xl" style="background:rgba(15,52,96,0.5);border:1px solid rgba(0,200,150,0.15);" onclick="openMobileSidebar()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7A9AB0" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
     </button>
 
-    <h1 class="font-head font-black text-2xl md:text-3xl lg:text-4xl flex-1 min-w-0 truncate text-wdtext">
-      Welcome,&nbsp;<span id="usernameDisplay"
-        style="background:linear-gradient(90deg,#00C896,#00A3FF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">—</span>
+    <h1 class="font-head font-black text-2xl md:text-3xl flex-1 truncate text-wdtext">
+      Welcome,&nbsp;<span id="usernameDisplay" style="background:linear-gradient(90deg,#00C896,#00A3FF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">—</span>
     </h1>
 
-    <div class="flex items-center gap-3 flex-shrink-0 ml-3">
-      <!-- Search (hidden on small screens) -->
+    <div class="flex items-center gap-3">
       <div class="relative hidden sm:block">
-        <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" aria-hidden="true"
-             style="color:#7A9AB0;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
         </svg>
-        <label for="searchInput" class="sr-only">Search products</label>
-        <input class="search-input" id="searchInput" type="search"
-               placeholder="Search products…" autocomplete="off"
-               aria-label="Search products"
-               oninput="filterProducts()"/>
+        <input class="search-input" id="searchInput" type="search" placeholder="Search drinks…" oninput="filterProducts()"/>
       </div>
-
-      <!-- Avatar -->
       <div class="flex items-center gap-2 px-3 py-2 rounded-xl cursor-pointer transition-all"
            style="background:rgba(15,52,96,0.5);border:1px solid rgba(0,200,150,0.15);"
-           role="button" tabindex="0" aria-label="User profile"
-           onmouseover="this.style.borderColor='rgba(0,200,150,0.35)'"
-           onmouseout="this.style.borderColor='rgba(0,200,150,0.15)'"
            onclick="showPanel('profile', document.getElementById('profileNav'))">
-        <div id="avatarInitial"
-             class="w-8 h-8 rounded-lg flex items-center justify-center font-head font-bold text-sm flex-shrink-0"
-             aria-hidden="true"
-             style="background:linear-gradient(135deg,#00C896,#00A3FF);color:#0A2540;">—</div>
+        <div id="avatarInitial" class="w-8 h-8 rounded-lg flex items-center justify-center font-head font-bold text-sm" style="background:linear-gradient(135deg,#00C896,#00A3FF);color:#0A2540;">—</div>
         <span class="text-sm hidden md:inline text-wdtext" id="headerUsername">—</span>
       </div>
     </div>
   </header>
 
-  <!-- ── Main Content ── -->
-  <main class="sb relative z-10 flex-1 overflow-y-auto px-5 md:px-8 pb-8 pt-4" role="main">
+  <main class="sb relative z-10 flex-1 overflow-y-auto px-5 md:px-8 pb-8 pt-4">
 
     <!-- Global alert bar -->
-    <div class="alert-bar" id="alertBar" role="alert" aria-live="polite">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-      </svg>
-      <span id="alertMsg"></span>
-      <button onclick="hideAlert()" class="ml-auto text-xs opacity-60 hover:opacity-100 transition-opacity"
-              aria-label="Dismiss alert">✕</button>
-    </div>
+    <div class="alert-bar" id="alertBar"><span id="alertMsg"></span><button onclick="hideAlert()" class="ml-auto">✕</button></div>
 
-    <!-- ── CATALOGUE VIEW ── -->
+    <!-- ══════════════════════════════════════
+         CATALOGUE VIEW
+    ══════════════════════════════════════ -->
     <div id="catalogueView">
-
-      <!-- Branch label -->
       <div class="flex items-center gap-2 mb-5">
-        <div class="notif-dot" aria-hidden="true"></div>
+        <div class="notif-dot"></div>
         <p class="text-sm">
           <span style="color:#7A9AB0;">Now Viewing: </span>
-          <span id="activeBranchLabel" class="font-head font-semibold" style="color:#00C896;">Select a branch</span>
-          <span style="color:#E8F4F8;"> Catalogue</span>
+          <span id="activeBranchLabel" class="font-head font-semibold" style="color:#00C896;">Loading...</span>
         </p>
       </div>
 
-      <!-- Product grid — responsive: 1 col mobile, 2 cols tablet, 3 cols desktop -->
-      <div id="productGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-6"
-           role="list" aria-label="Product catalogue">
-        <!-- Skeletons on load -->
-        <div class="product-card" style="animation:none;" role="listitem" aria-hidden="true">
-          <div class="skeleton w-32 h-44 mb-4"></div>
-          <div class="skeleton w-20 h-4 mb-3"></div>
-          <div class="skeleton w-24 h-8"></div>
-        </div>
-        <div class="product-card" style="animation:none;" role="listitem" aria-hidden="true">
-          <div class="skeleton w-32 h-44 mb-4"></div>
-          <div class="skeleton w-20 h-4 mb-3"></div>
-          <div class="skeleton w-24 h-8"></div>
-        </div>
-        <div class="product-card" style="animation:none;" role="listitem" aria-hidden="true">
-          <div class="skeleton w-32 h-44 mb-4"></div>
-          <div class="skeleton w-20 h-4 mb-3"></div>
-          <div class="skeleton w-24 h-8"></div>
-        </div>
+      <div id="productGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-6">
+        <div class="product-card skeleton h-64"></div>
+        <div class="product-card skeleton h-64"></div>
+        <div class="product-card skeleton h-64"></div>
       </div>
 
-      <!-- No results -->
-      <div id="noResults" class="hidden text-center py-16" role="status" aria-live="polite">
-        <svg class="mx-auto mb-3 w-12 h-12" aria-hidden="true" style="color:rgba(122,154,176,0.3);" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-        </svg>
-        <p class="font-head text-lg" style="color:rgba(122,154,176,0.5);">No products found</p>
+      <div id="noResults" class="hidden text-center py-16">
+        <p class="font-head text-lg text-muted/50">No products found</p>
         <button onclick="resetSearch()" class="mt-3 text-sm text-accent hover:underline">Clear search</button>
       </div>
 
-      <!-- Make Order -->
+      <!-- Make Order button — below products, NOT in sidebar -->
       <div class="mt-2">
-        <button class="make-order-btn" id="makeOrderBtn"
-                aria-label="Go to order page"
-                onclick="handleMakeOrder()">
+        <button class="make-order-btn" id="makeOrderBtn" onclick="openOrderPanel()">
           Make Order
         </button>
       </div>
 
-      
-
-
-
-      <!-- Footer line -->
-      <div class="flex items-center justify-between mt-5 pt-3" style="border-top:1px solid rgba(0,200,150,0.08);">
-        <span class="text-xs" style="color:rgba(122,154,176,0.35);">Powered by Wantam Platform</span>
-        <span class="text-xs font-head" style="color:rgba(0,200,150,0.35);">Supervisor: <span style="color:#00C896;">Maxy Clark</span></span>
+      <div class="flex items-center justify-between mt-10 pt-3 border-t border-white/5">
+        <span class="text-xs text-muted/40">Powered by Wantam Platform</span>
+        <span class="text-xs font-head text-muted/40">Supervisor: <span class="text-accent">Maxy Clark</span></span>
       </div>
     </div>
 
-    <!-- ── INLINE PANEL (profile / transactions) ── -->
-    <div id="inlinePanel" role="region">
-      <button onclick="closePanel()"
-              class="flex items-center gap-2 text-sm mb-6 transition-colors"
-              style="color:#7A9AB0;"
-              aria-label="Back to catalogue"
-              onmouseover="this.style.color='#00C896'" onmouseout="this.style.color='#7A9AB0'">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+    <!-- ══════════════════════════════════════
+         INLINE PANEL  (profile / transactions / order)
+    ══════════════════════════════════════ -->
+    <div id="inlinePanel">
+
+      <!-- Back button -->
+      <button onclick="closePanel()" class="flex items-center gap-2 text-sm mb-6 text-muted hover:text-accent transition-colors">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <polyline points="15 18 9 12 15 6"/>
         </svg>
         Back to Catalogue
       </button>
 
-      <!-- Profile -->
-      <div id="profileContent" class="hidden" role="region" aria-label="My profile">
-        <div class="rounded-2xl p-6 md:p-8" style="background:rgba(15,52,96,0.5);border:1px solid rgba(0,200,150,0.15);">
-          <div class="flex flex-col sm:flex-row items-center sm:items-start gap-5">
-            <div id="profileAvatar"
-                 class="w-20 h-20 rounded-2xl flex items-center justify-center font-head font-black text-3xl flex-shrink-0"
-                 aria-hidden="true"
-                 style="background:linear-gradient(135deg,#00C896,#00A3FF);color:#0A2540;">—</div>
-            <div>
-              <h2 class="font-head font-bold text-2xl mb-1 text-wdtext" id="profileName">—</h2>
-              <p class="text-sm text-muted mb-1" id="profileEmail">—</p>
-              <p class="text-sm text-muted" id="profileId"></p>
-              <span class="inline-block mt-3 text-xs px-3 py-1 rounded-full font-semibold"
-                    id="profileBadge"
-                    style="background:rgba(0,200,150,0.1);border:1px solid rgba(0,200,150,0.25);color:#00C896;">Customer</span>
+      <!-- ── PROFILE CONTENT ── -->
+      <div id="profileContent" class="hidden">
+        <div class="max-w-2xl rounded-3xl p-8 md:p-12 backdrop-blur-xl bg-white/5 border border-white/10">
+          <div class="flex flex-col md:flex-row items-center gap-8 mb-10">
+            <div id="profileAvatar" class="w-24 h-24 rounded-3xl bg-gradient-to-br from-accent to-accent2 flex items-center justify-center text-4xl font-black text-primary shadow-2xl shadow-accent/20">—</div>
+            <div class="text-center md:text-left">
+              <h2 id="profileNameHeader" class="font-head font-bold text-3xl text-wdtext mb-1">—</h2>
+              <p id="profileIdDisplay" class="text-accent2 font-bold tracking-widest text-xs uppercase">USER ID: —</p>
             </div>
           </div>
-          <div class="mt-6 pt-5" style="border-top:1px solid rgba(0,200,150,0.1);">
-            <p class="text-sm text-muted">Full profile editing coming soon. Visit <a href="/profile/" class="text-accent hover:underline">your profile page</a> for more options.</p>
-          </div>
+
+          <form id="profileUpdateForm" class="space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div class="space-y-1">
+                <label class="text-xs font-bold text-muted uppercase tracking-wider ml-1">Username</label>
+                <input type="text" id="inputUsername" class="w-full bg-primary/40 border border-white/10 rounded-xl px-4 py-4 text-sm focus:border-accent outline-none text-white transition-all">
+              </div>
+              <div class="space-y-1">
+                <label class="text-xs font-bold text-muted uppercase tracking-wider ml-1">Email Address</label>
+                <input type="email" id="inputEmail" class="w-full bg-primary/40 border border-white/10 rounded-xl px-4 py-4 text-sm focus:border-accent outline-none text-white transition-all" readonly>
+              </div>
+              <div class="space-y-1 md:col-span-2">
+                <label class="text-xs font-bold text-muted uppercase tracking-wider ml-1">Phone Number</label>
+                <input type="tel" id="inputPhone" class="w-full bg-primary/40 border border-white/10 rounded-xl px-4 py-4 text-sm focus:border-accent outline-none text-white transition-all" placeholder="Enter phone number">
+              </div>
+            </div>
+            <button type="submit" class="w-full py-5 bg-accent text-primary font-head font-black uppercase tracking-widest rounded-2xl hover:brightness-110 active:scale-95 transition-all shadow-lg">
+              Update Profile Details
+            </button>
+          </form>
         </div>
       </div>
 
-      <!-- Transactions -->
-      <div id="transactionsContent" class="hidden" role="region" aria-label="Past transactions">
-        <div class="rounded-2xl p-6 md:p-8" style="background:rgba(15,52,96,0.5);border:1px solid rgba(0,200,150,0.15);">
-          <div class="flex items-center gap-3 mb-5">
-            <svg class="w-6 h-6" aria-hidden="true" style="color:#00C896;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/>
-            </svg>
-            <h2 class="font-head font-bold text-xl text-wdtext">Past Transactions</h2>
-          </div>
-          <div id="transactionsList">
-            <div class="flex items-center justify-center gap-3 py-10 text-muted text-sm">
-              <div class="spinner w-5 h-5"></div> Loading transactions…
-            </div>
-          </div>
+      <!-- ── TRANSACTIONS CONTENT ── -->
+      <div id="transactionsContent" class="hidden">
+        <div class="rounded-2xl p-6 md:p-8 bg-white/5 border border-white/10">
+          <h2 class="font-head font-bold text-xl text-wdtext mb-5">Past Transactions</h2>
+          <div id="transactionsList"></div>
         </div>
       </div>
+
+      <!-- ══════════════════════════════════════
+           ORDER CONTENT
+      ══════════════════════════════════════ -->
+      <div id="orderContent" class="hidden">
+
+        <!-- Panel header -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
+          <div>
+            <h2 class="font-head font-bold text-2xl text-wdtext">Make an Order</h2>
+            <p class="text-sm mt-0.5" style="color:#7A9AB0;">Select quantities and place your order below.</p>
+          </div>
+          <!-- Active branch pill -->
+          <div class="flex items-center gap-2 px-4 py-2 rounded-xl flex-shrink-0"
+               style="background:rgba(0,200,150,0.08);border:1px solid rgba(0,200,150,0.2);">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#00C896" stroke-width="2.5">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+              <circle cx="12" cy="10" r="3"/>
+            </svg>
+            <span class="text-sm font-head font-semibold" style="color:#00C896;" id="orderBranchLabel">—</span>
+          </div>
+        </div>
+
+        <!-- Order-scoped alert -->
+        <div class="alert-bar" id="orderAlertBar">
+          <span id="orderAlertMsg"></span>
+          <button onclick="hideOrderAlert()" class="ml-auto text-lg leading-none">✕</button>
+        </div>
+
+        <!-- Product grid with qty steppers -->
+        <div id="orderProductGrid"
+             class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-6">
+          <div class="product-card skeleton h-72"></div>
+          <div class="product-card skeleton h-72"></div>
+          <div class="product-card skeleton h-72"></div>
+        </div>
+
+        <div id="orderNoProducts" class="hidden text-center py-12">
+          <p class="font-head text-lg" style="color:rgba(122,154,176,0.5);">No products available at this branch.</p>
+        </div>
+
+        <!-- Summary + Place Order -->
+        <div class="rounded-2xl p-5 md:p-6 mt-2"
+             style="background:rgba(10,37,64,0.65);border:1px solid rgba(0,200,150,0.18);backdrop-filter:blur(16px);">
+
+          <h3 class="font-head font-bold text-base text-wdtext mb-4">Order Summary</h3>
+
+          <div id="orderSummaryList" class="space-y-2 mb-4 min-h-[2rem]">
+            <p class="text-sm" style="color:rgba(122,154,176,0.6);">No items selected yet.</p>
+          </div>
+
+          <div style="border-top:1px solid rgba(0,200,150,0.12);" class="pt-4 mb-5">
+            <div class="flex items-center justify-between">
+              <span class="font-head font-bold text-sm" style="color:#7A9AB0;text-transform:uppercase;letter-spacing:1.5px;">Total</span>
+              <div class="flex items-center gap-2">
+                <span class="text-xs" style="color:#7A9AB0;">KES</span>
+                <!-- Readonly total — purely display, updated by JS -->
+                <input
+                  type="text"
+                  id="orderTotalDisplay"
+                  value="0.00"
+                  readonly
+                  tabindex="-1"
+                  class="text-right font-head font-black text-2xl bg-transparent outline-none border-none"
+                  style="color:#00C896;width:130px;cursor:default;"
+                />
+              </div>
+            </div>
+          </div>
+
+          <button
+            id="placeOrderBtn"
+            onclick="submitOrder()"
+            class="make-order-btn"
+            disabled
+          >
+            Place Order
+          </button>
+
+          <p class="text-center text-xs mt-3" style="color:rgba(122,154,176,0.5);">
+            You will be redirected to the payment page after placing your order.
+          </p>
+        </div>
+
+      </div>
+      <!-- end #orderContent -->
+
     </div>
+    <!-- end #inlinePanel -->
 
   </main>
-</div><!-- end main -->
+</div>
 
-<script>
+<!-- ══════════════════════════════════════════════
+     SCRIPTS
+══════════════════════════════════════════════ -->
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
   const API = '/api';
 
   /* ─────────────────────────────────────────────
-     AUTH — secure, with token refresh + guards
+     AUTH HELPER
   ───────────────────────────────────────────── */
   const Auth = {
-    save(data) {
-      const keys = {
-        access_token:     data.access        || '',
-        refresh_token:    data.refresh       || '',
-        is_staff:         String(data.is_staff || false),
-        wnt_id:           String(data.wnt_id || data.user_id || ''),
-        email:            data.email         || '',
-        username:         data.username      || '',
-        token_expires_at: String(Date.now() + 14 * 60 * 1000),
-      };
-      Object.entries(keys).forEach(([k,v]) => sessionStorage.setItem(k,v));
-    },
-    clear() {
-      ['access_token','refresh_token','is_staff','wnt_id','email','username','token_expires_at']
-        .forEach(k => sessionStorage.removeItem(k));
-    },
-    isLoggedIn()  { return !!sessionStorage.getItem('access_token'); },
-    isStaff()     { return sessionStorage.getItem('is_staff') === 'true'; },
-    getUsername() { return sessionStorage.getItem('username') || ''; },
-    getEmail()    { return sessionStorage.getItem('email')    || ''; },
-    getId()       { return sessionStorage.getItem('wnt_id')   || ''; },
-
-    async refresh() {
-      const rt = sessionStorage.getItem('refresh_token');
-      if (!rt) return false;
-      try {
-        const res = await fetch(`${API}/auth/token/refresh/`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ refresh: rt }),
-        });
-        if (!res.ok) { Auth.clear(); return false; }
-        const data = await res.json();
-        sessionStorage.setItem('access_token',     data.access || '');
-        sessionStorage.setItem('token_expires_at', String(Date.now() + 14 * 60 * 1000));
-        return true;
-      } catch { Auth.clear(); return false; }
-    },
-
     async getValidToken() {
-      const exp = parseInt(sessionStorage.getItem('token_expires_at') || '0', 10);
-      if (Date.now() >= exp - 30000) {           // refresh 30s before expiry
-        const ok = await Auth.refresh();
-        if (!ok) { window.location.href = '/login/'; return null; }
+      const token = sessionStorage.getItem('access_token');
+      if (!token) { window.location.href = '/login/'; return null; }
+      const exp = parseInt(sessionStorage.getItem('token_expires_at') || '0');
+      if (Date.now() >= exp - 30000) {
+        const rt = sessionStorage.getItem('refresh_token');
+        try {
+          const res = await fetch(`${API}/auth/token/refresh/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ refresh: rt }),
+          });
+          const data = await res.json();
+          sessionStorage.setItem('access_token', data.access);
+          sessionStorage.setItem('token_expires_at', String(Date.now() + 14 * 60 * 1000));
+        } catch { window.location.href = '/login/'; return null; }
       }
       return sessionStorage.getItem('access_token');
     },
-
     async fetch(url, options = {}) {
       const token = await Auth.getValidToken();
-      if (!token) return null;
       return fetch(url, {
         ...options,
         headers: {
@@ -560,278 +528,159 @@
           ...(options.headers || {}),
         },
       });
-    },
+    }
   };
 
-  /* ─── Guard ─── */
-  if (!Auth.isLoggedIn()) { window.location.href = '/login/'; }
-
-  /* ─── Populate UI with stored user info ─── */
-  function populateUser() {
-    const username = Auth.getUsername();
-    const initial  = username ? username.charAt(0).toUpperCase() : '?';
-
-    document.getElementById('usernameDisplay').textContent = username || 'there';
-    document.getElementById('headerUsername').textContent  = username || '';
-    document.getElementById('avatarInitial').textContent   = initial;
-    document.getElementById('profileAvatar').textContent   = initial;
-    document.getElementById('profileName').textContent     = username || '—';
-    document.getElementById('profileEmail').textContent    = Auth.getEmail() || '—';
-    document.getElementById('profileId').textContent       = Auth.getId() ? `ID: ${Auth.getId()}` : '';
-    if (Auth.isStaff()) {
-      document.getElementById('profileBadge').textContent = 'Staff';
-      document.getElementById('profileBadge').style.color = '#00A3FF';
-    }
-  }
-  populateUser();
-
   /* ─────────────────────────────────────────────
-     ALERT HELPERS
+     ALERTS
   ───────────────────────────────────────────── */
   function showAlert(msg, type = 'error') {
     const bar = document.getElementById('alertBar');
     document.getElementById('alertMsg').textContent = msg;
-    bar.className = `alert-bar show ${type}`;
+    bar.className = `alert-bar show ${type === 'ok' ? 'ok' : 'error'}`;
+    setTimeout(hideAlert, 6000);
   }
-  function hideAlert() {
-    document.getElementById('alertBar').className = 'alert-bar';
+  function hideAlert() { document.getElementById('alertBar').className = 'alert-bar'; }
+
+  function showOrderAlert(msg, type = 'error') {
+    const bar = document.getElementById('orderAlertBar');
+    document.getElementById('orderAlertMsg').textContent = msg;
+    bar.className = `alert-bar show ${type === 'ok' ? 'ok' : 'error'}`;
+    if (type === 'ok') setTimeout(hideOrderAlert, 5000);
+  }
+  function hideOrderAlert() {
+    document.getElementById('orderAlertBar').className = 'alert-bar';
   }
 
   /* ─────────────────────────────────────────────
-     MOBILE SIDEBAR
+     UTILITIES
   ───────────────────────────────────────────── */
+  function handleLogout() { sessionStorage.clear(); window.location.href = '/login/'; }
   function openMobileSidebar() {
     document.getElementById('sidebar').classList.add('open');
     document.getElementById('sidebarOverlay').classList.add('show');
-    document.body.style.overflow = 'hidden';
   }
   function closeMobileSidebar() {
     document.getElementById('sidebar').classList.remove('open');
     document.getElementById('sidebarOverlay').classList.remove('show');
-    document.body.style.overflow = '';
   }
 
   /* ─────────────────────────────────────────────
      BRANCHES
   ───────────────────────────────────────────── */
-  let branchesOpen = false;
-  let branchesLoaded = false;
-
-  function toggleBranches() {
-    branchesOpen = !branchesOpen;
-    const dropdown = document.getElementById('branchDropdown');
-    const chevron  = document.getElementById('branchChevron');
-    const toggle   = document.getElementById('branchToggle');
-    dropdown.classList.toggle('open', branchesOpen);
-    chevron.classList.toggle('open',  branchesOpen);
-    toggle.classList.toggle('active', branchesOpen);
-    toggle.setAttribute('aria-expanded', String(branchesOpen));
-  }
+  /* Store active branch info globally so order panel can read it */
+  let activeBranch = { id: null, name: '—' };
 
   async function loadBranches() {
-    if (branchesLoaded) return;
     try {
-      const res = await fetch(`${API}/branches/`);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const raw = await res.json();
-      const branches = Array.isArray(raw) ? raw : (raw.branches || raw.results || []);
-      renderBranches(branches);
-      branchesLoaded = true;
-    } catch (err) {
-      console.warn('Branch fetch failed:', err.message);
-      document.getElementById('branchList').innerHTML =
-        '<div class="branch-item text-xs" style="color:rgba(255,107,107,0.7);">Could not load branches</div>';
-    }
-  }
+      const res  = await fetch(`${API}/branches/`);
+      const raw  = await res.json();
+      const list = Array.isArray(raw) ? raw : (raw.results || []);
 
-  function renderBranches(branches) {
-    const list = document.getElementById('branchList');
-    if (!branches.length) {
-      list.innerHTML = '<div class="branch-item" style="color:rgba(122,154,176,0.4);">No branches available</div>';
-      return;
-    }
-    list.innerHTML = branches.map(b => {
-      // Safely escape branch name for display (prevent XSS)
-      const safeName = String(b.name || '').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-      return `
-        <div class="branch-item" id="branch-${Number(b.id)}"
-             role="option" tabindex="0" aria-selected="false"
-             data-id="${Number(b.id)}" data-name="${safeName}"
-             onclick="selectBranch(${Number(b.id)}, this)"
-             onkeydown="if(event.key==='Enter')selectBranch(${Number(b.id)}, this)">
-          <svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      document.getElementById('branchList').innerHTML = list.map(b => `
+        <div class="branch-item" data-id="${b.branch_id || b.id}"
+             onclick="selectBranch('${b.branch_id || b.id}', '${b.name}')">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="12" cy="12" r="3"/>
           </svg>
-          ${safeName}
-        </div>`;
-    }).join('');
+          ${b.name}
+        </div>`).join('');
+
+      /* Auto-select Nairobi or first branch */
+      const nairobi = list.find(b => b.name.toLowerCase().includes('nairobi')) || list[0];
+      if (nairobi) selectBranch(nairobi.branch_id || nairobi.id, nairobi.name);
+    } catch { showAlert('Failed to load branches'); }
   }
 
-  async function selectBranch(branchId, el) {
-    const branchName = el.dataset.name;
+  async function selectBranch(id, name) {
+    activeBranch = { id, name };
 
-    // Update selection UI
-    document.querySelectorAll('.branch-item').forEach(i => {
-      i.classList.remove('selected');
-      i.setAttribute('aria-selected','false');
-    });
-    el.classList.add('selected');
-    el.setAttribute('aria-selected','true');
-
-    // Update label
-    document.getElementById('activeBranchLabel').textContent = branchName;
-
-    // Close dropdown
-    branchesOpen = false;
+    document.getElementById('activeBranchLabel').textContent = name;
+    document.querySelectorAll('.branch-item').forEach(el =>
+      el.classList.toggle('selected', el.dataset.id == id)
+    );
     document.getElementById('branchDropdown').classList.remove('open');
     document.getElementById('branchChevron').classList.remove('open');
-    document.getElementById('branchToggle').classList.remove('active');
-    document.getElementById('branchToggle').setAttribute('aria-expanded','false');
 
-    // Show catalogue
-    closePanel();
-    closeMobileSidebar();
+    /* If order panel is open, reload products for new branch */
+    const orderVisible = !document.getElementById('orderContent').classList.contains('hidden');
+    if (orderVisible) {
+      loadOrderPanelProducts(id, name);
+    } else {
+      closePanel();
+      loadProducts(id);
+    }
+  }
 
-    // Load products for this branch
-    await loadProducts(branchId);
+  function toggleBranches() {
+    const d = document.getElementById('branchDropdown');
+    d.classList.toggle('open');
+    document.getElementById('branchChevron').classList.toggle('open', d.classList.contains('open'));
   }
 
   /* ─────────────────────────────────────────────
-     PRODUCTS
+     PRODUCT NORMALIZER
+     Handles any API shape:
+       - Flat product:           { product_id, name, price, image, stock }
+       - Inventory wrapper:      { product: { product_id, name, price, image }, stock, quantity }
+       - DRF nested serializer:  { id, name, price, image_url, ... }
+  ───────────────────────────────────────────── */
+  function normalizeProduct(raw) {
+    // If the object has a nested "product" key (inventory endpoint shape)
+    const p = (raw.product && typeof raw.product === 'object') ? raw.product : raw;
+    return {
+      product_id:  p.product_id || p.id          || raw.product_id || raw.id,
+      name:        p.name       || p.title        || raw.name       || raw.title       || '—',
+      price:       parseFloat(p.price || p.unit_price || raw.price || raw.unit_price   || 0),
+      image:       p.image_url  || p.image        || raw.image_url  || raw.image       || '/static/images/placeholder.png',
+      stock:       raw.stock    !== undefined ? parseInt(raw.stock)
+                 : raw.quantity !== undefined ? parseInt(raw.quantity)
+                 : p.stock      !== undefined ? parseInt(p.stock)
+                 : 99,
+    };
+  }
+
+  /* ─────────────────────────────────────────────
+     CATALOGUE PRODUCTS
   ───────────────────────────────────────────── */
   let allProducts = [];
 
-  function showSkeletons() {
-    document.getElementById('productGrid').innerHTML = [1,2,3].map(() => `
-      <div class="product-card" style="animation:none;" role="listitem" aria-hidden="true">
-        <div class="skeleton w-32 h-44 mb-4"></div>
-        <div class="skeleton w-20 h-4 mb-3"></div>
-        <div class="skeleton w-24 h-8"></div>
-      </div>`).join('');
-    document.getElementById('noResults').classList.add('hidden');
-    hideAlert();
-  }
-
-  async function loadProducts(branchId) {
-    showSkeletons();
-    try {
-      // Use authenticated fetch for branch inventory
-      let res = null;
-      if (branchId) {
-        res = await Auth.fetch(`${API}/inventory/${branchId}/`);
-      }
-      // If branch endpoint fails or no branchId, fall back to general products
-      if (!res || !res.ok) {
-        res = await Auth.fetch(`${API}/products/`);
-      }
-      if (!res || !res.ok) throw new Error(`HTTP ${res ? res.status : 'no response'}`);
-
-      let raw;
-      try { raw = await res.json(); }
-      catch { throw new Error('Invalid JSON from server'); }
-
-      allProducts = Array.isArray(raw) ? raw : (raw.products || raw.results || raw.inventory || []);
-      renderProducts(allProducts);
-    } catch (err) {
-      console.error('Product load error:', err.message);
-      showAlert(`Could not load products: ${err.message}`, 'error');
-      document.getElementById('productGrid').innerHTML = `
-        <div class="col-span-3 text-center py-12">
-          <p class="font-head mb-4" style="color:rgba(255,107,107,0.7);">Could not load products.</p>
-          <button onclick="retryLoad()" class="px-4 py-2 rounded-xl text-sm font-semibold transition-all"
-                  style="background:rgba(0,200,150,0.1);border:1px solid rgba(0,200,150,0.25);color:#00C896;"
-                  aria-label="Retry loading products">
-            Retry
-          </button>
-        </div>`;
-    }
-  }
-
-  let lastBranchId = null;
-  async function selectBranchAndStore(id, el) {
-    lastBranchId = id;
-    await selectBranch(id, el);
-  }
-
-  function retryLoad() {
-    loadProducts(lastBranchId);
-  }
-
-  function renderProducts(products) {
+  async function loadProducts(bid) {
     const grid = document.getElementById('productGrid');
-    if (!products.length) {
-      grid.innerHTML = '';
-      document.getElementById('noResults').classList.remove('hidden');
-      return;
-    }
-    document.getElementById('noResults').classList.add('hidden');
-
-    grid.innerHTML = products.map((p, i) => {
-      // Safe price parsing — never crash on null/undefined
-      const price    = (p.price != null && !isNaN(parseFloat(p.price)))
-                         ? parseFloat(p.price).toFixed(2)
-                         : 'N/A';
-      const name     = p.name    ? String(p.name).replace(/</g,'&lt;') : 'Unknown';
-      const imgSrc   = p.image_url || p.image || '/static/images/placeholder.png';
-      const inStock  = p.stock == null ? null : Number(p.stock);
-      const stockHtml = inStock !== null
-        ? `<p class="mt-2 text-xs" style="color:${inStock > 0 ? 'rgba(0,200,150,0.7)' : 'rgba(255,107,107,0.7)'};">
-             ${inStock > 0 ? `${inStock} in stock` : 'Out of stock'}
-           </p>`
-        : '';
-
-      return `
-        <div class="product-card" style="animation-delay:${i * 0.08}s;"
-             role="listitem" aria-label="${name} — KES ${price}">
-          <div class="relative mb-3 flex items-center justify-center w-full" style="height:175px;">
-            <img
-              src="${imgSrc}"
-              alt="${name}"
-              loading="lazy"
-              style="max-height:165px;max-width:130px;object-fit:contain;filter:drop-shadow(0 10px 28px rgba(0,0,0,0.5));transition:transform 0.3s;"
-              onmouseover="this.style.transform='scale(1.07)'"
-              onmouseout="this.style.transform='scale(1)'"
-              onerror="this.onerror=null;this.src='/static/images/placeholder.png';"
-            />
-          </div>
-          <p class="font-body text-base mb-3 text-center text-wdtext">${name}</p>
-          <div class="price-badge" aria-label="Price: KES ${price}">KES ${price}</div>
-          ${stockHtml}
-        </div>`;
-    }).join('');
+    grid.innerHTML = [1,2,3].map(() => `<div class="product-card skeleton h-64"></div>`).join('');
+    try {
+      let res = await Auth.fetch(`${API}/inventory/${bid}/`);
+      if (!res.ok) res = await Auth.fetch(`${API}/products/`);
+      const raw  = await res.json();
+      const list = Array.isArray(raw) ? raw : (raw.results || raw.products || raw.inventory || []);
+      allProducts = list.map(normalizeProduct);
+      renderProducts(allProducts);
+    } catch { showAlert('Catalogue load failed'); }
   }
 
-  /* ─────────────────────────────────────────────
-     SEARCH
-  ───────────────────────────────────────────── */
+  function renderProducts(arr) {
+    const grid = document.getElementById('productGrid');
+    document.getElementById('noResults').classList.toggle('hidden', arr.length > 0);
+    grid.innerHTML = arr.map((p, i) => `
+      <div class="product-card" style="animation-delay:${i * 0.05}s">
+        <div class="h-40 flex items-center justify-center mb-4">
+          <img src="${p.image}"
+               class="max-h-full max-w-[130px] drop-shadow-2xl object-contain transition-transform hover:scale-110 duration-300"
+               onerror="this.src='/static/images/placeholder.png'">
+        </div>
+        <p class="font-body text-wdtext mb-2 text-center font-medium">${p.name}</p>
+        <div class="price-badge">KES ${p.price.toFixed(2)}</div>
+      </div>`).join('');
+  }
+
   function filterProducts() {
-    const q = (document.getElementById('searchInput').value || '').toLowerCase().trim();
-    if (!q) { renderProducts(allProducts); return; }
-    const filtered = allProducts.filter(p =>
-      p.name && p.name.toLowerCase().includes(q)
-    );
-    renderProducts(filtered);
+    const q = document.getElementById('searchInput').value.toLowerCase();
+    renderProducts(allProducts.filter(p => p.name.toLowerCase().includes(q)));
   }
-
-  function resetSearch() {
-    const el = document.getElementById('searchInput');
-    if (el) el.value = '';
-    renderProducts(allProducts);
-  }
+  function resetSearch() { document.getElementById('searchInput').value = ''; renderProducts(allProducts); }
 
   /* ─────────────────────────────────────────────
-     MAKE ORDER
-  ───────────────────────────────────────────── */
-  function handleMakeOrder() {
-    if (!allProducts.length) {
-      showAlert('Please select a branch and wait for products to load before ordering.', 'warn');
-      return;
-    }
-    window.location.href = '/order/';
-  }
-
-  /* ─────────────────────────────────────────────
-     INLINE PANELS
+     PANEL NAVIGATION
   ───────────────────────────────────────────── */
   function showPanel(type, navEl) {
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
@@ -839,16 +688,13 @@
 
     document.getElementById('catalogueView').classList.add('hide');
     document.getElementById('inlinePanel').classList.add('show');
-    document.getElementById('profileContent').classList.add('hidden');
-    document.getElementById('transactionsContent').classList.add('hidden');
 
-    if (type === 'profile') {
-      document.getElementById('profileContent').classList.remove('hidden');
-    } else if (type === 'transactions') {
-      document.getElementById('transactionsContent').classList.remove('hidden');
-      loadTransactions();
-    }
+    document.getElementById('profileContent').classList.toggle('hidden',      type !== 'profile');
+    document.getElementById('transactionsContent').classList.toggle('hidden', type !== 'transactions');
+    document.getElementById('orderContent').classList.toggle('hidden',        type !== 'order');
 
+    if (type === 'profile')      fetchProfile();
+    if (type === 'transactions') loadTransactions();
     closeMobileSidebar();
   }
 
@@ -859,62 +705,305 @@
   }
 
   /* ─────────────────────────────────────────────
-     TRANSACTIONS (stub — ready for real API)
+     OPEN ORDER PANEL  (called by Make Order btn)
   ───────────────────────────────────────────── */
-  let txLoaded = false;
-  async function loadTransactions() {
-    if (txLoaded) return;
-    const list = document.getElementById('transactionsList');
-    try {
-      const res = await Auth.fetch(`${API}/orders/`);
-      if (!res || !res.ok) throw new Error(`HTTP ${res ? res.status : 'no response'}`);
-      const raw = await res.json();
-      const orders = Array.isArray(raw) ? raw : (raw.results || raw.orders || []);
-      txLoaded = true;
+  function openOrderPanel() {
+    showPanel('order', null);
+    loadOrderPanelProducts(activeBranch.id, activeBranch.name);
+  }
 
-      if (!orders.length) {
-        list.innerHTML = `
-          <div class="text-center py-10">
-            <p class="text-muted text-sm">You have no past transactions yet.</p>
-            <button onclick="closePanel()" class="mt-3 text-sm text-accent hover:underline">Browse products</button>
-          </div>`;
+  /* ─────────────────────────────────────────────
+     ORDER PANEL — STATE
+  ───────────────────────────────────────────── */
+  let orderProducts = [];
+  let orderCart     = {};   /* { product_id: quantity } */
+
+  /* ── Load products into the order panel ─── */
+  async function loadOrderPanelProducts(branchId, branchName) {
+    orderCart = {};
+
+    const label = document.getElementById('orderBranchLabel');
+    if (label) label.textContent = branchName || '—';
+
+    const grid = document.getElementById('orderProductGrid');
+    grid.innerHTML = [1,2,3].map(() =>
+      `<div class="product-card skeleton h-72"></div>`
+    ).join('');
+    document.getElementById('orderNoProducts').classList.add('hidden');
+    updateOrderSummary();
+
+    try {
+      let res = await Auth.fetch(`${API}/inventory/${branchId}/`);
+      if (!res.ok) res = await Auth.fetch(`${API}/products/`);
+      const raw  = await res.json();
+      const list = Array.isArray(raw) ? raw : (raw.results || raw.products || raw.inventory || []);
+      orderProducts = list.map(normalizeProduct);
+      renderOrderGrid();
+    } catch {
+      grid.innerHTML = '';
+      showOrderAlert('Failed to load products. Please try again.');
+    }
+  }
+
+  /* ── Render order product cards ─────────── */
+  function renderOrderGrid() {
+    const grid = document.getElementById('orderProductGrid');
+    const noP  = document.getElementById('orderNoProducts');
+
+    if (!orderProducts.length) {
+      grid.innerHTML = '';
+      noP.classList.remove('hidden');
+      return;
+    }
+    noP.classList.add('hidden');
+
+    grid.innerHTML = orderProducts.map((p, i) => {
+      const pid   = p.product_id;
+      const name  = p.name;
+      const price = p.price;
+      const img   = p.image;
+      const stock = p.stock;
+      const qty   = orderCart[pid] || 0;
+      const oos   = stock === 0;
+
+      return `
+        <div class="product-card" style="animation-delay:${i * 0.05}s;">
+          ${oos ? `
+          <div style="position:absolute;inset:0;background:rgba(10,37,64,0.78);border-radius:20px;display:flex;align-items:center;justify-content:center;z-index:5;">
+            <span class="font-head text-sm font-bold" style="color:rgba(255,107,107,0.85);">Out of Stock</span>
+          </div>` : ''}
+
+          <div class="h-36 flex items-center justify-center mb-3">
+            <img src="${img}" alt="${name}"
+                 class="max-h-full max-w-[120px] drop-shadow-2xl object-contain transition-transform hover:scale-110 duration-300"
+                 onerror="this.src='/static/images/placeholder.png'"/>
+          </div>
+
+          <p class="font-body text-wdtext text-center font-medium text-sm mb-1 px-1 leading-snug">${name}</p>
+          <div class="price-badge mb-3">KES ${price.toFixed(2)}</div>
+
+          ${stock > 0 && stock <= 10 ? `<p class="text-xs mb-2" style="color:#f59e0b;">Only ${stock} left</p>` : ''}
+
+          <!-- Qty stepper -->
+          <div class="flex items-center gap-3 mt-auto">
+            <button
+              id="btn-minus-${pid}"
+              onclick="changeQty('${pid}', -1)"
+              class="qty-btn w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xl transition-all select-none"
+              style="background:rgba(0,200,150,0.1);border:1px solid rgba(0,200,150,0.25);color:#00C896;"
+              ${qty === 0 || oos ? 'disabled' : ''}
+            >−</button>
+
+            <span
+              id="qty-${pid}"
+              class="w-8 text-center font-head font-bold text-base text-wdtext select-none"
+            >${qty}</span>
+
+            <button
+              id="btn-plus-${pid}"
+              onclick="changeQty('${pid}', 1)"
+              class="qty-btn w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xl transition-all select-none"
+              style="background:rgba(0,200,150,0.1);border:1px solid rgba(0,200,150,0.25);color:#00C896;"
+              ${qty >= stock || oos ? 'disabled' : ''}
+            >+</button>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  /* ── Quantity change ────────────────────── */
+  function changeQty(pid, delta) {
+    const product = orderProducts.find(p => p.product_id == pid);
+    if (!product) return;
+
+    const stock   = product.stock !== undefined ? parseInt(product.stock) : 99;
+    const current = orderCart[pid] || 0;
+    const next    = Math.max(0, Math.min(stock, current + delta));
+
+    if (next === 0) {
+      delete orderCart[pid];
+    } else {
+      orderCart[pid] = next;
+    }
+
+    /* Update display without full re-render */
+    const qtyEl    = document.getElementById(`qty-${pid}`);
+    const btnMinus = document.getElementById(`btn-minus-${pid}`);
+    const btnPlus  = document.getElementById(`btn-plus-${pid}`);
+
+    if (qtyEl)    qtyEl.textContent = next;
+    if (btnMinus) btnMinus.disabled = next === 0;
+    if (btnPlus)  btnPlus.disabled  = next >= stock;
+
+    updateOrderSummary();
+  }
+
+  /* ── Update summary + total ─────────────── */
+  function updateOrderSummary() {
+    const summaryEl = document.getElementById('orderSummaryList');
+    const totalEl   = document.getElementById('orderTotalDisplay');
+    const placeBtn  = document.getElementById('placeOrderBtn');
+    const cartKeys  = Object.keys(orderCart);
+
+    if (!cartKeys.length) {
+      if (summaryEl) summaryEl.innerHTML =
+        `<p class="text-sm" style="color:rgba(122,154,176,0.6);">No items selected yet.</p>`;
+      if (totalEl)  totalEl.value = '0.00';
+      if (placeBtn) placeBtn.disabled = true;
+      return;
+    }
+
+    let total = 0;
+    const lines = cartKeys.map(pid => {
+      const p = orderProducts.find(pr => pr.product_id == pid);
+      if (!p) return '';
+      const qty = orderCart[pid];
+      const sub = qty * p.price;
+      total += sub;
+      return `
+        <div class="flex items-center justify-between py-1.5"
+             style="border-bottom:1px solid rgba(0,200,150,0.07);">
+          <div class="flex items-center gap-2">
+            <span class="text-sm text-wdtext">${p.name}</span>
+            <span class="text-xs px-1.5 py-0.5 rounded-md font-head font-bold"
+                  style="background:rgba(0,200,150,0.1);color:#00C896;">×${qty}</span>
+          </div>
+          <span class="text-sm font-head font-semibold text-wdtext">KES ${sub.toFixed(2)}</span>
+        </div>`;
+    });
+
+    if (summaryEl) summaryEl.innerHTML = lines.join('');
+    if (totalEl)   totalEl.value = total.toFixed(2);
+    if (placeBtn)  placeBtn.disabled = false;
+  }
+
+  /* ── Place order ────────────────────────── */
+  async function submitOrder() {
+    const btn      = document.getElementById('placeOrderBtn');
+    const cartKeys = Object.keys(orderCart);
+
+    if (!cartKeys.length) {
+      showOrderAlert('Please select at least one item.');
+      return;
+    }
+    if (!activeBranch.id) {
+      showOrderAlert('No branch selected. Please select a branch first.');
+      return;
+    }
+
+    /* Payload matches OrderCreateSerializer exactly */
+    const payload = {
+      branch_id: activeBranch.id,
+      items: cartKeys.map(pid => ({
+        product_id: pid,
+        quantity:   orderCart[pid],
+      })),
+    };
+
+    btn.disabled  = true;
+    btn.innerHTML = `<span class="spinner inline-block w-5 h-5 mr-2" style="vertical-align:middle;"></span> Placing Order…`;
+
+    try {
+      const res  = await Auth.fetch(`${API}/orders/`, {
+        method: 'POST',
+        body:   JSON.stringify(payload),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        const raw = data.error || data.detail || data.items?.[0] || data.branch_id?.[0];
+        const msg = Array.isArray(raw) ? raw.join(' ') : (raw || 'Order failed. Please try again.');
+        showOrderAlert(msg);
+        btn.disabled  = false;
+        btn.innerHTML = 'Place Order';
         return;
       }
 
-      list.innerHTML = orders.map(o => {
-        const date   = o.created_at ? new Date(o.created_at).toLocaleDateString() : '—';
-        const amount = o.total != null ? `KES ${parseFloat(o.total).toFixed(2)}` : '—';
-        const status = (o.status || 'pending').toUpperCase();
-        const statusColor = o.status === 'completed' ? '#00C896' : o.status === 'failed' ? '#ff6b6b' : '#ffb347';
-        return `
-          <div class="flex items-center justify-between py-3 px-1" style="border-bottom:1px solid rgba(0,200,150,0.08);">
-            <div>
-              <p class="text-sm font-semibold text-wdtext">${o.id ? `#${o.id}` : 'Order'}</p>
-              <p class="text-xs text-muted">${date}</p>
-            </div>
-            <div class="text-right">
-              <p class="text-sm font-head font-bold text-wdtext">${amount}</p>
-              <p class="text-xs font-semibold" style="color:${statusColor};">${status}</p>
-            </div>
-          </div>`;
-      }).join('');
-    } catch (err) {
-      console.error('Transactions error:', err.message);
-      list.innerHTML = `
-        <div class="text-center py-10">
-          <p class="text-sm" style="color:rgba(255,107,107,0.7);">Could not load transactions.</p>
-          <button onclick="txLoaded=false;loadTransactions();" class="mt-3 text-sm text-accent hover:underline"
-                  aria-label="Retry loading transactions">Retry</button>
-        </div>`;
+      /* Success — redirect to payment page */
+      const orderId = data.data?.order_id || data.order_id || '';
+      showOrderAlert('Order placed! Redirecting to payment…', 'ok');
+      setTimeout(() => {
+        window.location.href = `/payment/?order_id=${orderId}`;
+      }, 1200);
+
+    } catch {
+      showOrderAlert('Network error. Please check your connection.');
+      btn.disabled  = false;
+      btn.innerHTML = 'Place Order';
     }
   }
 
   /* ─────────────────────────────────────────────
-     INIT — load branches only, NO pre-load of products
-     Products load only when a branch is selected
+     PROFILE
   ───────────────────────────────────────────── */
-  loadBranches();
-</script>
+  async function fetchProfile() {
+    try {
+      const res  = await Auth.fetch(`${API}/auth/profile/`);
+      const user = await res.json();
+      const init = user.username ? user.username.charAt(0).toUpperCase() : '?';
 
+      document.getElementById('usernameDisplay').textContent  = user.username;
+      document.getElementById('headerUsername').textContent   = user.username;
+      document.getElementById('avatarInitial').textContent    = init;
+      document.getElementById('profileAvatar').textContent    = init;
+      document.getElementById('profileNameHeader').textContent = user.username;
+      document.getElementById('profileIdDisplay').textContent  = `USER ID: ${user.user_id || '---'}`;
+      document.getElementById('inputUsername').value = user.username;
+      document.getElementById('inputEmail').value    = user.email;
+      document.getElementById('inputPhone').value    = user.phone_number || user.phone || '';
+    } catch { console.error('Profile load failed'); }
+  }
+
+  document.getElementById('profileUpdateForm').onsubmit = async (e) => {
+    e.preventDefault();
+    const btn = e.target.querySelector('button');
+    btn.disabled = true; btn.textContent = 'Updating…';
+    const payload = {
+      username:     document.getElementById('inputUsername').value,
+      phone_number: document.getElementById('inputPhone').value,
+    };
+    try {
+      const res = await Auth.fetch(`${API}/auth/profile/`, { method: 'PATCH', body: JSON.stringify(payload) });
+      if (!res.ok) throw new Error();
+      showAlert('Profile updated successfully!', 'ok');
+      fetchProfile();
+    } catch { showAlert('Failed to update profile'); }
+    finally { btn.disabled = false; btn.textContent = 'Update Profile Details'; }
+  };
+
+  /* ─────────────────────────────────────────────
+     TRANSACTIONS
+  ───────────────────────────────────────────── */
+  async function loadTransactions() {
+    const list = document.getElementById('transactionsList');
+    list.innerHTML = '<p class="text-center opacity-50 py-10">Loading orders…</p>';
+    try {
+      const res    = await Auth.fetch(`${API}/orders/`);
+      const raw    = await res.json();
+      const orders = Array.isArray(raw) ? raw : (raw.results || []);
+      list.innerHTML = orders.length
+        ? orders.map(o => `
+          <div class="flex justify-between py-3 border-b border-white/5">
+            <div>
+              <p class="text-sm font-bold">#${o.order_id || o.id}</p>
+              <p class="text-xs text-muted">${new Date(o.created_at).toLocaleDateString()}</p>
+            </div>
+            <div class="text-right">
+              <p class="text-sm font-bold">KES ${o.total_price || o.total}</p>
+              <p class="text-xs text-accent uppercase font-semibold">${o.status}</p>
+            </div>
+          </div>`).join('')
+        : '<p class="text-center py-10 opacity-50">No orders found.</p>';
+    } catch { list.innerHTML = '<p class="text-center py-10 opacity-50">Error loading transactions.</p>'; }
+  }
+
+  /* ─────────────────────────────────────────────
+     INIT
+  ───────────────────────────────────────────── */
+  document.addEventListener('DOMContentLoaded', () => {
+    fetchProfile();
+    loadBranches();
+  });
+</script>
 </body>
 </html>

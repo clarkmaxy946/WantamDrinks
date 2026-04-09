@@ -34,5 +34,6 @@ urlpatterns = [
     path('login/',        TemplateView.as_view(template_name='login.html'),    name='login-page'),
     path('register/',     TemplateView.as_view(template_name='register.html'), name='register-page'),
     path('dashboard/',    TemplateView.as_view(template_name='dashboard.html'), name='dashboard-page'),
+    # path('profile/',   TemplateView.as_view(template_name='profile.html'),   name='profile-page'),
     
 ]

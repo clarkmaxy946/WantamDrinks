@@ -34,7 +34,7 @@ urlpatterns = [
     path('login/',        TemplateView.as_view(template_name='login.html'),    name='login-page'),
     path('register/',     TemplateView.as_view(template_name='register.html'), name='register-page'),
     path('dashboard/',    TemplateView.as_view(template_name='dashboard.html'), name='dashboard-page'),
-    # path('profile/',   TemplateView.as_view(template_name='profile.html'),   name='profile-page'),
+    path('profile/',   TemplateView.as_view(template_name='profile_panel.html'),   name='profile-page'),
     path('payment/',      TemplateView.as_view(template_name='payment.html'),  name='payment-page'),
     
     # Both routes serve the same HTML file

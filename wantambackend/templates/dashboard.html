@@ -63,20 +63,6 @@
     .nav-item:hover { background: rgba(0,200,150,0.07); border-color: rgba(0,200,150,0.18); color: #E8F4F8; }
     .nav-item.active { background: rgba(0,200,150,0.1); border-color: rgba(0,200,150,0.3); color: #00C896; }
 
-    .branch-dropdown { max-height: 0; overflow: hidden; transition: max-height 0.35s ease; }
-    .branch-dropdown.open { max-height: 280px; overflow-y: auto; }
-    .branch-item {
-      display: flex; align-items: center; gap: 10px;
-      padding: 0.5rem 1rem 0.5rem 2.5rem;
-      font-size: 0.82rem; color: #7A9AB0;
-      cursor: pointer; border-radius: 8px; transition: all 0.2s;
-    }
-    .branch-item:hover { background: rgba(0,200,150,0.06); color: #00C896; }
-    .branch-item.selected { color: #00C896; font-weight: 600; }
-
-    .chevron { transition: transform 0.3s; flex-shrink: 0; }
-    .chevron.open { transform: rotate(180deg); }
-
     .product-card {
       background: rgba(15,52,96,0.45);
       backdrop-filter: blur(16px);
@@ -184,6 +170,57 @@
       border-color: rgba(0,200,150,0.5) !important;
     }
 
+    /* Branch selector in order panel */
+    .branch-select-wrapper {
+      position: relative;
+    }
+    .branch-select-trigger {
+      display: flex; align-items: center; gap: 8px;
+      padding: 0.6rem 1rem; border-radius: 12px;
+      font-size: 0.875rem; font-family: 'Syne', sans-serif; font-weight: 600;
+      cursor: pointer; transition: all 0.2s; user-select: none;
+      background: rgba(10,37,64,0.7);
+      border: 1px solid rgba(0,200,150,0.25);
+      color: #7A9AB0;
+      min-width: 200px;
+    }
+    .branch-select-trigger.has-value { color: #00C896; border-color: rgba(0,200,150,0.45); }
+    .branch-select-trigger:hover { border-color: rgba(0,200,150,0.5); background: rgba(10,37,64,0.85); }
+    .branch-select-dropdown {
+      position: absolute; top: calc(100% + 6px); right: 0; left: auto;
+      min-width: 220px; z-index: 50;
+      background: rgba(6,22,42,0.97);
+      border: 1px solid rgba(0,200,150,0.2);
+      border-radius: 14px;
+      padding: 6px;
+      box-shadow: 0 16px 48px rgba(0,0,0,0.5);
+      display: none;
+    }
+    .branch-select-dropdown.open { display: block; }
+    .branch-select-option {
+      display: flex; align-items: center; gap: 10px;
+      padding: 0.55rem 0.85rem; border-radius: 9px;
+      font-size: 0.84rem; color: #7A9AB0;
+      cursor: pointer; transition: all 0.15s;
+    }
+    .branch-select-option:hover { background: rgba(0,200,150,0.08); color: #E8F4F8; }
+    .branch-select-option.selected { color: #00C896; font-weight: 600; background: rgba(0,200,150,0.06); }
+
+    /* Order locked state */
+    #orderLockOverlay {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 3.5rem 2rem;
+      border-radius: 20px;
+      border: 1px dashed rgba(0,200,150,0.2);
+      background: rgba(10,37,64,0.35);
+      margin-bottom: 1.5rem;
+      gap: 1rem;
+    }
+    #orderLockOverlay.hidden { display: none; }
+
     /* ── Table cell color helpers ── */
     .td-id    { font-family: monospace; font-size: 12px; color: #9BBFD6; }
     .td-main  { font-size: 13px; color: #E8F4F8; }
@@ -233,20 +270,14 @@
       My Profile
     </button>
 
-    <div>
-      <button class="nav-item w-full" id="branchToggle" onclick="toggleBranches()">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
-        </svg>
-        <span class="flex-1 text-left">Branches</span>
-        <svg id="branchChevron" class="chevron w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polyline points="6 9 12 15 18 9"/>
-        </svg>
-      </button>
-      <div class="branch-dropdown sb" id="branchDropdown">
-        <div id="branchList" class="py-1"></div>
-      </div>
-    </div>
+    <!-- Catalogue nav item (no dropdown) -->
+    <button id="catalogueNav" class="nav-item w-full active" onclick="showCatalogue(this)">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+        <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+      </svg>
+      Catalogue
+    </button>
 
     <button class="nav-item w-full text-left" onclick="showPanel('transactions', this)">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -272,8 +303,8 @@
       <a href="tel:+254716984886" class="text-xs text-muted hover:text-accent transition-colors flex items-center gap-2">
         📞 +254 716 984 886
       </a>
-      <a href="/cdn-cgi/l/email-protection#36555a57445d5b574e41535a5a0f020076515b575f5a1855595b" class="text-xs text-muted hover:text-accent2 transition-colors flex items-center gap-2">
-        📧 <span class="__cf_email__" data-cfemail="e5868984978e88849d92808989dcd1d3a58288848c89cb868a88"><span class="__cf_email__" data-cfemail="b8dbd4d9cad3d5d9c0cfddd4d4818c8ef8dfd5d9d1d496dbd7d5">clarkmaxwell946@gmail.com</span></span>
+      <a href="mailto:clarkmaxwell946@gmail.com" class="text-xs text-muted hover:text-accent2 transition-colors flex items-center gap-2">
+        📧 clarkmaxwell946@gmail.com
       </a>
     </div>
   </div>
@@ -324,7 +355,7 @@
         <div class="notif-dot"></div>
         <p class="text-sm">
           <span style="color:#7A9AB0;">Now Viewing: </span>
-          <span id="activeBranchLabel" class="font-head font-semibold" style="color:#00C896;">Loading...</span>
+          <span class="font-head font-semibold" style="color:#00C896;">Catalogue</span>
         </p>
       </div>
 
@@ -470,15 +501,26 @@
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
           <div>
             <h2 class="font-head font-bold text-2xl text-wdtext">Make an Order</h2>
-            <p class="text-sm mt-0.5" style="color:#7A9AB0;">Select quantities and place your order below.</p>
+            <p class="text-sm mt-0.5" style="color:#7A9AB0;">Select your branch, then choose your drinks.</p>
           </div>
-          <div class="flex items-center gap-2 px-4 py-2 rounded-xl flex-shrink-0"
-               style="background:rgba(0,200,150,0.08);border:1px solid rgba(0,200,150,0.2);">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#00C896" stroke-width="2.5">
-              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-              <circle cx="12" cy="10" r="3"/>
-            </svg>
-            <span class="text-sm font-head font-semibold" style="color:#00C896;" id="orderBranchLabel">—</span>
+
+          <!-- Branch selector dropdown (replaces static pill) -->
+          <div class="branch-select-wrapper" id="branchSelectWrapper">
+            <div class="branch-select-trigger" id="branchSelectTrigger" onclick="toggleBranchDropdown()">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                <circle cx="12" cy="10" r="3"/>
+              </svg>
+              <span id="branchSelectLabel" class="flex-1 text-left">— Select Branch —</span>
+              <svg id="branchSelectChevron" style="transition:transform 0.3s;flex-shrink:0;" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="6 9 12 15 18 9"/>
+              </svg>
+            </div>
+            <div class="branch-select-dropdown" id="branchSelectDropdown">
+              <div id="branchSelectList">
+                <div style="padding:1rem;text-align:center;font-size:12px;color:#7A9AB0;">Loading branches…</div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -487,17 +529,25 @@
           <button onclick="hideOrderAlert()" class="ml-auto text-lg leading-none">✕</button>
         </div>
 
-        <div id="orderProductGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-6">
-          <div class="product-card skeleton h-72"></div>
-          <div class="product-card skeleton h-72"></div>
-          <div class="product-card skeleton h-72"></div>
+        <!-- Lock state: shown when no branch selected -->
+        <div id="orderLockOverlay">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="rgba(0,200,150,0.4)" stroke-width="1.5">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+          <p class="font-head font-semibold text-sm" style="color:#7A9AB0;">Select a branch to view available products</p>
+          <p class="text-xs" style="color:rgba(122,154,176,0.55);">Use the branch selector above to get started</p>
         </div>
+
+        <!-- Product grid (hidden until branch selected) -->
+        <div id="orderProductGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-6 hidden"></div>
 
         <div id="orderNoProducts" class="hidden text-center py-12">
           <p class="font-head text-lg" style="color:rgba(122,154,176,0.5);">No products available at this branch.</p>
         </div>
 
-        <div class="rounded-2xl p-5 md:p-6 mt-2"
+        <!-- Order summary (hidden until branch selected) -->
+        <div id="orderSummaryCard" class="rounded-2xl p-5 md:p-6 mt-2 hidden"
              style="background:rgba(10,37,64,0.65);border:1px solid rgba(0,200,150,0.18);backdrop-filter:blur(16px);">
 
           <h3 class="font-head font-bold text-base text-wdtext mb-4">Order Summary</h3>
@@ -539,7 +589,7 @@
 <!-- ══════════════════════════════════════════════
      SCRIPTS
 ══════════════════════════════════════════════ -->
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+<script>
   const API = '/api';
 
   /* ─────────────────────────────────────────────
@@ -613,53 +663,91 @@
   }
 
   /* ─────────────────────────────────────────────
-     BRANCHES
+     BRANCHES (for Order panel only)
   ───────────────────────────────────────────── */
-  let activeBranch = { id: null, name: '—' };
+  let branchList = [];
+  let orderActiveBranch = { id: null, name: null };
 
-  async function loadBranches() {
+  async function loadBranchesForOrder() {
+    if (branchList.length > 0) {
+      renderBranchSelectList();
+      return;
+    }
     try {
-      const res  = await fetch(`${API}/branches/`);
-      const raw  = await res.json();
-      const list = Array.isArray(raw) ? raw : (raw.results || []);
-
-      document.getElementById('branchList').innerHTML = list.map(b => `
-        <div class="branch-item" data-id="${b.branch_id || b.id}"
-             onclick="selectBranch('${b.branch_id || b.id}', '${b.name}')">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="3"/>
-          </svg>
-          ${b.name}
-        </div>`).join('');
-
-      const nairobi = list.find(b => b.name.toLowerCase().includes('nairobi')) || list[0];
-      if (nairobi) selectBranch(nairobi.branch_id || nairobi.id, nairobi.name);
-    } catch { showAlert('Failed to load branches'); }
-  }
-
-  async function selectBranch(id, name) {
-    activeBranch = { id, name };
-    document.getElementById('activeBranchLabel').textContent = name;
-    document.querySelectorAll('.branch-item').forEach(el =>
-      el.classList.toggle('selected', el.dataset.id == id)
-    );
-    document.getElementById('branchDropdown').classList.remove('open');
-    document.getElementById('branchChevron').classList.remove('open');
-
-    const orderVisible = !document.getElementById('orderContent').classList.contains('hidden');
-    if (orderVisible) {
-      loadOrderPanelProducts(id, name);
-    } else {
-      closePanel();
-      loadProducts(id);
+      const res = await fetch(`${API}/branches/`);
+      const raw = await res.json();
+      branchList = Array.isArray(raw) ? raw : (raw.results || []);
+      renderBranchSelectList();
+    } catch {
+      document.getElementById('branchSelectList').innerHTML =
+        `<div style="padding:1rem;text-align:center;font-size:12px;color:#ff8080;">Failed to load branches.</div>`;
     }
   }
 
-  function toggleBranches() {
-    const d = document.getElementById('branchDropdown');
-    d.classList.toggle('open');
-    document.getElementById('branchChevron').classList.toggle('open', d.classList.contains('open'));
+  function renderBranchSelectList() {
+    const list = document.getElementById('branchSelectList');
+    if (!branchList.length) {
+      list.innerHTML = `<div style="padding:1rem;text-align:center;font-size:12px;color:#7A9AB0;">No branches available.</div>`;
+      return;
+    }
+    list.innerHTML = branchList.map(b => {
+      const bid  = b.branch_id || b.id;
+      const sel  = orderActiveBranch.id == bid;
+      return `<div class="branch-select-option${sel ? ' selected' : ''}" data-id="${bid}" data-name="${b.name}"
+                   onclick="selectOrderBranch('${bid}', '${b.name}')">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+        </svg>
+        ${b.name}
+      </div>`;
+    }).join('');
   }
+
+  function toggleBranchDropdown() {
+    const dd  = document.getElementById('branchSelectDropdown');
+    const chv = document.getElementById('branchSelectChevron');
+    const isOpen = dd.classList.contains('open');
+    dd.classList.toggle('open', !isOpen);
+    chv.style.transform = isOpen ? '' : 'rotate(180deg)';
+  }
+
+  function closeBranchDropdown() {
+    document.getElementById('branchSelectDropdown').classList.remove('open');
+    document.getElementById('branchSelectChevron').style.transform = '';
+  }
+
+  function selectOrderBranch(id, name) {
+    orderActiveBranch = { id, name };
+
+    // Update trigger label
+    const trigger = document.getElementById('branchSelectTrigger');
+    const label   = document.getElementById('branchSelectLabel');
+    label.textContent = name;
+    trigger.classList.add('has-value');
+
+    // Highlight selected option
+    document.querySelectorAll('#branchSelectList .branch-select-option').forEach(el => {
+      el.classList.toggle('selected', el.dataset.id == id);
+    });
+
+    closeBranchDropdown();
+
+    // Reveal product grid + summary card, hide lock overlay
+    document.getElementById('orderLockOverlay').classList.add('hidden');
+    document.getElementById('orderProductGrid').classList.remove('hidden');
+    document.getElementById('orderSummaryCard').classList.remove('hidden');
+
+    // Load products for selected branch
+    loadOrderPanelProducts(id, name);
+  }
+
+  // Close dropdown when clicking outside
+  document.addEventListener('click', function(e) {
+    const wrapper = document.getElementById('branchSelectWrapper');
+    if (wrapper && !wrapper.contains(e.target)) {
+      closeBranchDropdown();
+    }
+  });
 
   /* ─────────────────────────────────────────────
      PRODUCT NORMALIZER
@@ -680,17 +768,17 @@
 
   /* ─────────────────────────────────────────────
      CATALOGUE PRODUCTS
+     Loads ALL products from /api/products/ (no branch filter)
   ───────────────────────────────────────────── */
   let allProducts = [];
 
-  async function loadProducts(bid) {
+  async function loadCatalogueProducts() {
     const grid = document.getElementById('productGrid');
     grid.innerHTML = [1,2,3].map(() => `<div class="product-card skeleton h-64"></div>`).join('');
     try {
-      let res = await Auth.fetch(`${API}/inventory/${bid}/`);
-      if (!res.ok) res = await Auth.fetch(`${API}/products/`);
+      const res  = await Auth.fetch(`${API}/products/`);
       const raw  = await res.json();
-      const list = Array.isArray(raw) ? raw : (raw.results || raw.products || raw.inventory || []);
+      const list = Array.isArray(raw) ? raw : (raw.results || raw.products || []);
       allProducts = list.map(normalizeProduct);
       renderProducts(allProducts);
     } catch { showAlert('Catalogue load failed'); }
@@ -720,6 +808,14 @@
   /* ─────────────────────────────────────────────
      PANEL NAVIGATION
   ───────────────────────────────────────────── */
+  function showCatalogue(navEl) {
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    if (navEl) navEl.classList.add('active');
+    document.getElementById('inlinePanel').classList.remove('show');
+    document.getElementById('catalogueView').classList.remove('hide');
+    closeMobileSidebar();
+  }
+
   function showPanel(type, navEl) {
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
     if (navEl) navEl.classList.add('active');
@@ -740,6 +836,8 @@
     document.getElementById('inlinePanel').classList.remove('show');
     document.getElementById('catalogueView').classList.remove('hide');
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    // Mark catalogue nav active again
+    document.getElementById('catalogueNav').classList.add('active');
   }
 
   /* ─────────────────────────────────────────────
@@ -747,7 +845,35 @@
   ───────────────────────────────────────────── */
   function openOrderPanel() {
     showPanel('order', null);
-    loadOrderPanelProducts(activeBranch.id, activeBranch.name);
+    resetOrderPanel();
+    loadBranchesForOrder();
+  }
+
+  function resetOrderPanel() {
+    // Reset branch selection
+    orderActiveBranch = { id: null, name: null };
+
+    const trigger = document.getElementById('branchSelectTrigger');
+    const label   = document.getElementById('branchSelectLabel');
+    if (label)   label.textContent = '— Select Branch —';
+    if (trigger) trigger.classList.remove('has-value');
+
+    // Highlight nothing in the list
+    document.querySelectorAll('#branchSelectList .branch-select-option').forEach(el => {
+      el.classList.remove('selected');
+    });
+
+    // Show lock overlay, hide product grid + summary
+    document.getElementById('orderLockOverlay').classList.remove('hidden');
+    document.getElementById('orderProductGrid').classList.add('hidden');
+    document.getElementById('orderNoProducts').classList.add('hidden');
+    document.getElementById('orderSummaryCard').classList.add('hidden');
+
+    // Reset cart state
+    orderProducts = [];
+    orderCart = {};
+    updateOrderSummary();
+    hideOrderAlert();
   }
 
   let orderProducts = [];
@@ -755,8 +881,6 @@
 
   async function loadOrderPanelProducts(branchId, branchName) {
     orderCart = {};
-    const label = document.getElementById('orderBranchLabel');
-    if (label) label.textContent = branchName || '—';
 
     const grid = document.getElementById('orderProductGrid');
     grid.innerHTML = [1,2,3].map(() => `<div class="product-card skeleton h-72"></div>`).join('');
@@ -877,10 +1001,10 @@
     const btn      = document.getElementById('placeOrderBtn');
     const cartKeys = Object.keys(orderCart);
     if (!cartKeys.length) { showOrderAlert('Please select at least one item.'); return; }
-    if (!activeBranch.id) { showOrderAlert('No branch selected. Please select a branch first.'); return; }
+    if (!orderActiveBranch.id) { showOrderAlert('Please select a branch before placing your order.'); return; }
 
     const payload = {
-      branch_id: activeBranch.id,
+      branch_id: orderActiveBranch.id,
       items: cartKeys.map(pid => ({ product_id: pid, quantity: orderCart[pid] })),
     };
 
@@ -1000,7 +1124,6 @@
       const raw  = await res.json();
       const list = Array.isArray(raw) ? raw : (raw.results || []);
 
-      /* Debug — check exact field names in browser console */
       if (list.length > 0) console.log('Payment record sample:', list[0]);
 
       if (!list.length) {
@@ -1035,7 +1158,6 @@
       const raw  = await res.json();
       const list = Array.isArray(raw) ? raw : (raw.results || []);
 
-      /* Debug — check exact field names in browser console */
       if (list.length > 0) console.log('Order record sample:', list[0]);
 
       if (!list.length) {
@@ -1083,7 +1205,8 @@
   ───────────────────────────────────────────── */
   document.addEventListener('DOMContentLoaded', () => {
     fetchProfile();
-    loadBranches();
+    loadCatalogueProducts();
+    // Catalogue is shown by default (no branch needed)
   });
 </script>
 </body>

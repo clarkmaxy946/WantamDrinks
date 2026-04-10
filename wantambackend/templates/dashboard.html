@@ -179,11 +179,20 @@
     #sidebarOverlay { display: none; position: fixed; inset: 0; z-index: 25; background: rgba(0,0,0,0.5); }
     #sidebarOverlay.show { display: block; }
 
-    /* Qty stepper button hover state */
     .qty-btn:not(:disabled):hover {
       background: rgba(0,200,150,0.2) !important;
       border-color: rgba(0,200,150,0.5) !important;
     }
+
+    /* ── Table cell color helpers ── */
+    .td-id    { font-family: monospace; font-size: 12px; color: #9BBFD6; }
+    .td-main  { font-size: 13px; color: #E8F4F8; }
+    .td-sub   { font-size: 12px; color: #B8D4E3; }
+    .td-amt   { font-size: 13px; font-weight: 700; color: #E8F4F8; font-family: 'Syne', sans-serif; }
+    .td-receipt { font-family: monospace; font-size: 12px; color: #B8D4E3; }
+    .td-date  { font-size: 12px; color: #9BBFD6; white-space: nowrap; }
+    .th-cell  { text-align: left; padding: 10px 16px; font-size: 11px; font-weight: 700;
+                text-transform: uppercase; letter-spacing: 0.07em; color: #C0D8E8; }
 
     @media (max-width: 768px) {
       body { overflow: auto; }
@@ -263,8 +272,8 @@
       <a href="tel:+254716984886" class="text-xs text-muted hover:text-accent transition-colors flex items-center gap-2">
         📞 +254 716 984 886
       </a>
-      <a href="/cdn-cgi/l/email-protection#75161914071e18140d021019194c4143351218141c195b161a18" class="text-xs text-muted hover:text-accent2 transition-colors flex items-center gap-2">
-        📧 <span class="__cf_email__" data-cfemail="8ae9e6ebf8e1e7ebf2fdefe6e6b3bebccaede7ebe3e6a4e9e5e7">clarkmaxwell946@gmail.com</span>
+      <a href="/cdn-cgi/l/email-protection#36555a57445d5b574e41535a5a0f020076515b575f5a1855595b" class="text-xs text-muted hover:text-accent2 transition-colors flex items-center gap-2">
+        📧 <span class="__cf_email__" data-cfemail="e5868984978e88849d92808989dcd1d3a58288848c89cb868a88">clarkmaxwell946@gmail.com</span>
       </a>
     </div>
   </div>
@@ -330,7 +339,6 @@
         <button onclick="resetSearch()" class="mt-3 text-sm text-accent hover:underline">Clear search</button>
       </div>
 
-      <!-- Make Order button — below products, NOT in sidebar -->
       <div class="mt-2">
         <button class="make-order-btn" id="makeOrderBtn" onclick="openOrderPanel()">
           Make Order
@@ -344,11 +352,10 @@
     </div>
 
     <!-- ══════════════════════════════════════
-         INLINE PANEL  (profile / transactions / order)
+         INLINE PANEL
     ══════════════════════════════════════ -->
     <div id="inlinePanel">
 
-      <!-- Back button -->
       <button onclick="closePanel()" class="flex items-center gap-2 text-sm mb-6 text-muted hover:text-accent transition-colors">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <polyline points="15 18 9 12 15 6"/>
@@ -392,8 +399,66 @@
       <!-- ── TRANSACTIONS CONTENT ── -->
       <div id="transactionsContent" class="hidden">
         <div class="rounded-2xl p-6 md:p-8 bg-white/5 border border-white/10">
-          <h2 class="font-head font-bold text-xl text-wdtext mb-5">Past Transactions</h2>
-          <div id="transactionsList"></div>
+
+          <!-- Tabs -->
+          <div class="flex gap-2 mb-6">
+            <button id="txTabPayments" onclick="switchTxTab('payments')"
+              class="px-4 py-2 rounded-xl text-sm font-head font-semibold transition-all"
+              style="background:rgba(0,200,150,0.12);border:1px solid rgba(0,200,150,0.3);color:#00C896;">
+              Payment History
+            </button>
+            <button id="txTabOrders" onclick="switchTxTab('orders')"
+              class="px-4 py-2 rounded-xl text-sm font-head font-semibold transition-all"
+              style="background:transparent;border:1px solid rgba(122,154,176,0.2);color:#7A9AB0;">
+              Order History
+            </button>
+          </div>
+
+          <!-- ── Payments table ── -->
+          <div id="txPanePayments">
+            <p style="font-size:12px;color:#9BBFD6;margin-bottom:12px;">All M-Pesa transactions, most recent first.</p>
+            <div class="overflow-x-auto rounded-xl" style="border:1px solid rgba(0,200,150,0.12);">
+              <table class="w-full" style="min-width:740px;border-collapse:collapse;">
+                <thead>
+                  <tr style="background:rgba(10,37,64,0.75);">
+                    <th class="th-cell">Payment ID</th>
+                    <th class="th-cell">Order ID</th>
+                    <th class="th-cell">Amount</th>
+                    <th class="th-cell">Status</th>
+                    <th class="th-cell">Receipt No.</th>
+                    <th class="th-cell">Date &amp; Time</th>
+                  </tr>
+                </thead>
+                <tbody id="paymentsTableBody">
+                  <tr><td colspan="6" style="text-align:center;padding:2.5rem;color:#7A9AB0;font-size:13px;">Loading payments…</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- ── Orders table ── -->
+          <div id="txPaneOrders" class="hidden">
+            <p style="font-size:12px;color:#9BBFD6;margin-bottom:12px;">All your orders. Pending orders without payment can be paid below.</p>
+            <div class="overflow-x-auto rounded-xl" style="border:1px solid rgba(0,200,150,0.12);">
+              <table class="w-full" style="min-width:740px;border-collapse:collapse;">
+                <thead>
+                  <tr style="background:rgba(10,37,64,0.75);">
+                    <th class="th-cell">Order ID</th>
+                    <th class="th-cell">Branch</th>
+                    <th class="th-cell">Items</th>
+                    <th class="th-cell">Total</th>
+                    <th class="th-cell">Status</th>
+                    <th class="th-cell">Date</th>
+                    <th class="th-cell">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="ordersTableBody">
+                  <tr><td colspan="7" style="text-align:center;padding:2.5rem;color:#7A9AB0;font-size:13px;">Loading orders…</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
         </div>
       </div>
 
@@ -402,13 +467,11 @@
       ══════════════════════════════════════ -->
       <div id="orderContent" class="hidden">
 
-        <!-- Panel header -->
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
           <div>
             <h2 class="font-head font-bold text-2xl text-wdtext">Make an Order</h2>
             <p class="text-sm mt-0.5" style="color:#7A9AB0;">Select quantities and place your order below.</p>
           </div>
-          <!-- Active branch pill -->
           <div class="flex items-center gap-2 px-4 py-2 rounded-xl flex-shrink-0"
                style="background:rgba(0,200,150,0.08);border:1px solid rgba(0,200,150,0.2);">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#00C896" stroke-width="2.5">
@@ -419,15 +482,12 @@
           </div>
         </div>
 
-        <!-- Order-scoped alert -->
         <div class="alert-bar" id="orderAlertBar">
           <span id="orderAlertMsg"></span>
           <button onclick="hideOrderAlert()" class="ml-auto text-lg leading-none">✕</button>
         </div>
 
-        <!-- Product grid with qty steppers -->
-        <div id="orderProductGrid"
-             class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-6">
+        <div id="orderProductGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-6">
           <div class="product-card skeleton h-72"></div>
           <div class="product-card skeleton h-72"></div>
           <div class="product-card skeleton h-72"></div>
@@ -437,7 +497,6 @@
           <p class="font-head text-lg" style="color:rgba(122,154,176,0.5);">No products available at this branch.</p>
         </div>
 
-        <!-- Summary + Place Order -->
         <div class="rounded-2xl p-5 md:p-6 mt-2"
              style="background:rgba(10,37,64,0.65);border:1px solid rgba(0,200,150,0.18);backdrop-filter:blur(16px);">
 
@@ -452,26 +511,14 @@
               <span class="font-head font-bold text-sm" style="color:#7A9AB0;text-transform:uppercase;letter-spacing:1.5px;">Total</span>
               <div class="flex items-center gap-2">
                 <span class="text-xs" style="color:#7A9AB0;">KES</span>
-                <!-- Readonly total — purely display, updated by JS -->
-                <input
-                  type="text"
-                  id="orderTotalDisplay"
-                  value="0.00"
-                  readonly
-                  tabindex="-1"
+                <input type="text" id="orderTotalDisplay" value="0.00" readonly tabindex="-1"
                   class="text-right font-head font-black text-2xl bg-transparent outline-none border-none"
-                  style="color:#00C896;width:130px;cursor:default;"
-                />
+                  style="color:#00C896;width:130px;cursor:default;"/>
               </div>
             </div>
           </div>
 
-          <button
-            id="placeOrderBtn"
-            onclick="submitOrder()"
-            class="make-order-btn"
-            disabled
-          >
+          <button id="placeOrderBtn" onclick="submitOrder()" class="make-order-btn" disabled>
             Place Order
           </button>
 
@@ -568,7 +615,6 @@
   /* ─────────────────────────────────────────────
      BRANCHES
   ───────────────────────────────────────────── */
-  /* Store active branch info globally so order panel can read it */
   let activeBranch = { id: null, name: '—' };
 
   async function loadBranches() {
@@ -586,7 +632,6 @@
           ${b.name}
         </div>`).join('');
 
-      /* Auto-select Nairobi or first branch */
       const nairobi = list.find(b => b.name.toLowerCase().includes('nairobi')) || list[0];
       if (nairobi) selectBranch(nairobi.branch_id || nairobi.id, nairobi.name);
     } catch { showAlert('Failed to load branches'); }
@@ -594,7 +639,6 @@
 
   async function selectBranch(id, name) {
     activeBranch = { id, name };
-
     document.getElementById('activeBranchLabel').textContent = name;
     document.querySelectorAll('.branch-item').forEach(el =>
       el.classList.toggle('selected', el.dataset.id == id)
@@ -602,7 +646,6 @@
     document.getElementById('branchDropdown').classList.remove('open');
     document.getElementById('branchChevron').classList.remove('open');
 
-    /* If order panel is open, reload products for new branch */
     const orderVisible = !document.getElementById('orderContent').classList.contains('hidden');
     if (orderVisible) {
       loadOrderPanelProducts(id, name);
@@ -620,13 +663,8 @@
 
   /* ─────────────────────────────────────────────
      PRODUCT NORMALIZER
-     Handles any API shape:
-       - Flat product:           { product_id, name, price, image, stock }
-       - Inventory wrapper:      { product: { product_id, name, price, image }, stock, quantity }
-       - DRF nested serializer:  { id, name, price, image_url, ... }
   ───────────────────────────────────────────── */
   function normalizeProduct(raw) {
-    // If the object has a nested "product" key (inventory endpoint shape)
     const p = (raw.product && typeof raw.product === 'object') ? raw.product : raw;
     return {
       product_id:  p.product_id || p.id          || raw.product_id || raw.id,
@@ -705,30 +743,23 @@
   }
 
   /* ─────────────────────────────────────────────
-     OPEN ORDER PANEL  (called by Make Order btn)
+     ORDER PANEL
   ───────────────────────────────────────────── */
   function openOrderPanel() {
     showPanel('order', null);
     loadOrderPanelProducts(activeBranch.id, activeBranch.name);
   }
 
-  /* ─────────────────────────────────────────────
-     ORDER PANEL — STATE
-  ───────────────────────────────────────────── */
   let orderProducts = [];
-  let orderCart     = {};   /* { product_id: quantity } */
+  let orderCart     = {};
 
-  /* ── Load products into the order panel ─── */
   async function loadOrderPanelProducts(branchId, branchName) {
     orderCart = {};
-
     const label = document.getElementById('orderBranchLabel');
     if (label) label.textContent = branchName || '—';
 
     const grid = document.getElementById('orderProductGrid');
-    grid.innerHTML = [1,2,3].map(() =>
-      `<div class="product-card skeleton h-72"></div>`
-    ).join('');
+    grid.innerHTML = [1,2,3].map(() => `<div class="product-card skeleton h-72"></div>`).join('');
     document.getElementById('orderNoProducts').classList.add('hidden');
     updateOrderSummary();
 
@@ -745,7 +776,6 @@
     }
   }
 
-  /* ── Render order product cards ─────────── */
   function renderOrderGrid() {
     const grid = document.getElementById('orderProductGrid');
     const noP  = document.getElementById('orderNoProducts');
@@ -759,9 +789,6 @@
 
     grid.innerHTML = orderProducts.map((p, i) => {
       const pid   = p.product_id;
-      const name  = p.name;
-      const price = p.price;
-      const img   = p.image;
       const stock = p.stock;
       const qty   = orderCart[pid] || 0;
       const oos   = stock === 0;
@@ -772,73 +799,45 @@
           <div style="position:absolute;inset:0;background:rgba(10,37,64,0.78);border-radius:20px;display:flex;align-items:center;justify-content:center;z-index:5;">
             <span class="font-head text-sm font-bold" style="color:rgba(255,107,107,0.85);">Out of Stock</span>
           </div>` : ''}
-
           <div class="h-36 flex items-center justify-center mb-3">
-            <img src="${img}" alt="${name}"
+            <img src="${p.image}" alt="${p.name}"
                  class="max-h-full max-w-[120px] drop-shadow-2xl object-contain transition-transform hover:scale-110 duration-300"
                  onerror="this.src='/static/images/placeholder.png'"/>
           </div>
-
-          <p class="font-body text-wdtext text-center font-medium text-sm mb-1 px-1 leading-snug">${name}</p>
-          <div class="price-badge mb-3">KES ${price.toFixed(2)}</div>
-
+          <p class="font-body text-wdtext text-center font-medium text-sm mb-1 px-1 leading-snug">${p.name}</p>
+          <div class="price-badge mb-3">KES ${p.price.toFixed(2)}</div>
           ${stock > 0 && stock <= 10 ? `<p class="text-xs mb-2" style="color:#f59e0b;">Only ${stock} left</p>` : ''}
-
-          <!-- Qty stepper -->
           <div class="flex items-center gap-3 mt-auto">
-            <button
-              id="btn-minus-${pid}"
-              onclick="changeQty('${pid}', -1)"
+            <button id="btn-minus-${pid}" onclick="changeQty('${pid}', -1)"
               class="qty-btn w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xl transition-all select-none"
               style="background:rgba(0,200,150,0.1);border:1px solid rgba(0,200,150,0.25);color:#00C896;"
-              ${qty === 0 || oos ? 'disabled' : ''}
-            >−</button>
-
-            <span
-              id="qty-${pid}"
-              class="w-8 text-center font-head font-bold text-base text-wdtext select-none"
-            >${qty}</span>
-
-            <button
-              id="btn-plus-${pid}"
-              onclick="changeQty('${pid}', 1)"
+              ${qty === 0 || oos ? 'disabled' : ''}>−</button>
+            <span id="qty-${pid}" class="w-8 text-center font-head font-bold text-base text-wdtext select-none">${qty}</span>
+            <button id="btn-plus-${pid}" onclick="changeQty('${pid}', 1)"
               class="qty-btn w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xl transition-all select-none"
               style="background:rgba(0,200,150,0.1);border:1px solid rgba(0,200,150,0.25);color:#00C896;"
-              ${qty >= stock || oos ? 'disabled' : ''}
-            >+</button>
+              ${qty >= stock || oos ? 'disabled' : ''}>+</button>
           </div>
         </div>`;
     }).join('');
   }
 
-  /* ── Quantity change ────────────────────── */
   function changeQty(pid, delta) {
     const product = orderProducts.find(p => p.product_id == pid);
     if (!product) return;
-
     const stock   = product.stock !== undefined ? parseInt(product.stock) : 99;
     const current = orderCart[pid] || 0;
     const next    = Math.max(0, Math.min(stock, current + delta));
-
-    if (next === 0) {
-      delete orderCart[pid];
-    } else {
-      orderCart[pid] = next;
-    }
-
-    /* Update display without full re-render */
+    if (next === 0) { delete orderCart[pid]; } else { orderCart[pid] = next; }
     const qtyEl    = document.getElementById(`qty-${pid}`);
     const btnMinus = document.getElementById(`btn-minus-${pid}`);
     const btnPlus  = document.getElementById(`btn-plus-${pid}`);
-
     if (qtyEl)    qtyEl.textContent = next;
     if (btnMinus) btnMinus.disabled = next === 0;
     if (btnPlus)  btnPlus.disabled  = next >= stock;
-
     updateOrderSummary();
   }
 
-  /* ── Update summary + total ─────────────── */
   function updateOrderSummary() {
     const summaryEl = document.getElementById('orderSummaryList');
     const totalEl   = document.getElementById('orderTotalDisplay');
@@ -846,10 +845,9 @@
     const cartKeys  = Object.keys(orderCart);
 
     if (!cartKeys.length) {
-      if (summaryEl) summaryEl.innerHTML =
-        `<p class="text-sm" style="color:rgba(122,154,176,0.6);">No items selected yet.</p>`;
-      if (totalEl)  totalEl.value = '0.00';
-      if (placeBtn) placeBtn.disabled = true;
+      if (summaryEl) summaryEl.innerHTML = `<p class="text-sm" style="color:rgba(122,154,176,0.6);">No items selected yet.</p>`;
+      if (totalEl)   totalEl.value = '0.00';
+      if (placeBtn)  placeBtn.disabled = true;
       return;
     }
 
@@ -861,12 +859,10 @@
       const sub = qty * p.price;
       total += sub;
       return `
-        <div class="flex items-center justify-between py-1.5"
-             style="border-bottom:1px solid rgba(0,200,150,0.07);">
+        <div class="flex items-center justify-between py-1.5" style="border-bottom:1px solid rgba(0,200,150,0.07);">
           <div class="flex items-center gap-2">
             <span class="text-sm text-wdtext">${p.name}</span>
-            <span class="text-xs px-1.5 py-0.5 rounded-md font-head font-bold"
-                  style="background:rgba(0,200,150,0.1);color:#00C896;">×${qty}</span>
+            <span class="text-xs px-1.5 py-0.5 rounded-md font-head font-bold" style="background:rgba(0,200,150,0.1);color:#00C896;">×${qty}</span>
           </div>
           <span class="text-sm font-head font-semibold text-wdtext">KES ${sub.toFixed(2)}</span>
         </div>`;
@@ -877,39 +873,23 @@
     if (placeBtn)  placeBtn.disabled = false;
   }
 
-  /* ── Place order ────────────────────────── */
   async function submitOrder() {
     const btn      = document.getElementById('placeOrderBtn');
     const cartKeys = Object.keys(orderCart);
+    if (!cartKeys.length) { showOrderAlert('Please select at least one item.'); return; }
+    if (!activeBranch.id) { showOrderAlert('No branch selected. Please select a branch first.'); return; }
 
-    if (!cartKeys.length) {
-      showOrderAlert('Please select at least one item.');
-      return;
-    }
-    if (!activeBranch.id) {
-      showOrderAlert('No branch selected. Please select a branch first.');
-      return;
-    }
-
-    /* Payload matches OrderCreateSerializer exactly */
     const payload = {
       branch_id: activeBranch.id,
-      items: cartKeys.map(pid => ({
-        product_id: pid,
-        quantity:   orderCart[pid],
-      })),
+      items: cartKeys.map(pid => ({ product_id: pid, quantity: orderCart[pid] })),
     };
 
     btn.disabled  = true;
     btn.innerHTML = `<span class="spinner inline-block w-5 h-5 mr-2" style="vertical-align:middle;"></span> Placing Order…`;
 
     try {
-      const res  = await Auth.fetch(`${API}/orders/`, {
-        method: 'POST',
-        body:   JSON.stringify(payload),
-      });
+      const res  = await Auth.fetch(`${API}/orders/`, { method: 'POST', body: JSON.stringify(payload) });
       const data = await res.json();
-
       if (!res.ok) {
         const raw = data.error || data.detail || data.items?.[0] || data.branch_id?.[0];
         const msg = Array.isArray(raw) ? raw.join(' ') : (raw || 'Order failed. Please try again.');
@@ -918,14 +898,9 @@
         btn.innerHTML = 'Place Order';
         return;
       }
-
-      /* Success — redirect to payment page */
       const orderId = data.data?.order_id || data.order_id || '';
       showOrderAlert('Order placed! Redirecting to payment…', 'ok');
-      setTimeout(() => {
-        window.location.href = `/payment/?order_id=${orderId}`;
-      }, 1200);
-
+      setTimeout(() => { window.location.href = `/payment/?order_id=${orderId}`; }, 1200);
     } catch {
       showOrderAlert('Network error. Please check your connection.');
       btn.disabled  = false;
@@ -941,11 +916,10 @@
       const res  = await Auth.fetch(`${API}/auth/profile/`);
       const user = await res.json();
       const init = user.username ? user.username.charAt(0).toUpperCase() : '?';
-
-      document.getElementById('usernameDisplay').textContent  = user.username;
-      document.getElementById('headerUsername').textContent   = user.username;
-      document.getElementById('avatarInitial').textContent    = init;
-      document.getElementById('profileAvatar').textContent    = init;
+      document.getElementById('usernameDisplay').textContent   = user.username;
+      document.getElementById('headerUsername').textContent    = user.username;
+      document.getElementById('avatarInitial').textContent     = init;
+      document.getElementById('profileAvatar').textContent     = init;
       document.getElementById('profileNameHeader').textContent = user.username;
       document.getElementById('profileIdDisplay').textContent  = `USER ID: ${user.user_id || '---'}`;
       document.getElementById('inputUsername').value = user.username;
@@ -974,27 +948,134 @@
   /* ─────────────────────────────────────────────
      TRANSACTIONS
   ───────────────────────────────────────────── */
+  function switchTxTab(tab) {
+    const isPayments = tab === 'payments';
+    document.getElementById('txPanePayments').classList.toggle('hidden', !isPayments);
+    document.getElementById('txPaneOrders').classList.toggle('hidden',   isPayments);
+    const on  = 'background:rgba(0,200,150,0.12);border:1px solid rgba(0,200,150,0.3);color:#00C896;';
+    const off = 'background:transparent;border:1px solid rgba(122,154,176,0.2);color:#7A9AB0;';
+    document.getElementById('txTabPayments').style.cssText = isPayments ? on : off;
+    document.getElementById('txTabOrders').style.cssText   = isPayments ? off : on;
+  }
+
+  function txStatusBadge(s) {
+    const map = {
+      SUCCESS:   'background:rgba(0,200,150,0.15);color:#00C896;border:1px solid rgba(0,200,150,0.3);',
+      COMPLETED: 'background:rgba(0,200,150,0.15);color:#00C896;border:1px solid rgba(0,200,150,0.3);',
+      PENDING:   'background:rgba(245,158,11,0.15);color:#fbbf24;border:1px solid rgba(245,158,11,0.3);',
+      FAILED:    'background:rgba(255,107,107,0.15);color:#ff8080;border:1px solid rgba(255,107,107,0.3);',
+      CANCELLED: 'background:rgba(122,154,176,0.15);color:#A0C4D8;border:1px solid rgba(122,154,176,0.3);',
+    };
+    const st    = map[s] || map.CANCELLED;
+    const label = s ? (s.charAt(0) + s.slice(1).toLowerCase()) : '—';
+    return `<span style="display:inline-block;padding:3px 10px;border-radius:100px;font-size:11px;font-weight:600;white-space:nowrap;${st}">${label}</span>`;
+  }
+
+  function fmtDateTime(iso) {
+    if (!iso) return '—';
+    const d = new Date(iso);
+    return d.toLocaleDateString('en-KE', { day:'2-digit', month:'short', year:'numeric' })
+      + ' ' + d.toLocaleTimeString('en-KE', { hour:'2-digit', minute:'2-digit' });
+  }
+
+  function fmtDateOnly(iso) {
+    if (!iso) return '—';
+    return new Date(iso).toLocaleDateString('en-KE', { day:'2-digit', month:'short', year:'numeric' });
+  }
+
+  function fmtKES(v) {
+    return 'KES ' + parseFloat(v).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  }
+
   async function loadTransactions() {
-    const list = document.getElementById('transactionsList');
-    list.innerHTML = '<p class="text-center opacity-50 py-10">Loading orders…</p>';
+    switchTxTab('payments');
+    loadPaymentsTable();
+    loadOrdersTable();
+  }
+
+  async function loadPaymentsTable() {
+    const tbody = document.getElementById('paymentsTableBody');
     try {
-      const res    = await Auth.fetch(`${API}/orders/`);
-      const raw    = await res.json();
-      const orders = Array.isArray(raw) ? raw : (raw.results || []);
-      list.innerHTML = orders.length
-        ? orders.map(o => `
-          <div class="flex justify-between py-3 border-b border-white/5">
-            <div>
-              <p class="text-sm font-bold">#${o.order_id || o.id}</p>
-              <p class="text-xs text-muted">${new Date(o.created_at).toLocaleDateString()}</p>
-            </div>
-            <div class="text-right">
-              <p class="text-sm font-bold">KES ${o.total_price || o.total}</p>
-              <p class="text-xs text-accent uppercase font-semibold">${o.status}</p>
-            </div>
-          </div>`).join('')
-        : '<p class="text-center py-10 opacity-50">No orders found.</p>';
-    } catch { list.innerHTML = '<p class="text-center py-10 opacity-50">Error loading transactions.</p>'; }
+      const res  = await Auth.fetch(`${API}/payments/history/`);
+      const raw  = await res.json();
+      const list = Array.isArray(raw) ? raw : (raw.results || []);
+
+      /* Debug — check exact field names in browser console */
+      if (list.length > 0) console.log('Payment record sample:', list[0]);
+
+      if (!list.length) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:2.5rem;color:#7A9AB0;font-size:13px;">No payment records found.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = list.map(p => {
+        return `
+          <tr style="border-top:1px solid rgba(0,200,150,0.07);transition:background 0.15s;"
+              onmouseover="this.style.background='rgba(0,200,150,0.04)'"
+              onmouseout="this.style.background=''">
+            <td style="padding:12px 16px;" class="td-id">${p.payment_id || '—'}</td>
+            <td style="padding:12px 16px;" class="td-id">${p.order_id   || '—'}</td>
+            <td style="padding:12px 16px;" class="td-amt">${fmtKES(p.amount)}</td>
+            <td style="padding:12px 16px;">${txStatusBadge(p.status)}</td>
+            <td style="padding:12px 16px;" class="td-receipt">${p.receipt_number || '—'}</td>
+            <td style="padding:12px 16px;" class="td-date">${fmtDateTime(p.created_at)}</td>
+          </tr>`;
+      }).join('');
+
+    } catch(err) {
+      console.error('Payments load error:', err);
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:2.5rem;color:#ff8080;font-size:13px;">Failed to load payments. Please try again.</td></tr>`;
+    }
+  }
+
+  async function loadOrdersTable() {
+    const tbody = document.getElementById('ordersTableBody');
+    try {
+      const res  = await Auth.fetch(`${API}/orders/history/`);
+      const raw  = await res.json();
+      const list = Array.isArray(raw) ? raw : (raw.results || []);
+
+      /* Debug — check exact field names in browser console */
+      if (list.length > 0) console.log('Order record sample:', list[0]);
+
+      if (!list.length) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:2.5rem;color:#7A9AB0;font-size:13px;">No orders found.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = list.map(o => {
+        const itemCount  = (o.items || []).length;
+        const canPay     = o.status === 'PENDING';
+        const actionCell = canPay
+          ? `<button
+               onclick="window.location.href='/payment/?order_id=${o.order_id}'"
+               style="padding:5px 14px;border-radius:10px;border:1px solid rgba(0,200,150,0.35);
+                      background:rgba(0,200,150,0.1);color:#00C896;font-size:12px;font-weight:600;
+                      cursor:pointer;transition:all 0.15s;white-space:nowrap;"
+               onmouseover="this.style.background='rgba(0,200,150,0.22)'"
+               onmouseout="this.style.background='rgba(0,200,150,0.1)'">
+               Pay now ↗
+             </button>`
+          : `<span style="font-size:12px;color:rgba(160,196,216,0.35);">—</span>`;
+
+        return `
+          <tr style="border-top:1px solid rgba(0,200,150,0.07);transition:background 0.15s;"
+              onmouseover="this.style.background='rgba(0,200,150,0.04)'"
+              onmouseout="this.style.background=''">
+            <td style="padding:12px 16px;" class="td-id">${o.order_id || '—'}</td>
+            <td style="padding:12px 16px;" class="td-main">${o.branch?.name || '—'}</td>
+            <td style="padding:12px 16px;" class="td-sub">${itemCount} item${itemCount !== 1 ? 's' : ''}</td>
+            <td style="padding:12px 16px;" class="td-amt">${fmtKES(o.total_price)}</td>
+            <td style="padding:12px 16px;">${txStatusBadge(o.status)}</td>
+            <td style="padding:12px 16px;" class="td-date">${fmtDateOnly(o.created_at)}</td>
+            <td style="padding:12px 16px;">${actionCell}</td>
+          </tr>`;
+      }).join('');
+
+    } catch(err) {
+      console.error('Orders load error:', err);
+      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:2.5rem;color:#ff8080;font-size:13px;">Failed to load orders. Please try again.</td></tr>`;
+    }
   }
 
   /* ─────────────────────────────────────────────

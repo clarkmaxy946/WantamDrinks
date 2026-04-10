@@ -23,11 +23,10 @@ urlpatterns = [
     path('auth/profile/', ProfileView.as_view(), name='profile'),
     path('admin/users/', AdminUserListView.as_view(), name='admin-users'),
     path('admin/users/<str:user_id>/', AdminUserDetailView.as_view(), name='admin-user-detail'),
-    path('auth/register/', RegisterView.as_view(), name='register'),
-    path('auth/login/', LoginView.as_view(), name='login'),
     
-    path('auth/forgot-password/', PasswordResetRequestView.as_view()),
-    path('auth/reset-password/<uidb64>/<token>/', PasswordResetConfirmView.as_view()),
-    path('auth/change-password/', PasswordChangeView.as_view()),
+    
+    path('auth/forgot-password/',                          PasswordResetRequestView.as_view(),  name='forgot-password'),
+    path('auth/reset-password/<uidb64>/<token>/',          PasswordResetConfirmView.as_view(),  name='reset-password'),
+    path('auth/change-password/',                          PasswordChangeView.as_view(),        name='change-password'),
     
 ]

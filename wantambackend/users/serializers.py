@@ -313,4 +313,6 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
             validate_password(attrs['new_password'])
         except DjangoValidationError as e:
             raise serializers.ValidationError({'new_password': list(e.messages)})
+        
+        return attrs
  

@@ -34,11 +34,13 @@ urlpatterns = [
     path('login/',        TemplateView.as_view(template_name='login.html'),    name='login-page'),
     path('register/',     TemplateView.as_view(template_name='register.html'), name='register-page'),
     path('dashboard/',    TemplateView.as_view(template_name='dashboard.html'), name='dashboard-page'),
-    path('profile/',   TemplateView.as_view(template_name='profile_panel.html'),   name='profile-page'),
+    # path('profile/',   TemplateView.as_view(template_name='profile_panel.html'),   name='profile-page'),
     path('payment/',      TemplateView.as_view(template_name='payment.html'),  name='payment-page'),
     
     # Both routes serve the same HTML file
     path('forgot/', TemplateView.as_view(template_name='forgot_and_reset.html')),
     path('reset-password/<str:uidb64>/<str:token>/', TemplateView.as_view(template_name='forgot_and_reset.html')),
+    path('admin_dashboard/', TemplateView.as_view(template_name='admin_dashboard.html'), name='admin-dashboard-page'),
+    
     
 ]

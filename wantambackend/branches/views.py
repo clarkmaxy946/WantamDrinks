@@ -6,6 +6,7 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
 from .models import Branch
 from .serializers import BranchSerializer, AdminBranchSerializer
 from .services import get_active_branches
+from django.db import transaction
 
 
 class BranchListView(APIView):
@@ -131,20 +132,37 @@ class AdminBranchDetailView(APIView):
                 status=status.HTTP_404_NOT_FOUND
             )
 
-        # Must deactivate before deleting
         if branch.is_active:
             return Response(
                 {
                     "error": f"Branch '{branch.name}' is still active. "
-                             f"Deactivate it first before deleting."
+                            f"Deactivate it first before deleting."
                 },
                 status=status.HTTP_400_BAD_REQUEST
             )
 
         branch_name = branch.name
-        branch.delete()
+
+        with transaction.atomic():
+            # Delete all related records that block deletion due to PROTECT
+            # Order matters: delete child records before parent inventory records
+            from inventory.models import Inventory, RestockLog
+            from alerts.models import StockAlert
+
+            # 1. Restock logs (reference Inventory, which references Branch)
+            RestockLog.objects.filter(inventory__branch=branch).delete()
+
+            # 2. Stock alerts referencing this branch
+            StockAlert.objects.filter(branch=branch).delete()
+
+            # 3. Inventory records for this branch
+            Inventory.objects.filter(branch=branch).delete()
+
+            # 4. Now the branch itself can be deleted
+            branch.delete()
+
         return Response(
-            {"message": f"Branch '{branch_name}' deleted successfully."},
+            {"message": f"Branch '{branch_name}' and all its data deleted successfully."},
             status=status.HTTP_200_OK
         )
 

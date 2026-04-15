@@ -1,0 +1,1900 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>WantamDrinks — Admin Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { head: ['Syne','sans-serif'], body: ['DM Sans','sans-serif'] },
+          colors: {
+            primary: '#0A2540', accent: '#00C896', accent2: '#00A3FF',
+            muted: '#7A9AB0', wdtext: '#E8F4F8',
+          },
+          keyframes: {
+            fadeUp:  { from:{ opacity:'0', transform:'translateY(20px)' }, to:{ opacity:'1', transform:'translateY(0)' } },
+            shimmer: { '0%':{ backgroundPosition:'-200% 0' }, '100%':{ backgroundPosition:'200% 0' } },
+            spin:    { to:{ transform:'rotate(360deg)' } },
+            btnGlow: { '0%,100%':{ boxShadow:'0 0 20px rgba(128,0,255,0.5),0 0 60px rgba(0,163,255,0.3)' }, '50%':{ boxShadow:'0 0 40px rgba(128,0,255,0.8),0 0 100px rgba(0,163,255,0.5)' } },
+            pulse2:  { '0%,100%':{ opacity:'1', transform:'scale(1)' }, '50%':{ opacity:'0.4', transform:'scale(1.5)' } },
+          },
+          animation: {
+            fadeUp:  'fadeUp 0.6s ease both',
+            shimmer: 'shimmer 2s linear infinite',
+            spin:    'spin 0.8s linear infinite',
+            btnGlow: 'btnGlow 2.5s ease-in-out infinite',
+            pulse2:  'pulse2 2s ease-in-out infinite',
+          },
+        }
+      }
+    }
+  </script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'DM Sans', sans-serif; background: #0A2540; color: #E8F4F8; overflow: hidden; height: 100vh; }
+
+    .sb::-webkit-scrollbar { width: 4px; }
+    .sb::-webkit-scrollbar-track { background: transparent; }
+    .sb::-webkit-scrollbar-thumb { background: rgba(0,200,150,0.2); border-radius: 4px; }
+
+    .bg-scene {
+      position: absolute; inset: 0; z-index: 0;
+      background: linear-gradient(135deg, #0A2540 0%, #0d3460 50%, #0A2540 100%);
+    }
+    .bg-overlay {
+      position: absolute; inset: 0; z-index: 1;
+      background: linear-gradient(135deg, rgba(10,37,64,0.85) 0%, rgba(10,37,64,0.6) 100%);
+    }
+    .bg-grid {
+      position: absolute; inset: 0; z-index: 1;
+      background-image: linear-gradient(rgba(0,200,150,0.03) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(0,200,150,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+    }
+
+    .nav-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 0.65rem 1rem; border-radius: 12px;
+      font-size: 0.875rem; color: #7A9AB0;
+      cursor: pointer; transition: all 0.2s;
+      border: 1px solid transparent;
+      text-decoration: none; user-select: none;
+      background: none; width: 100%; text-align: left;
+    }
+    .nav-item:hover { background: rgba(0,200,150,0.07); border-color: rgba(0,200,150,0.18); color: #E8F4F8; }
+    .nav-item.active { background: rgba(0,200,150,0.1); border-color: rgba(0,200,150,0.3); color: #00C896; }
+
+    .logout-btn {
+      display: flex; align-items: center; gap: 12px;
+      padding: 0.65rem 1rem; border-radius: 12px;
+      font-size: 0.875rem; color: rgba(255,107,107,0.75);
+      cursor: pointer; transition: all 0.2s;
+      border: 1px solid transparent; width: 100%;
+      background: none;
+    }
+    .logout-btn:hover { background: rgba(255,107,107,0.08); border-color: rgba(255,107,107,0.22); color: #ff6b6b; }
+
+    .stat-card {
+      background: rgba(15,52,96,0.45);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(0,200,150,0.15);
+      border-radius: 20px;
+      padding: 1.5rem;
+      animation: fadeUp 0.6s ease both;
+      transition: border-color 0.25s, box-shadow 0.25s, transform 0.25s;
+      position: relative; overflow: hidden;
+    }
+    .stat-card::before {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(180deg, rgba(0,200,150,0.04) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    .stat-card:hover {
+      border-color: rgba(0,200,150,0.35);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.3), 0 0 20px rgba(0,200,150,0.08);
+      transform: translateY(-3px);
+    }
+
+    .stat-icon {
+      width: 44px; height: 44px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .skeleton {
+      background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 10px;
+    }
+
+    .notif-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: #00C896; flex-shrink: 0;
+      box-shadow: 0 0 6px rgba(0,200,150,0.6);
+      animation: pulse2 2s ease-in-out infinite;
+    }
+
+    .alert-bar {
+      border-radius: 10px; padding: 0.7rem 1rem;
+      font-size: 0.84rem; display: none;
+      align-items: center; gap: 8px; margin-bottom: 1rem;
+    }
+    .alert-bar.show { display: flex; }
+    .alert-bar.error { background: rgba(255,107,107,0.1); border: 1px solid rgba(255,107,107,0.3); color: #ff9b9b; }
+    .alert-bar.ok    { background: rgba(0,200,150,0.1);   border: 1px solid rgba(0,200,150,0.3);   color: #00C896; }
+
+    #inlinePanel { display: none; }
+    #inlinePanel.show { display: block; }
+    #overviewPanel.hide { display: none; }
+
+    .td-id    { font-family: monospace; font-size: 12px; color: #9BBFD6; }
+    .td-main  { font-size: 13px; color: #E8F4F8; }
+    .td-sub   { font-size: 12px; color: #B8D4E3; }
+    .td-amt   { font-size: 13px; font-weight: 700; color: #E8F4F8; font-family: 'Syne', sans-serif; }
+    .td-date  { font-size: 12px; color: #9BBFD6; white-space: nowrap; }
+    .th-cell  { text-align: left; padding: 10px 16px; font-size: 11px; font-weight: 700;
+                text-transform: uppercase; letter-spacing: 0.07em; color: #C0D8E8; }
+
+    .badge {
+      display: inline-flex; align-items: center;
+      padding: 2px 8px; border-radius: 6px;
+      font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    .badge-critical { background: rgba(255,80,80,0.15); color: #ff6b6b; border: 1px solid rgba(255,80,80,0.3); }
+    .badge-low      { background: rgba(255,180,0,0.12); color: #ffc107; border: 1px solid rgba(255,180,0,0.3); }
+    .badge-resolved { background: rgba(0,200,150,0.1);  color: #00C896; border: 1px solid rgba(0,200,150,0.3); }
+    .badge-pending  { background: rgba(255,180,0,0.12); color: #ffc107; border: 1px solid rgba(255,180,0,0.3); }
+    .badge-completed{ background: rgba(0,200,150,0.1);  color: #00C896; border: 1px solid rgba(0,200,150,0.3); }
+    .badge-failed   { background: rgba(255,80,80,0.15); color: #ff6b6b; border: 1px solid rgba(255,80,80,0.3); }
+    .badge-active   { background: rgba(0,200,150,0.1);  color: #00C896; border: 1px solid rgba(0,200,150,0.3); }
+    .badge-inactive { background: rgba(122,154,176,0.12); color: #7A9AB0; border: 1px solid rgba(122,154,176,0.25); }
+
+    .panel-card {
+      background: rgba(15,52,96,0.45);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(0,200,150,0.15);
+      border-radius: 20px;
+    }
+
+    #sidebarOverlay { display: none; position: fixed; inset: 0; z-index: 25; background: rgba(0,0,0,0.5); }
+    #sidebarOverlay.show { display: block; }
+
+    @media (max-width: 768px) {
+      body { overflow: auto; }
+      #sidebar { position: fixed; left: -280px; top: 0; bottom: 0; z-index: 30; transition: left 0.3s ease; }
+      #sidebar.open { left: 0; }
+    }
+    @media (min-width: 769px) { #mobileMenuBtn { display: none; } }
+
+    .nav-section-label {
+      font-size: 10px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.1em; color: rgba(122,154,176,0.5);
+      padding: 0.5rem 1rem 0.25rem;
+      font-family: 'Syne', sans-serif;
+    }
+
+    .spinner {
+      border: 2px solid rgba(0,200,150,0.2);
+      border-top-color: #00C896;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      display: inline-block;
+    }
+
+    .input-field {
+      background: rgba(10,37,64,0.65);
+      border: 1px solid rgba(0,200,150,0.15);
+      border-radius: 10px; padding: 0.55rem 0.9rem;
+      font-family: 'DM Sans', sans-serif; font-size: 0.84rem;
+      color: #E8F4F8; outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .input-field:focus { border-color: #00C896; box-shadow: 0 0 0 3px rgba(0,200,150,0.1); }
+    .input-field::placeholder { color: #4a7090; }
+
+    .action-btn {
+      padding: 0.5rem 1.1rem; border-radius: 10px; font-size: 0.82rem;
+      font-family: 'Syne', sans-serif; font-weight: 700; cursor: pointer;
+      transition: all 0.2s; border: 1px solid transparent;
+    }
+    .action-btn-primary {
+      background: rgba(0,200,150,0.15); border-color: rgba(0,200,150,0.35); color: #00C896;
+    }
+    .action-btn-primary:hover { background: rgba(0,200,150,0.25); }
+    .action-btn-danger {
+      background: rgba(255,80,80,0.1); border-color: rgba(255,80,80,0.3); color: #ff6b6b;
+    }
+    .action-btn-danger:hover { background: rgba(255,80,80,0.2); }
+    .action-btn-muted {
+      background: rgba(122,154,176,0.1); border-color: rgba(122,154,176,0.2); color: #7A9AB0;
+    }
+    .action-btn-muted:hover { background: rgba(122,154,176,0.18); color: #E8F4F8; }
+
+    .tab-btn {
+      padding: 0.45rem 1rem; border-radius: 10px;
+      font-size: 0.82rem; font-family: 'Syne', sans-serif; font-weight: 600;
+      cursor: pointer; transition: all 0.2s; border: 1px solid transparent;
+      color: #7A9AB0; background: transparent;
+    }
+    .tab-btn.active {
+      background: rgba(0,200,150,0.12); border-color: rgba(0,200,150,0.3); color: #00C896;
+    }
+    .tab-btn:not(.active):hover { background: rgba(0,200,150,0.05); color: #E8F4F8; }
+
+    .trend-up   { color: #00C896; }
+    .trend-down { color: #ff6b6b; }
+  </style>
+</head>
+
+<body class="flex h-screen overflow-hidden">
+
+<div id="sidebarOverlay" onclick="closeMobileSidebar()"></div>
+
+<!-- SIDEBAR -->
+<aside id="sidebar" class="sb relative z-20 flex flex-col w-72 min-h-screen overflow-y-auto flex-shrink-0"
+       style="background:rgba(6,22,42,0.97);border-right:1px solid rgba(0,200,150,0.1);">
+
+  <div class="flex items-center gap-3 px-5 py-5 flex-shrink-0" style="border-bottom:1px solid rgba(0,200,150,0.1);">
+    <div class="relative w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden"
+         style="background:linear-gradient(135deg,#00C896,#00A3FF);box-shadow:0 0 20px rgba(0,200,150,0.4);">
+      <span class="font-head font-black text-sm" style="color:#0A2540;">WD</span>
+      <div class="absolute inset-0" style="background:linear-gradient(45deg,transparent 40%,rgba(255,255,255,0.15) 50%,transparent 60%);animation:shimmer 3s infinite;background-size:200% 100%;"></div>
+    </div>
+    <div>
+      <span style="font-family:Syne,sans-serif;font-weight:700;font-size:1.4rem;color:#f0e8ff">Wantam<span style="color:#b44fff">Drinks</span></span>
+      <div style="font-size:10px;color:#00C896;font-family:Syne,sans-serif;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;margin-top:1px;">Admin Console</div>
+    </div>
+  </div>
+
+  <nav class="flex flex-col gap-0.5 px-3 pt-4 flex-1">
+    <p class="nav-section-label">Overview</p>
+    <button id="navDashboard" class="nav-item active" onclick="showOverview(this)">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+        <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+      </svg>
+      Dashboard
+    </button>
+
+    <p class="nav-section-label mt-3">Management</p>
+    <button id="navUsers" class="nav-item" onclick="showPanel('users', this)">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+        <circle cx="9" cy="7" r="4"/>
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+      </svg>
+      Users
+    </button>
+    <button id="navBranches" class="nav-item" onclick="showPanel('branches', this)">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+        <polyline points="9 22 9 12 15 12 15 22"/>
+      </svg>
+      Branches
+    </button>
+    <button id="navProducts" class="nav-item" onclick="showPanel('products', this)">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <path d="M16 10a4 4 0 0 1-8 0"/>
+      </svg>
+      Products
+    </button>
+    <button id="navInventory" class="nav-item" onclick="showPanel('inventory', this)">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="21 8 21 21 3 21 3 8"/>
+        <rect x="1" y="3" width="22" height="5" rx="1"/>
+        <line x1="10" y1="12" x2="14" y2="12"/>
+      </svg>
+      Inventory
+    </button>
+    <button id="navRestock" class="nav-item" onclick="showPanel('restock', this)">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/>
+      </svg>
+      Restock
+    </button>
+
+    <p class="nav-section-label mt-3">Finance &amp; Ops</p>
+    <button id="navTransactions" class="nav-item" onclick="showPanel('transactions', this)">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="12" y1="1" x2="12" y2="23"/>
+        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+      </svg>
+      Transactions
+    </button>
+    <button id="navAnalytics" class="nav-item" onclick="showPanel('analytics', this)">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="18" y1="20" x2="18" y2="10"/>
+        <line x1="12" y1="20" x2="12" y2="4"/>
+        <line x1="6" y1="20" x2="6" y2="14"/>
+      </svg>
+      Analytics
+    </button>
+    <button id="navAlerts" class="nav-item" onclick="showPanel('alerts', this)">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+        <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+      </svg>
+      Alerts
+      <span id="alertBadgeCount" class="ml-auto text-xs font-bold px-2 py-0.5 rounded-full hidden"
+            style="background:rgba(255,80,80,0.2);color:#ff6b6b;border:1px solid rgba(255,80,80,0.3);">0</span>
+    </button>
+  </nav>
+
+  <div class="px-3 mt-4 mb-2">
+    <button class="logout-btn" onclick="handleLogout()">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+      </svg>
+      Log Out
+    </button>
+  </div>
+
+  <div class="mx-3 mb-4 rounded-2xl p-3 flex-shrink-0" style="background:rgba(10,37,64,0.6);border:1px solid rgba(0,200,150,0.12);">
+    <div class="flex items-center gap-3">
+      <div id="sidebarAvatar" class="w-9 h-9 rounded-xl flex items-center justify-center font-head font-bold text-sm flex-shrink-0"
+           style="background:linear-gradient(135deg,#7B2FF7,#00A3FF);color:white;">A</div>
+      <div class="min-w-0">
+        <p id="sidebarName" class="font-head text-sm font-semibold text-wdtext truncate">Admin</p>
+        <p class="text-xs" style="color:#00C896;">Staff · Administrator</p>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN AREA -->
+<div id="mainArea" class="relative flex-1 flex flex-col overflow-hidden">
+  <div class="bg-scene"></div>
+  <div class="bg-grid"></div>
+  <div class="bg-overlay"></div>
+
+  <header class="relative z-10 flex items-center justify-between px-5 md:px-8 pt-5 pb-2">
+    <button id="mobileMenuBtn" class="mr-3 p-2 rounded-xl" style="background:rgba(15,52,96,0.5);border:1px solid rgba(0,200,150,0.15);" onclick="openMobileSidebar()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7A9AB0" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+    <div class="flex-1">
+      <h1 class="font-head font-black text-2xl md:text-3xl text-wdtext">
+        Welcome back,&nbsp;<span id="usernameDisplay" style="background:linear-gradient(90deg,#00C896,#00A3FF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Admin</span>
+      </h1>
+      <p class="text-xs mt-0.5" style="color:#7A9AB0;" id="currentDateDisplay"></p>
+    </div>
+    <div class="flex items-center gap-3">
+      <button onclick="loadOverviewData()" class="p-2 rounded-xl transition-all"
+              style="background:rgba(15,52,96,0.5);border:1px solid rgba(0,200,150,0.15);" title="Refresh data">
+        <svg id="refreshIcon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7A9AB0" stroke-width="2">
+          <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/>
+        </svg>
+      </button>
+      <div class="flex items-center gap-2 px-3 py-2 rounded-xl"
+           style="background:rgba(15,52,96,0.5);border:1px solid rgba(0,200,150,0.15);">
+        <div id="headerAvatar" class="w-8 h-8 rounded-lg flex items-center justify-center font-head font-bold text-sm"
+             style="background:linear-gradient(135deg,#7B2FF7,#00A3FF);color:white;">A</div>
+        <span class="text-sm hidden md:inline text-wdtext" id="headerUsername">Admin</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="sb relative z-10 flex-1 overflow-y-auto px-5 md:px-8 pb-8 pt-4">
+
+    <div class="alert-bar" id="alertBar"><span id="alertMsg"></span><button onclick="hideAlert()" class="ml-auto text-lg leading-none">✕</button></div>
+
+    <!-- OVERVIEW / DASHBOARD -->
+    <div id="overviewPanel">
+      <div class="flex items-center gap-2 mb-5">
+        <div class="notif-dot"></div>
+        <p class="text-sm">
+          <span style="color:#7A9AB0;">Now Viewing: </span>
+          <span class="font-head font-semibold" style="color:#00C896;">Admin Dashboard</span>
+        </p>
+        <span class="ml-auto text-xs" style="color:#7A9AB0;">Live data · refreshes in <span id="countdownDisplay" style="color:#00C896;font-family:'Syne',sans-serif;font-weight:700;">30s</span></span>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
+
+<div class="stat-card" style="animation-delay:0.3s">
+          <div class="flex items-start justify-between mb-4">
+            <div class="stat-icon" style="background:rgba(123,47,247,0.12);border:1px solid rgba(123,47,247,0.2);">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#b44fff" stroke-width="2">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+              </svg>
+            </div>
+            <span class="text-xs font-head font-semibold px-2 py-1 rounded-lg" style="background:rgba(123,47,247,0.08);color:#b44fff;border:1px solid rgba(123,47,247,0.2);">TOTAL</span>
+          </div>
+          <p class="text-xs font-head font-bold uppercase tracking-widest mb-1" style="color:#7A9AB0;">Registered Users</p>
+          <p id="statUsers" class="font-head font-black text-2xl text-wdtext mb-1">
+            <span class="skeleton inline-block w-16 h-7 rounded"></span>
+          </p>
+          <p class="text-xs" style="color:#7A9AB0;" id="statUsersNote">all registered customers</p>
+        </div>
+
+        <div class="stat-card" style="animation-delay:0.1s">
+          <div class="flex items-start justify-between mb-4">
+            <div class="stat-icon" style="background:rgba(0,163,255,0.12);border:1px solid rgba(0,163,255,0.2);">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00A3FF" stroke-width="2">
+                <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+                <line x1="3" y1="6" x2="21" y2="6"/>
+                <path d="M16 10a4 4 0 0 1-8 0"/>
+              </svg>
+            </div>
+            <span class="text-xs font-head font-semibold px-2 py-1 rounded-lg" style="background:rgba(0,163,255,0.08);color:#00A3FF;border:1px solid rgba(0,163,255,0.15);">TODAY</span>
+          </div>
+          <p class="text-xs font-head font-bold uppercase tracking-widest mb-1" style="color:#7A9AB0;">Orders Today</p>
+          <p id="statOrders" class="font-head font-black text-2xl text-wdtext mb-1">
+            <span class="skeleton inline-block w-16 h-7 rounded"></span>
+          </p>
+          <p class="text-xs" style="color:#7A9AB0;" id="statOrdersNote">— across all branches</p>
+        </div>
+
+        <div class="stat-card" style="animation-delay:0s">
+          <div class="flex items-start justify-between mb-4">
+            <div class="stat-icon" style="background:rgba(0,200,150,0.12);border:1px solid rgba(0,200,150,0.2);">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00C896" stroke-width="2">
+                <line x1="12" y1="1" x2="12" y2="23"/>
+                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+              </svg>
+            </div>
+            <span class="text-xs font-head font-semibold px-2 py-1 rounded-lg" style="background:rgba(0,200,150,0.08);color:#00C896;border:1px solid rgba(0,200,150,0.15);">TODAY</span>
+          </div>
+          <p class="text-xs font-head font-bold uppercase tracking-widest mb-1" style="color:#7A9AB0;">Total Revenue</p>
+          <p id="statRevenue" class="font-head font-black text-2xl text-wdtext mb-1">
+            <span class="skeleton inline-block w-28 h-7 rounded"></span>
+          </p>
+          <p class="text-xs" style="color:#7A9AB0;" id="statRevenueNote">from sales analytics API</p>
+        </div>
+
+        
+
+        <div class="stat-card" style="animation-delay:0.2s">
+          <div class="flex items-start justify-between mb-4">
+            <div class="stat-icon" style="background:rgba(255,80,80,0.1);border:1px solid rgba(255,80,80,0.2);">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ff6b6b" stroke-width="2">
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+              </svg>
+            </div>
+            <span class="text-xs font-head font-semibold px-2 py-1 rounded-lg" style="background:rgba(255,80,80,0.08);color:#ff6b6b;border:1px solid rgba(255,80,80,0.15);">LIVE</span>
+          </div>
+          <p class="text-xs font-head font-bold uppercase tracking-widest mb-1" style="color:#7A9AB0;">Unresolved Alerts</p>
+          <p id="statAlerts" class="font-head font-black text-2xl text-wdtext mb-1">
+            <span class="skeleton inline-block w-12 h-7 rounded"></span>
+          </p>
+          <p class="text-xs" style="color:#7A9AB0;" id="statAlertsNote">— across all branches</p>
+        </div>
+
+        
+      </div>
+
+      <div class="grid grid-cols-1 xl:grid-cols-3 gap-5">
+        <div class="xl:col-span-2 panel-card p-5">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="font-head font-bold text-base text-wdtext">Recent Orders</h3>
+            <button onclick="showPanel('transactions', document.getElementById('navTransactions'))"
+                    class="text-xs text-accent hover:underline font-head">View All →</button>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full border-collapse">
+              <thead>
+                <tr style="border-bottom:1px solid rgba(0,200,150,0.1);">
+                  <th class="th-cell">Order ID</th>
+                  <th class="th-cell">Customer</th>
+                  <th class="th-cell">Branch</th>
+                  <th class="th-cell">Amount</th>
+                  <th class="th-cell">Status</th>
+                  <th class="th-cell">Time</th>
+                </tr>
+              </thead>
+              <tbody id="recentOrdersBody">
+                <tr><td colspan="6" class="text-center py-8">
+                  <div class="spinner w-6 h-6 mx-auto mb-2"></div>
+                  <p class="text-xs text-muted">Loading orders…</p>
+                </td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="panel-card p-5 flex flex-col">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="font-head font-bold text-base text-wdtext">Alert Summary</h3>
+            <button onclick="showPanel('alerts', document.getElementById('navAlerts'))"
+                    class="text-xs text-accent hover:underline font-head">Manage →</button>
+          </div>
+          <div id="alertSummaryContent" class="flex flex-col gap-3 flex-1">
+            <div class="skeleton h-16 rounded-xl"></div>
+            <div class="skeleton h-16 rounded-xl"></div>
+            <div class="skeleton h-16 rounded-xl"></div>
+          </div>
+          <div class="mt-4 pt-4" style="border-top:1px solid rgba(0,200,150,0.08);">
+            <p class="text-xs font-head font-bold uppercase tracking-wider mb-2" style="color:#7A9AB0;">Branches Affected</p>
+            <div id="branchesAffected" class="flex flex-wrap gap-2">
+              <span class="skeleton inline-block h-6 w-20 rounded"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between mt-8 pt-3 border-t border-white/5">
+        <span class="text-xs text-muted/40">Powered by Wantam Platform</span>
+        <span class="text-xs font-head text-muted/40">Admin Console v1.0</span>
+      </div>
+    </div>
+
+    <!-- INLINE PANEL -->
+    <div id="inlinePanel">
+      <button onclick="closePanel()" class="flex items-center gap-2 text-sm mb-6 text-muted hover:text-accent transition-colors">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+        Back to Dashboard
+      </button>
+
+      <!-- USERS PANEL -->
+      <div id="usersContent" class="hidden">
+        <div class="flex items-center justify-between mb-5">
+          <div>
+            <h2 class="font-head font-bold text-xl text-wdtext">Users</h2>
+            <p class="text-xs text-muted mt-0.5">All registered customers &amp; staff</p>
+          </div>
+          <button class="action-btn action-btn-primary" onclick="openAddUserModal()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="inline mr-1"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add User
+          </button>
+        </div>
+        <div class="panel-card p-5">
+          <div id="usersLoading" class="text-center py-10">
+            <div class="spinner w-8 h-8 mx-auto mb-3"></div>
+            <p class="text-sm text-muted">Loading users…</p>
+          </div>
+          <div id="usersTable" class="hidden overflow-x-auto">
+            <table class="w-full border-collapse">
+              <thead>
+                <tr style="border-bottom:1px solid rgba(0,200,150,0.1);">
+                  <th class="th-cell">User ID</th>
+                  <th class="th-cell">Username</th>
+                  <th class="th-cell">Email</th>
+                  <th class="th-cell">Phone</th>
+                  <th class="th-cell">Role</th>
+                  <th class="th-cell">Status</th>
+                  <th class="th-cell">Orders</th>
+                  <th class="th-cell">Joined</th>
+                  <th class="th-cell">Action</th>
+                </tr>
+              </thead>
+              <tbody id="usersBody"></tbody>
+            </table>
+          </div>
+          <p id="usersEmpty" class="hidden text-center py-10 text-muted text-sm">No users found.</p>
+        </div>
+      </div>
+
+      <!-- ADD USER MODAL -->
+      <div id="addUserModal" class="hidden fixed inset-0 z-50 flex items-center justify-center" style="background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);">
+        <div class="panel-card p-7 w-full max-w-md mx-4 animate-fadeUp">
+          <div class="flex items-center justify-between mb-6">
+            <h3 class="font-head font-bold text-lg text-wdtext">Add New User</h3>
+            <button onclick="closeAddUserModal()" class="text-muted hover:text-wdtext transition-colors text-xl leading-none">✕</button>
+          </div>
+          <div class="space-y-4">
+            <div>
+              <label class="block text-xs font-bold text-muted uppercase tracking-wider mb-1">Username</label>
+              <input id="newUserUsername" type="text" class="input-field w-full" placeholder="e.g. john_doe"/>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-muted uppercase tracking-wider mb-1">Email (Gmail only)</label>
+              <input id="newUserEmail" type="email" class="input-field w-full" placeholder="user@gmail.com"/>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-muted uppercase tracking-wider mb-1">Phone (07/01XXXXXXXX)</label>
+              <input id="newUserPhone" type="tel" class="input-field w-full" placeholder="0712345678"/>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-muted uppercase tracking-wider mb-1">Password</label>
+              <input id="newUserPassword" type="password" class="input-field w-full" placeholder="Strong password"/>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-muted uppercase tracking-wider mb-1">Confirm Password</label>
+              <input id="newUserConfirm" type="password" class="input-field w-full" placeholder="Repeat password"/>
+            </div>
+          </div>
+          <div class="flex gap-3 mt-6">
+            <button onclick="submitAddUser(this)" class="action-btn action-btn-primary flex-1">Create User</button>
+            <button onclick="closeAddUserModal()" class="action-btn action-btn-muted flex-1">Cancel</button>
+          </div>
+          <p id="addUserError" class="hidden mt-3 text-xs text-center" style="color:#ff9b9b;"></p>
+        </div>
+      </div>
+
+      <!-- BRANCHES PANEL -->
+      <div id="branchesContent" class="hidden">
+        <div class="flex items-center justify-between mb-5">
+          <div>
+            <h2 class="font-head font-bold text-xl text-wdtext">Branches</h2>
+            <p class="text-xs text-muted mt-0.5">All branch locations</p>
+          </div>
+          <button class="action-btn action-btn-primary" onclick="openAddBranchModal()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="inline mr-1"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add Branch
+          </button>
+        </div>
+        <div class="panel-card p-5">
+          <div id="branchesLoading" class="text-center py-10">
+            <div class="spinner w-8 h-8 mx-auto mb-3"></div>
+            <p class="text-sm text-muted">Loading branches…</p>
+          </div>
+          <div id="branchesTable" class="hidden overflow-x-auto">
+            <table class="w-full border-collapse">
+              <thead>
+                <tr style="border-bottom:1px solid rgba(0,200,150,0.1);">
+                  <th class="th-cell">Branch ID</th>
+                  <th class="th-cell">Name</th>
+                  <th class="th-cell">Location</th>
+                  <th class="th-cell">Manager</th>
+                  <th class="th-cell">Status</th>
+                  <th class="th-cell">Open Alerts</th>
+                  <th class="th-cell">Action</th>
+                </tr>
+              </thead>
+              <tbody id="branchesBody"></tbody>
+            </table>
+          </div>
+          <p id="branchesEmpty" class="hidden text-center py-10 text-muted text-sm">No branches found.</p>
+        </div>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════════════
+           ADD BRANCH MODAL
+           FIX 1: Added "Branch ID" as the first field.
+                  branch_id is the primary key on Branch model —
+                  the backend requires it in the POST body.
+      ═══════════════════════════════════════════════════════════ -->
+      <div id="addBranchModal" class="hidden fixed inset-0 z-50 flex items-center justify-center" style="background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);">
+        <div class="panel-card p-7 w-full max-w-md mx-4 animate-fadeUp">
+          <div class="flex items-center justify-between mb-6">
+            <h3 class="font-head font-bold text-lg text-wdtext">Add New Branch</h3>
+            <button onclick="closeAddBranchModal()" class="text-muted hover:text-wdtext transition-colors text-xl leading-none">✕</button>
+          </div>
+          <div class="space-y-4">
+            <!-- NEW FIELD: Branch ID (primary key — admin-assigned) -->
+            <div>
+              <label class="block text-xs font-bold text-muted uppercase tracking-wider mb-1">Branch ID</label>
+              <input id="newBranchId" type="text" class="input-field w-full" placeholder="e.g. NBI001, MSA001, THK001"/>
+              <p class="text-xs mt-1" style="color:#7A9AB0;">Unique identifier — cannot be changed later</p>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-muted uppercase tracking-wider mb-1">Branch Name</label>
+              <input id="newBranchName" type="text" class="input-field w-full" placeholder="e.g. Nakuru"/>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-muted uppercase tracking-wider mb-1">Location / Address</label>
+              <input id="newBranchLocation" type="text" class="input-field w-full" placeholder="e.g. Kenyatta Ave, Nakuru"/>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-muted uppercase tracking-wider mb-1">Manager Name</label>
+              <input id="newBranchManager" type="text" class="input-field w-full" placeholder="e.g. Jane Wanjiku"/>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-muted uppercase tracking-wider mb-1">Manager Phone (07/01XXXXXXXX)</label>
+              <input id="newBranchPhone" type="tel" class="input-field w-full" placeholder="0712345678"/>
+            </div>
+          </div>
+          <div class="flex gap-3 mt-6">
+            <button onclick="submitAddBranch(this)" class="action-btn action-btn-primary flex-1">Create Branch</button>
+            <button onclick="closeAddBranchModal()" class="action-btn action-btn-muted flex-1">Cancel</button>
+          </div>
+          <p id="addBranchError" class="hidden mt-3 text-xs text-center" style="color:#ff9b9b;"></p>
+        </div>
+      </div>
+
+      <!-- PRODUCTS PANEL -->
+      <div id="productsContent" class="hidden">
+        <div class="flex items-center justify-between mb-5">
+          <div>
+            <h2 class="font-head font-bold text-xl text-wdtext">Products</h2>
+            <p class="text-xs text-muted mt-0.5">Full product catalogue</p>
+          </div>
+        </div>
+        <div class="panel-card p-5">
+          <div id="productsLoading" class="text-center py-10">
+            <div class="spinner w-8 h-8 mx-auto mb-3"></div>
+            <p class="text-sm text-muted">Loading products…</p>
+          </div>
+          <div id="productsTable" class="hidden overflow-x-auto">
+            <table class="w-full border-collapse">
+              <thead>
+                <tr style="border-bottom:1px solid rgba(0,200,150,0.1);">
+                  <th class="th-cell">Product ID</th>
+                  <th class="th-cell">Name</th>
+                  <th class="th-cell">Price (KES)</th>
+                  <th class="th-cell">Status</th>
+                </tr>
+              </thead>
+              <tbody id="productsBody"></tbody>
+            </table>
+          </div>
+          <p id="productsEmpty" class="hidden text-center py-10 text-muted text-sm">No products found.</p>
+        </div>
+      </div>
+
+      <!-- INVENTORY PANEL -->
+      <div id="inventoryContent" class="hidden">
+        <div class="flex items-center justify-between mb-5">
+          <div>
+            <h2 class="font-head font-bold text-xl text-wdtext">Inventory</h2>
+            <p class="text-xs text-muted mt-0.5">Stock levels across all branches</p>
+          </div>
+        </div>
+        <div class="panel-card p-5">
+          <div id="inventoryLoading" class="text-center py-10">
+            <div class="spinner w-8 h-8 mx-auto mb-3"></div>
+            <p class="text-sm text-muted">Loading inventory…</p>
+          </div>
+          <div id="inventoryTable" class="hidden overflow-x-auto">
+            <table class="w-full border-collapse">
+              <thead>
+                <tr style="border-bottom:1px solid rgba(0,200,150,0.1);">
+                  <th class="th-cell">Branch</th>
+                  <th class="th-cell">Product</th>
+                  <th class="th-cell">Stock</th>
+                  <th class="th-cell">Threshold</th>
+                  <th class="th-cell">Status</th>
+                </tr>
+              </thead>
+              <tbody id="inventoryBody"></tbody>
+            </table>
+          </div>
+          <p id="inventoryEmpty" class="hidden text-center py-10 text-muted text-sm">No inventory records found.</p>
+        </div>
+      </div>
+
+      <!-- RESTOCK PANEL -->
+      <div id="restockContent" class="hidden">
+        <div class="flex items-center justify-between mb-5">
+          <div>
+            <h2 class="font-head font-bold text-xl text-wdtext">Restock Inventory</h2>
+            <p class="text-xs text-muted mt-0.5">Select a branch, then add stock to any product</p>
+          </div>
+        </div>
+
+        <div class="panel-card p-5 mb-5">
+          <p class="font-head text-sm font-bold text-wdtext mb-3">Step 1 — Select Branch</p>
+          <div class="flex gap-3 flex-wrap items-center">
+            <select id="restockBranchSelect" class="input-field" onchange="onRestockBranchChange()">
+              <option value="">— Choose a branch —</option>
+            </select>
+            <span id="restockBranchLoading" class="text-xs text-muted hidden">Loading branches…</span>
+          </div>
+        </div>
+
+        <div id="restockProductsSection" class="hidden">
+          <div class="panel-card p-5">
+            <div class="flex items-center justify-between mb-4">
+              <p class="font-head text-sm font-bold text-wdtext">Step 2 — Restock Products
+                <span id="restockBranchLabel" class="ml-2 text-xs font-normal" style="color:#00C896;"></span>
+              </p>
+            </div>
+            <div id="restockProductsLoading" class="text-center py-8">
+              <div class="spinner w-6 h-6 mx-auto mb-2"></div>
+              <p class="text-xs text-muted">Loading inventory…</p>
+            </div>
+            <div id="restockProductsTable" class="hidden overflow-x-auto">
+              <table class="w-full border-collapse">
+                <thead>
+                  <tr style="border-bottom:1px solid rgba(0,200,150,0.1);">
+                    <th class="th-cell">Product</th>
+                    <th class="th-cell">Current Stock</th>
+                    <th class="th-cell">Threshold</th>
+                    <th class="th-cell">Status</th>
+                    <th class="th-cell">Add Units</th>
+                    <th class="th-cell">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="restockProductsBody"></tbody>
+              </table>
+            </div>
+            <p id="restockProductsEmpty" class="hidden text-center py-8 text-muted text-sm">No inventory records found for this branch.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- TRANSACTIONS PANEL -->
+      <div id="transactionsContent" class="hidden">
+        <div class="flex items-center justify-between mb-5">
+          <div>
+            <h2 class="font-head font-bold text-xl text-wdtext">Transactions</h2>
+            <p class="text-xs text-muted mt-0.5">All orders across all branches</p>
+          </div>
+          <div class="flex gap-2 flex-wrap">
+            <select id="txFilterStatus" class="input-field text-xs" onchange="loadTransactions()">
+              <option value="">All Statuses</option>
+              <option value="PENDING">Pending</option>
+              <option value="COMPLETED">Completed</option>
+              <option value="FAILED">Failed</option>
+            </select>
+          </div>
+        </div>
+        <div class="panel-card p-5">
+          <div id="transactionsLoading" class="text-center py-10">
+            <div class="spinner w-8 h-8 mx-auto mb-3"></div>
+            <p class="text-sm text-muted">Loading transactions…</p>
+          </div>
+          <div id="transactionsTable" class="hidden overflow-x-auto">
+            <table class="w-full border-collapse">
+              <thead>
+                <tr style="border-bottom:1px solid rgba(0,200,150,0.1);">
+                  <th class="th-cell">Order ID</th>
+                  <th class="th-cell">Customer</th>
+                  <th class="th-cell">Branch</th>
+                  <th class="th-cell">Total</th>
+                  <th class="th-cell">Status</th>
+                  <th class="th-cell">Transaction ID</th>
+                  <th class="th-cell">Date</th>
+                </tr>
+              </thead>
+              <tbody id="transactionsBody"></tbody>
+            </table>
+          </div>
+          <p id="transactionsEmpty" class="hidden text-center py-10 text-muted text-sm">No transactions found.</p>
+        </div>
+      </div>
+
+      <!-- ANALYTICS PANEL -->
+      <div id="analyticsContent" class="hidden">
+        <div class="flex items-center justify-between mb-5">
+          <div>
+            <h2 class="font-head font-bold text-xl text-wdtext">Analytics</h2>
+            <p class="text-xs text-muted mt-0.5">Sales performance by branch</p>
+          </div>
+          <div class="flex gap-2">
+            <button id="tabAnalyticsDaily" class="tab-btn active" onclick="switchAnalyticsTab('daily')">Daily</button>
+            <button id="tabAnalyticsMonthly" class="tab-btn" onclick="switchAnalyticsTab('monthly')">Monthly</button>
+          </div>
+        </div>
+
+        <div id="analyticsDaily">
+          <div class="flex gap-2 mb-4 flex-wrap items-center">
+            <input type="date" id="analyticsDate" class="input-field text-xs" onchange="loadDailySummary()"/>
+            <span class="text-xs text-muted">Leave blank for today</span>
+          </div>
+          <div class="panel-card p-5 mb-4">
+            <p class="font-head text-sm font-bold mb-3 text-wdtext">Branch Daily Summary</p>
+            <div id="dailySummaryLoading" class="text-center py-8">
+              <div class="spinner w-6 h-6 mx-auto mb-2"></div>
+              <p class="text-xs text-muted">Loading…</p>
+            </div>
+            <div id="dailySummaryTable" class="hidden overflow-x-auto">
+              <table class="w-full border-collapse">
+                <thead>
+                  <tr style="border-bottom:1px solid rgba(0,200,150,0.1);">
+                    <th class="th-cell">Branch</th>
+                    <th class="th-cell">Date</th>
+                    <th class="th-cell">Units Sold</th>
+                    <th class="th-cell">Revenue (KES)</th>
+                  </tr>
+                </thead>
+                <tbody id="dailySummaryBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div id="analyticsMonthly" class="hidden">
+          <div class="flex gap-2 mb-4 flex-wrap items-center">
+            <select id="analyticsMonth" class="input-field text-xs" onchange="loadMonthlySummary()">
+              <option value="1">January</option><option value="2">February</option>
+              <option value="3">March</option><option value="4">April</option>
+              <option value="5">May</option><option value="6">June</option>
+              <option value="7">July</option><option value="8">August</option>
+              <option value="9">September</option><option value="10">October</option>
+              <option value="11">November</option><option value="12">December</option>
+            </select>
+            <input type="number" id="analyticsYear" class="input-field text-xs w-24" placeholder="Year" onchange="loadMonthlySummary()"/>
+          </div>
+          <div class="panel-card p-5 mb-4">
+            <p class="font-head text-sm font-bold mb-3 text-wdtext">Branch Monthly Summary</p>
+            <div id="monthlySummaryLoading" class="text-center py-8">
+              <div class="spinner w-6 h-6 mx-auto mb-2"></div>
+              <p class="text-xs text-muted">Loading…</p>
+            </div>
+            <div id="monthlySummaryTable" class="hidden overflow-x-auto">
+              <table class="w-full border-collapse">
+                <thead>
+                  <tr style="border-bottom:1px solid rgba(0,200,150,0.1);">
+                    <th class="th-cell">Branch</th>
+                    <th class="th-cell">Month</th>
+                    <th class="th-cell">Year</th>
+                    <th class="th-cell">Units Sold</th>
+                    <th class="th-cell">Revenue (KES)</th>
+                  </tr>
+                </thead>
+                <tbody id="monthlySummaryBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ALERTS PANEL -->
+      <div id="alertsContent" class="hidden">
+        <div class="flex items-center justify-between mb-5">
+          <div>
+            <h2 class="font-head font-bold text-xl text-wdtext">Stock Alerts</h2>
+            <p class="text-xs text-muted mt-0.5">Low stock notifications from all branches</p>
+          </div>
+          <div class="flex gap-2 flex-wrap">
+            <select id="alertFilterResolved" class="input-field text-xs" onchange="loadAlerts()">
+              <option value="false">Unresolved</option>
+              <option value="true">Resolved</option>
+              <option value="">All</option>
+            </select>
+            <select id="alertFilterSeverity" class="input-field text-xs" onchange="loadAlerts()">
+              <option value="">All Severities</option>
+              <option value="CRITICAL">Critical</option>
+              <option value="LOW">Low</option>
+            </select>
+          </div>
+        </div>
+        <div class="panel-card p-5">
+          <div id="alertsLoading" class="text-center py-10">
+            <div class="spinner w-8 h-8 mx-auto mb-3"></div>
+            <p class="text-sm text-muted">Loading alerts…</p>
+          </div>
+          <div id="alertsTable" class="hidden overflow-x-auto">
+            <table class="w-full border-collapse">
+              <thead>
+                <tr style="border-bottom:1px solid rgba(0,200,150,0.1);">
+                  <th class="th-cell">ID</th>
+                  <th class="th-cell">Branch</th>
+                  <th class="th-cell">Product</th>
+                  <th class="th-cell">Stock at Alert</th>
+                  <th class="th-cell">Current Stock</th>
+                  <th class="th-cell">Severity</th>
+                  <th class="th-cell">Status</th>
+                  <th class="th-cell">Resolved By</th>
+                  <th class="th-cell">Date</th>
+                  <th class="th-cell">Action</th>
+                </tr>
+              </thead>
+              <tbody id="alertsBody"></tbody>
+            </table>
+          </div>
+          <p id="alertsEmpty" class="hidden text-center py-10 text-muted text-sm">No alerts found.</p>
+        </div>
+      </div>
+
+    </div><!-- /inlinePanel -->
+  </main>
+</div>
+
+<script>
+// ══════════════════════════════════════════════
+// CONFIG
+// ══════════════════════════════════════════════
+const API_BASE = 'http://127.0.0.1:8000';
+
+function getToken() {
+  return sessionStorage.getItem('access_token') || localStorage.getItem('access_token') || '';
+}
+function authHeaders() {
+  return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` };
+}
+
+async function apiFetch(path, opts = {}) {
+  const res = await fetch(API_BASE + path, { headers: authHeaders(), ...opts });
+  if (res.status === 401) {
+    if (!window.location.pathname.startsWith('/login')) {
+      sessionStorage.clear();
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
+      showAlert('Session expired. Redirecting to login…', 'error');
+      setTimeout(() => { window.location.href = '/login/'; }, 1800);
+    }
+    return res;
+  }
+  return res;
+}
+
+// ══════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  const token = sessionStorage.getItem('access_token') || localStorage.getItem('access_token') || '';
+  if (!token) { window.location.href = '/login/'; return; }
+
+  const username = sessionStorage.getItem('username') || localStorage.getItem('username') || 'Admin';
+  const initial  = username.charAt(0).toUpperCase();
+  document.getElementById('usernameDisplay').textContent = username;
+  document.getElementById('headerUsername').textContent  = username;
+  document.getElementById('sidebarName').textContent     = username;
+  document.getElementById('headerAvatar').textContent    = initial;
+  document.getElementById('sidebarAvatar').textContent   = initial;
+
+  const now = new Date();
+  document.getElementById('currentDateDisplay').textContent =
+    now.toLocaleDateString('en-KE', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+  document.getElementById('analyticsMonth').value = now.getMonth() + 1;
+  document.getElementById('analyticsYear').value  = now.getFullYear();
+
+  loadOverviewData();
+  startAutoRefresh();
+});
+
+// ══════════════════════════════════════════════
+// AUTO-REFRESH
+// ══════════════════════════════════════════════
+const REFRESH_INTERVAL = 30;
+let autoRefreshTimer = null, countdownTimer = null, countdown = REFRESH_INTERVAL;
+
+function startAutoRefresh() {
+  clearInterval(autoRefreshTimer); clearInterval(countdownTimer);
+  countdown = REFRESH_INTERVAL; updateCountdownDisplay();
+  countdownTimer = setInterval(() => {
+    countdown--; updateCountdownDisplay();
+    if (countdown <= 0) countdown = REFRESH_INTERVAL;
+  }, 1000);
+  autoRefreshTimer = setInterval(() => {
+    if (!document.getElementById('overviewPanel').classList.contains('hide')) loadOverviewData();
+  }, REFRESH_INTERVAL * 1000);
+}
+
+function updateCountdownDisplay() {
+  const el = document.getElementById('countdownDisplay');
+  if (el) el.textContent = countdown + 's';
+}
+
+// ══════════════════════════════════════════════
+// OVERVIEW
+// ══════════════════════════════════════════════
+async function loadOverviewData() {
+  const icon = document.getElementById('refreshIcon');
+  icon.style.animation = 'spin 0.8s linear infinite';
+  countdown = REFRESH_INTERVAL; updateCountdownDisplay();
+  await Promise.allSettled([
+    loadRevenueCard(), loadOrdersCard(), loadAlertsCard(),
+    loadUsersCard(), loadRecentOrders(), loadAlertSummary(),
+  ]);
+  icon.style.animation = '';
+}
+
+async function loadRevenueCard() {
+  try {
+    const today = new Date().toISOString().split('T')[0];
+    const res   = await apiFetch(`/api/admin/analytics/daily/summary/?date=${today}`);
+    const data  = await res.json();
+    if (res.ok) {
+      const total = (data.summary || []).reduce((sum, b) => sum + (b.total_revenue || 0), 0);
+      document.getElementById('statRevenue').innerHTML =
+        `KES ${Number(total).toLocaleString('en-KE', { minimumFractionDigits:2, maximumFractionDigits:2 })}`;
+      document.getElementById('statRevenueNote').textContent =
+        `from ${data.total_branches || 0} branch${data.total_branches !== 1 ? 'es' : ''} · ${today}`;
+    } else {
+      document.getElementById('statRevenue').innerHTML = '<span style="color:#7A9AB0;font-size:0.9rem;">No data</span>';
+    }
+  } catch {
+    document.getElementById('statRevenue').innerHTML = '<span style="color:#ff9b9b;font-size:0.9rem;">Error</span>';
+  }
+}
+
+async function loadOrdersCard() {
+  try {
+    const today = new Date().toISOString().split('T')[0];
+    const res   = await apiFetch(`/api/admin/orders/?date=${today}`);
+    const data  = await res.json();
+    if (res.ok) {
+      const orders  = data.orders || [];
+      const pending   = orders.filter(o => o.status === 'PENDING').length;
+      const completed = orders.filter(o => o.status === 'COMPLETED').length;
+      document.getElementById('statOrders').textContent = data.total_orders ?? orders.length;
+      document.getElementById('statOrdersNote').innerHTML =
+        `<span style="color:#ffc107;">PENDING: ${pending}</span> &nbsp;·&nbsp; <span style="color:#00C896;">COMPLETED: ${completed}</span>`;
+    } else {
+      document.getElementById('statOrders').innerHTML = '<span style="color:#7A9AB0;font-size:0.9rem;">No data</span>';
+    }
+  } catch {
+    document.getElementById('statOrders').innerHTML = '<span style="color:#ff9b9b;font-size:0.9rem;">Error</span>';
+  }
+}
+
+async function loadAlertsCard() {
+  try {
+    const res  = await apiFetch('/api/admin/alerts/summary/');
+    const data = await res.json();
+    if (res.ok) {
+      document.getElementById('statAlerts').textContent = data.total_unresolved ?? '—';
+      document.getElementById('statAlertsNote').innerHTML =
+        `<span style="color:#ff6b6b;">CRITICAL: ${data.critical_count ?? 0}</span>&nbsp;·&nbsp;` +
+        `<span style="color:#ffc107;">LOW: ${data.low_count ?? 0}</span>`;
+      const badge = document.getElementById('alertBadgeCount');
+      if (data.total_unresolved > 0) {
+        badge.textContent = data.total_unresolved; badge.classList.remove('hidden');
+      } else { badge.classList.add('hidden'); }
+    }
+  } catch {
+    document.getElementById('statAlerts').innerHTML = '<span style="color:#ff9b9b;font-size:0.9rem;">Error</span>';
+  }
+}
+
+async function loadUsersCard() {
+  try {
+    const res  = await apiFetch('/api/admin/users/');
+    const data = await res.json();
+    if (res.ok) {
+      document.getElementById('statUsers').textContent = data.total_users ?? (data.users || []).length;
+      const active = (data.users || []).filter(u => u.is_active).length;
+      document.getElementById('statUsersNote').textContent = `${active} active · all registered customers`;
+    }
+  } catch {
+    document.getElementById('statUsers').innerHTML = '<span style="color:#ff9b9b;font-size:0.9rem;">Error</span>';
+  }
+}
+
+async function loadRecentOrders() {
+  const tbody = document.getElementById('recentOrdersBody');
+  try {
+    const today = new Date().toISOString().split('T')[0];
+    const res   = await apiFetch(`/api/admin/orders/?date=${today}`);
+    const data  = await res.json();
+    if (!res.ok || !(data.orders || []).length) {
+      tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-muted text-sm">No orders today.</td></tr>`;
+      return;
+    }
+    const rows = (data.orders || []).slice(0, 8);
+    tbody.innerHTML = rows.map(o => `
+      <tr style="border-bottom:1px solid rgba(0,200,150,0.06);" class="hover:bg-white/[0.02] transition-colors">
+        <td class="td-id px-4 py-3">${o.order_id}</td>
+        <td class="td-sub px-4 py-3">${o.customer_id || o.customer || '—'}</td>
+        <td class="td-sub px-4 py-3">${o.branch?.name || '—'}</td>
+        <td class="td-amt px-4 py-3">KES ${Number(o.total_price || 0).toLocaleString('en-KE')}</td>
+        <td class="px-4 py-3"><span class="badge badge-${(o.status || '').toLowerCase()}">${o.status || '—'}</span></td>
+        <td class="td-date px-4 py-3">${fmtTime(o.created_at)}</td>
+      </tr>
+    `).join('');
+  } catch {
+    tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-muted text-sm">Failed to load orders.</td></tr>`;
+  }
+}
+
+async function loadAlertSummary() {
+  const container = document.getElementById('alertSummaryContent');
+  const branchEl  = document.getElementById('branchesAffected');
+  try {
+    const res  = await apiFetch('/api/admin/alerts/summary/');
+    const data = await res.json();
+    if (!res.ok) throw new Error();
+    container.innerHTML = `
+      <div class="rounded-xl p-4 flex items-center gap-4" style="background:rgba(255,80,80,0.08);border:1px solid rgba(255,80,80,0.18);">
+        <div class="text-3xl font-head font-black" style="color:#ff6b6b;">${data.critical_count ?? 0}</div>
+        <div>
+          <p class="text-sm font-head font-bold" style="color:#ff9b9b;">Critical</p>
+          <p class="text-xs text-muted">Immediate action needed</p>
+        </div>
+      </div>
+      <div class="rounded-xl p-4 flex items-center gap-4" style="background:rgba(255,193,7,0.08);border:1px solid rgba(255,193,7,0.2);">
+        <div class="text-3xl font-head font-black" style="color:#ffc107;">${data.low_count ?? 0}</div>
+        <div>
+          <p class="text-sm font-head font-bold" style="color:#ffd54f;">Low Stock</p>
+          <p class="text-xs text-muted">Monitor &amp; restock soon</p>
+        </div>
+      </div>
+      <div class="rounded-xl p-4 flex items-center gap-4" style="background:rgba(0,200,150,0.06);border:1px solid rgba(0,200,150,0.15);">
+        <div class="text-3xl font-head font-black text-wdtext">${data.total_unresolved ?? 0}</div>
+        <div>
+          <p class="text-sm font-head font-bold text-wdtext">Total Unresolved</p>
+          <p class="text-xs text-muted">Pending resolution</p>
+        </div>
+      </div>
+    `;
+    const branches = data.branches_affected || [];
+    branchEl.innerHTML = branches.length
+      ? branches.map(b => `<span class="px-2 py-1 rounded-lg text-xs font-head font-semibold"
+             style="background:rgba(0,200,150,0.1);border:1px solid rgba(0,200,150,0.2);color:#00C896;">${b}</span>`).join('')
+      : `<span class="text-xs text-muted">None — all clear ✓</span>`;
+  } catch {
+    container.innerHTML = `<p class="text-sm text-muted text-center py-6">Failed to load alert summary.</p>`;
+    branchEl.innerHTML  = `<span class="text-xs text-muted">—</span>`;
+  }
+}
+
+// ══════════════════════════════════════════════
+// PANEL NAVIGATION
+// ══════════════════════════════════════════════
+const ALL_NAV     = ['navDashboard','navUsers','navBranches','navProducts','navInventory','navRestock','navTransactions','navAnalytics','navAlerts'];
+const ALL_CONTENT = ['usersContent','branchesContent','productsContent','inventoryContent','restockContent','transactionsContent','analyticsContent','alertsContent'];
+
+function setNavActive(btn) {
+  ALL_NAV.forEach(id => document.getElementById(id)?.classList.remove('active'));
+  btn?.classList.add('active');
+}
+function showOverview(btn) {
+  setNavActive(btn);
+  document.getElementById('overviewPanel').classList.remove('hide');
+  document.getElementById('inlinePanel').classList.remove('show');
+  ALL_CONTENT.forEach(id => document.getElementById(id)?.classList.add('hidden'));
+}
+function showPanel(section, btn) {
+  setNavActive(btn);
+  document.getElementById('overviewPanel').classList.add('hide');
+  document.getElementById('inlinePanel').classList.add('show');
+  ALL_CONTENT.forEach(id => document.getElementById(id)?.classList.add('hidden'));
+  const el = document.getElementById(section + 'Content');
+  if (el) el.classList.remove('hidden');
+  switch(section) {
+    case 'users':        loadUsers();        break;
+    case 'branches':     loadBranches();     break;
+    case 'products':     loadProducts();     break;
+    case 'inventory':    loadInventory();    break;
+    case 'transactions': loadTransactions(); break;
+    case 'analytics':    loadDailySummary(); break;
+    case 'alerts':       loadAlerts();       break;
+    case 'restock':      loadRestockPanel(); break;
+  }
+  closeMobileSidebar();
+}
+function closePanel() { showOverview(document.getElementById('navDashboard')); }
+
+// ══════════════════════════════════════════════
+// USERS
+// ══════════════════════════════════════════════
+async function loadUsers() {
+  showLoading('users');
+  try {
+    const res  = await apiFetch('/api/admin/users/');
+    const data = await res.json();
+    const users = data.users || [];
+    if (!users.length) { showEmpty('users'); return; }
+    const myId = sessionStorage.getItem('user_id') || localStorage.getItem('user_id') || '';
+    document.getElementById('usersBody').innerHTML = users.map(u => `
+      <tr style="border-bottom:1px solid rgba(0,200,150,0.06);" class="hover:bg-white/[0.02] transition-colors">
+        <td class="td-id px-4 py-3">${u.user_id}</td>
+        <td class="td-main px-4 py-3">${u.username}</td>
+        <td class="td-sub px-4 py-3">${u.email}</td>
+        <td class="td-sub px-4 py-3">${u.phone_number || '—'}</td>
+        <td class="px-4 py-3"><span class="badge ${u.is_staff ? 'badge-critical' : 'badge-resolved'}">${u.is_staff ? 'Staff' : 'Customer'}</span></td>
+        <td class="px-4 py-3"><span class="badge ${u.is_active ? 'badge-active' : 'badge-inactive'}">${u.is_active ? 'Active' : 'Inactive'}</span></td>
+        <td class="td-sub px-4 py-3 text-center">${u.total_orders ?? '—'}</td>
+        <td class="td-date px-4 py-3">${fmtDate(u.created_at)}</td>
+        <td class="px-4 py-3">
+          ${u.user_id !== myId
+            ? `<button class="action-btn action-btn-danger text-xs" onclick="deleteUser('${u.user_id}', '${u.username}', this)">Delete</button>`
+            : `<span class="text-xs text-muted">You</span>`}
+        </td>
+      </tr>
+    `).join('');
+    showTable('users');
+  } catch { showEmpty('users'); }
+}
+
+function openAddUserModal() {
+  ['newUserUsername','newUserEmail','newUserPhone','newUserPassword','newUserConfirm'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('addUserError').classList.add('hidden');
+  document.getElementById('addUserModal').classList.remove('hidden');
+}
+function closeAddUserModal() { document.getElementById('addUserModal').classList.add('hidden'); }
+
+async function submitAddUser(btn) {
+  const username = document.getElementById('newUserUsername').value.trim();
+  const email    = document.getElementById('newUserEmail').value.trim();
+  const phone    = document.getElementById('newUserPhone').value.trim();
+  const password = document.getElementById('newUserPassword').value;
+  const confirm  = document.getElementById('newUserConfirm').value;
+  const errEl    = document.getElementById('addUserError');
+  errEl.classList.add('hidden');
+  if (!username || !email || !phone || !password || !confirm) {
+    errEl.textContent = 'All fields are required.'; errEl.classList.remove('hidden'); return;
+  }
+  if (password !== confirm) {
+    errEl.textContent = 'Passwords do not match.'; errEl.classList.remove('hidden'); return;
+  }
+  btn.disabled = true; btn.textContent = 'Creating…';
+  try {
+    const res  = await apiFetch('/api/auth/register/', {
+      method: 'POST',
+      body: JSON.stringify({ username, email, phone_number: phone, password, confirm_password: confirm })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      closeAddUserModal();
+      showAlert(`User '${username}' created successfully.`, 'ok');
+      loadUsers(); loadUsersCard();
+    } else {
+      const msgs = Object.values(data).flat().join(' ');
+      errEl.textContent = msgs || 'Failed to create user.'; errEl.classList.remove('hidden');
+    }
+  } catch {
+    errEl.textContent = 'Network error. Please try again.'; errEl.classList.remove('hidden');
+  }
+  btn.disabled = false; btn.textContent = 'Create User';
+}
+
+async function deleteUser(userId, username, btn) {
+  if (!confirm(`Delete user '${username}'? This cannot be undone.`)) return;
+  btn.disabled = true; btn.textContent = 'Deleting…';
+  try {
+    const res  = await apiFetch(`/api/admin/users/${userId}/`, { method: 'DELETE' });
+    const data = await res.json();
+    if (res.ok) {
+      showAlert(data.message || `User '${username}' deleted.`, 'ok');
+      loadUsers(); loadUsersCard();
+    } else {
+      showAlert(data.error || 'Failed to delete user.', 'error');
+      btn.disabled = false; btn.textContent = 'Delete';
+    }
+  } catch {
+    showAlert('Network error.', 'error');
+    btn.disabled = false; btn.textContent = 'Delete';
+  }
+}
+
+// ══════════════════════════════════════════════
+// BRANCHES
+// ══════════════════════════════════════════════
+async function loadBranches() {
+  showLoading('branches');
+  try {
+    const res  = await apiFetch('/api/admin/branches/');
+    const data = await res.json();
+    const branches = data.branches || [];
+    if (!branches.length) { showEmpty('branches'); return; }
+    document.getElementById('branchesBody').innerHTML = branches.map(b => {
+      const alertCount = b.alert_count ?? 0;
+      const toggleBtn = b.is_active
+        ? `<button class="action-btn action-btn-muted text-xs" onclick="deactivateBranch('${b.branch_id}', '${b.name}', this)">Deactivate</button>`
+        : `<button class="action-btn action-btn-primary text-xs" onclick="activateBranch('${b.branch_id}', '${b.name}', this)">Activate</button>`;
+      const deleteBtn = !b.is_active
+        ? `<button class="action-btn action-btn-danger text-xs" onclick="deleteBranch('${b.branch_id}', '${b.name}', this)">Delete</button>`
+        : `<button class="action-btn text-xs" style="opacity:0.35;cursor:not-allowed;" disabled title="Deactivate first">Delete</button>`;
+      return `
+        <tr style="border-bottom:1px solid rgba(0,200,150,0.06);" class="hover:bg-white/[0.02] transition-colors">
+          <td class="td-id px-4 py-3">${b.branch_id}</td>
+          <td class="td-main px-4 py-3">${b.name}</td>
+          <td class="td-sub px-4 py-3">${b.location || '—'}</td>
+          <td class="td-sub px-4 py-3">${b.manager_name || '—'}</td>
+          <td class="px-4 py-3"><span class="badge ${b.is_active ? 'badge-active' : 'badge-inactive'}">${b.is_active ? 'Active' : 'Inactive'}</span></td>
+          <td class="px-4 py-3">
+            ${alertCount > 0
+              ? `<span class="badge badge-critical">${alertCount} alert${alertCount !== 1 ? 's' : ''}</span>`
+              : `<span class="text-xs" style="color:#00C896;">✓ Clear</span>`}
+          </td>
+          <td class="px-4 py-3 flex gap-2">${toggleBtn}${deleteBtn}</td>
+        </tr>
+      `;
+    }).join('');
+    showTable('branches');
+  } catch { showEmpty('branches'); }
+}
+
+async function deactivateBranch(branchId, branchName, btn) {
+  if (!confirm(`Deactivate branch '${branchName}'?\n\nIt will be hidden from customers and can be deleted afterward.`)) return;
+  btn.disabled = true; btn.textContent = 'Deactivating…';
+  try {
+    const res  = await apiFetch(`/api/admin/branches/${branchId}/`, {
+      method: 'PATCH',
+      body: JSON.stringify({ is_active: false })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      showAlert(data.message || `Branch '${branchName}' deactivated.`, 'ok');
+      loadBranches();
+    } else {
+      showAlert(data.error || 'Failed to deactivate branch.', 'error');
+      btn.disabled = false; btn.textContent = 'Deactivate';
+    }
+  } catch {
+    showAlert('Network error.', 'error');
+    btn.disabled = false; btn.textContent = 'Deactivate';
+  }
+}
+
+async function activateBranch(branchId, branchName, btn) {
+  if (!confirm(`Reactivate branch '${branchName}'?\n\nIt will become visible to customers again.`)) return;
+  btn.disabled = true; btn.textContent = 'Activating…';
+  try {
+    const res  = await apiFetch(`/api/admin/branches/${branchId}/`, {
+      method: 'PATCH',
+      body: JSON.stringify({ is_active: true })
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok) {
+      showAlert(data.message || `Branch '${branchName}' reactivated.`, 'ok');
+      loadBranches();
+    } else {
+      showAlert(data.error || 'Failed to activate branch.', 'error');
+      btn.disabled = false; btn.textContent = 'Activate';
+    }
+  } catch {
+    showAlert('Network error.', 'error');
+    btn.disabled = false; btn.textContent = 'Activate';
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// ADD BRANCH MODAL — FIX 1
+// openAddBranchModal: clear the new newBranchId field too
+// submitAddBranch: read branch_id, validate it, include in POST body
+// ═══════════════════════════════════════════════════════════════════
+function openAddBranchModal() {
+  ['newBranchId','newBranchName','newBranchLocation','newBranchManager','newBranchPhone'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('addBranchError').classList.add('hidden');
+  document.getElementById('addBranchModal').classList.remove('hidden');
+}
+function closeAddBranchModal() { document.getElementById('addBranchModal').classList.add('hidden'); }
+
+async function submitAddBranch(btn) {
+  const branch_id    = document.getElementById('newBranchId').value.trim();
+  const name         = document.getElementById('newBranchName').value.trim();
+  const location     = document.getElementById('newBranchLocation').value.trim();
+  const manager_name = document.getElementById('newBranchManager').value.trim();
+  const manager_phone= document.getElementById('newBranchPhone').value.trim();
+  const errEl        = document.getElementById('addBranchError');
+  errEl.classList.add('hidden');
+
+  if (!branch_id || !name || !location || !manager_name || !manager_phone) {
+    errEl.textContent = 'All fields are required.'; errEl.classList.remove('hidden'); return;
+  }
+
+  btn.disabled = true; btn.textContent = 'Creating…';
+  try {
+    const res  = await apiFetch('/api/admin/branches/', {
+      method: 'POST',
+      body: JSON.stringify({ branch_id, name, location, manager_name, manager_phone, is_active: true })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      closeAddBranchModal();
+      showAlert(data.message || `Branch '${name}' created successfully.`, 'ok');
+      loadBranches();
+    } else {
+      // Show the first validation message from the backend
+      const msgs = typeof data === 'object'
+        ? Object.entries(data).map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(' ') : v}`).join(' | ')
+        : 'Failed to create branch.';
+      errEl.textContent = msgs; errEl.classList.remove('hidden');
+    }
+  } catch {
+    errEl.textContent = 'Network error. Please try again.'; errEl.classList.remove('hidden');
+  }
+  btn.disabled = false; btn.textContent = 'Create Branch';
+}
+
+async function deleteBranch(branchId, branchName, btn) {
+  if (!confirm(`Delete branch '${branchName}'? This cannot be undone.`)) return;
+  btn.disabled = true; btn.textContent = 'Deleting…';
+  try {
+    const res = await apiFetch(`/api/admin/branches/${branchId}/`, { method: 'DELETE' });
+    // Handle both 200 (with JSON body) and 204 (empty body)
+    if (res.ok) {
+      let msg = `Branch '${branchName}' deleted.`;
+      if (res.status !== 204) {
+        const data = await res.json().catch(() => ({}));
+        msg = data.message || msg;
+      }
+      showAlert(msg, 'ok');
+      loadBranches();
+    } else {
+      const data = await res.json().catch(() => ({}));
+      showAlert(data.error || 'Failed to delete. Ensure the branch is inactive first.', 'error');
+      btn.disabled = false; btn.textContent = 'Delete';
+    }
+  } catch {
+    showAlert('Network error.', 'error');
+    btn.disabled = false; btn.textContent = 'Delete';
+  }
+}
+
+// ══════════════════════════════════════════════
+// PRODUCTS
+// ══════════════════════════════════════════════
+async function loadProducts() {
+  showLoading('products');
+  try {
+    const res  = await fetch(API_BASE + '/api/products/', { headers: authHeaders() });
+    const data = await res.json();
+    const products = Array.isArray(data) ? data : (data.products || data.results || []);
+    if (!products.length) { showEmpty('products'); return; }
+    document.getElementById('productsBody').innerHTML = products.map(p => `
+      <tr style="border-bottom:1px solid rgba(0,200,150,0.06);" class="hover:bg-white/[0.02] transition-colors">
+        <td class="td-id px-4 py-3">${p.product_id}</td>
+        <td class="td-main px-4 py-3">${p.name}</td>
+        <td class="td-amt px-4 py-3">${Number(p.price || 0).toLocaleString('en-KE')}</td>
+        <td class="px-4 py-3"><span class="badge ${p.is_available !== false ? 'badge-active' : 'badge-inactive'}">${p.is_available !== false ? 'Available' : 'Unavailable'}</span></td>
+      </tr>
+    `).join('');
+    showTable('products');
+  } catch { showEmpty('products'); }
+}
+
+// ══════════════════════════════════════════════
+// INVENTORY
+// ══════════════════════════════════════════════
+async function loadInventory() {
+  showLoading('inventory');
+  try {
+    const res  = await apiFetch('/api/admin/inventory/');
+    const data = await res.json();
+    const records = Array.isArray(data) ? data : (data.inventory || data.results || []);
+    if (!records.length) { showEmpty('inventory'); return; }
+    document.getElementById('inventoryBody').innerHTML = records.map(r => {
+      const branchName  = r.branch?.name  || r.branch_name  || '—';
+      const productName = r.product?.name || r.product_name || '—';
+      const thresh      = r.low_stock_threshold ?? r.threshold ?? 0;
+      const isLow       = r.is_low ?? (r.stock <= thresh);
+      return `
+        <tr style="border-bottom:1px solid rgba(0,200,150,0.06);" class="hover:bg-white/[0.02] transition-colors">
+          <td class="td-sub px-4 py-3">${branchName}</td>
+          <td class="td-main px-4 py-3">${productName}</td>
+          <td class="td-amt px-4 py-3" style="${isLow ? 'color:#ff6b6b;' : ''}">${r.stock ?? '—'}</td>
+          <td class="td-sub px-4 py-3">${thresh}</td>
+          <td class="px-4 py-3">
+            ${isLow ? `<span class="badge badge-critical">Low Stock</span>` : `<span class="badge badge-active">OK</span>`}
+          </td>
+        </tr>
+      `;
+    }).join('');
+    showTable('inventory');
+  } catch { showEmpty('inventory'); }
+}
+
+// ══════════════════════════════════════════════
+// TRANSACTIONS
+// ══════════════════════════════════════════════
+async function loadTransactions() {
+  showLoading('transactions');
+  try {
+    const status = document.getElementById('txFilterStatus').value;
+    let url = '/api/admin/orders/';
+    if (status) url += `?status=${status}`;
+    const res  = await apiFetch(url);
+    const data = await res.json();
+    const orders = data.orders || [];
+    if (!orders.length) { showEmpty('transactions'); return; }
+    document.getElementById('transactionsBody').innerHTML = orders.map(o => `
+      <tr style="border-bottom:1px solid rgba(0,200,150,0.06);" class="hover:bg-white/[0.02] transition-colors">
+        <td class="td-id px-4 py-3">${o.order_id}</td>
+        <td class="td-sub px-4 py-3">${o.customer_id || o.customer || '—'}</td>
+        <td class="td-sub px-4 py-3">${o.branch?.name || '—'}</td>
+        <td class="td-amt px-4 py-3">KES ${Number(o.total_price || 0).toLocaleString('en-KE')}</td>
+        <td class="px-4 py-3"><span class="badge badge-${(o.status || '').toLowerCase()}">${o.status || '—'}</span></td>
+        <td class="td-id px-4 py-3">${o.transaction_id || '—'}</td>
+        <td class="td-date px-4 py-3">${fmtDateTime(o.created_at)}</td>
+      </tr>
+    `).join('');
+    showTable('transactions');
+  } catch { showEmpty('transactions'); }
+}
+
+// ══════════════════════════════════════════════
+// ANALYTICS
+// ══════════════════════════════════════════════
+function switchAnalyticsTab(tab) {
+  const isDaily = tab === 'daily';
+  document.getElementById('analyticsDaily').classList.toggle('hidden', !isDaily);
+  document.getElementById('analyticsMonthly').classList.toggle('hidden', isDaily);
+  document.getElementById('tabAnalyticsDaily').classList.toggle('active', isDaily);
+  document.getElementById('tabAnalyticsMonthly').classList.toggle('active', !isDaily);
+  if (isDaily) loadDailySummary(); else loadMonthlySummary();
+}
+
+async function loadDailySummary() {
+  const dateInput = document.getElementById('analyticsDate').value;
+  const date      = dateInput || new Date().toISOString().split('T')[0];
+  document.getElementById('dailySummaryLoading').classList.remove('hidden');
+  document.getElementById('dailySummaryTable').classList.add('hidden');
+  try {
+    const res  = await apiFetch(`/api/admin/analytics/daily/summary/?date=${date}`);
+    const data = await res.json();
+    const rows = data.summary || [];
+    if (!rows.length) {
+      document.getElementById('dailySummaryLoading').innerHTML = `<p class="text-sm text-muted text-center py-4">No data for ${date}.</p>`;
+      return;
+    }
+    document.getElementById('dailySummaryBody').innerHTML = rows.map(r => `
+      <tr style="border-bottom:1px solid rgba(0,200,150,0.06);" class="hover:bg-white/[0.02]">
+        <td class="td-main px-4 py-3">${r.branch_name}</td>
+        <td class="td-sub px-4 py-3">${r.date}</td>
+        <td class="td-sub px-4 py-3">${(r.total_sold || 0).toLocaleString()}</td>
+        <td class="td-amt px-4 py-3">KES ${Number(r.total_revenue || 0).toLocaleString('en-KE', {minimumFractionDigits:2})}</td>
+      </tr>
+    `).join('');
+    document.getElementById('dailySummaryLoading').classList.add('hidden');
+    document.getElementById('dailySummaryTable').classList.remove('hidden');
+  } catch {
+    document.getElementById('dailySummaryLoading').innerHTML = `<p class="text-sm text-muted text-center py-4">Failed to load.</p>`;
+  }
+}
+
+async function loadMonthlySummary() {
+  const month = document.getElementById('analyticsMonth').value;
+  const year  = document.getElementById('analyticsYear').value || new Date().getFullYear();
+  document.getElementById('monthlySummaryLoading').classList.remove('hidden');
+  document.getElementById('monthlySummaryTable').classList.add('hidden');
+  try {
+    const res  = await apiFetch(`/api/admin/analytics/monthly/summary/?month=${month}&year=${year}`);
+    const data = await res.json();
+    const rows = data.summary || [];
+    if (!rows.length) {
+      document.getElementById('monthlySummaryLoading').innerHTML = `<p class="text-sm text-muted text-center py-4">No data for this period.</p>`;
+      return;
+    }
+    document.getElementById('monthlySummaryBody').innerHTML = rows.map(r => `
+      <tr style="border-bottom:1px solid rgba(0,200,150,0.06);" class="hover:bg-white/[0.02]">
+        <td class="td-main px-4 py-3">${r.branch_name}</td>
+        <td class="td-sub px-4 py-3">${r.month_name || r.month}</td>
+        <td class="td-sub px-4 py-3">${r.year}</td>
+        <td class="td-sub px-4 py-3">${(r.total_sold || 0).toLocaleString()}</td>
+        <td class="td-amt px-4 py-3">KES ${Number(r.total_revenue || 0).toLocaleString('en-KE', {minimumFractionDigits:2})}</td>
+      </tr>
+    `).join('');
+    document.getElementById('monthlySummaryLoading').classList.add('hidden');
+    document.getElementById('monthlySummaryTable').classList.remove('hidden');
+  } catch {
+    document.getElementById('monthlySummaryLoading').innerHTML = `<p class="text-sm text-muted text-center py-4">Failed to load.</p>`;
+  }
+}
+
+// ══════════════════════════════════════════════
+// ALERTS
+// ══════════════════════════════════════════════
+async function loadAlerts() {
+  showLoading('alerts');
+  try {
+    const resolved = document.getElementById('alertFilterResolved').value;
+    const severity = document.getElementById('alertFilterSeverity').value;
+    let url = '/api/admin/alerts/?';
+    if (resolved !== '') url += `is_resolved=${resolved}&`;
+    if (severity)        url += `severity=${severity}&`;
+    const res  = await apiFetch(url);
+    const data = await res.json();
+    const alerts = data.alerts || [];
+    if (!alerts.length) { showEmpty('alerts'); return; }
+    document.getElementById('alertsBody').innerHTML = alerts.map(a => `
+      <tr style="border-bottom:1px solid rgba(0,200,150,0.06);" class="hover:bg-white/[0.02] transition-colors">
+        <td class="td-id px-4 py-3">${a.id}</td>
+        <td class="td-sub px-4 py-3">${a.branch_name}</td>
+        <td class="td-main px-4 py-3">${a.product_name}</td>
+        <td class="td-sub px-4 py-3 text-center">${a.stock_at_alert}</td>
+        <td class="td-sub px-4 py-3 text-center" style="${a.current_stock <= a.threshold ? 'color:#ff6b6b;' : 'color:#00C896;'}">${a.current_stock}</td>
+        <td class="px-4 py-3"><span class="badge badge-${(a.severity || '').toLowerCase()}">${a.severity}</span></td>
+        <td class="px-4 py-3"><span class="badge ${a.is_resolved ? 'badge-resolved' : 'badge-critical'}">${a.is_resolved ? 'Resolved' : 'Open'}</span></td>
+        <td class="td-sub px-4 py-3">${a.resolved_by || '—'}</td>
+        <td class="td-date px-4 py-3">${fmtDate(a.created_at)}</td>
+        <td class="px-4 py-3">
+          ${!a.is_resolved
+            ? `<button class="action-btn action-btn-primary text-xs" onclick="resolveAlert(${a.id}, this)">Resolve</button>`
+            : `<span class="text-xs text-muted">Done</span>`}
+        </td>
+      </tr>
+    `).join('');
+    showTable('alerts');
+  } catch { showEmpty('alerts'); }
+}
+
+async function resolveAlert(alertId, btn) {
+  btn.disabled = true; btn.textContent = 'Resolving…';
+  try {
+    const res  = await apiFetch(`/api/admin/alerts/${alertId}/resolve/`, { method: 'POST' });
+    const data = await res.json();
+    if (res.ok) {
+      showAlert(data.message || 'Alert resolved successfully.', 'ok');
+      loadAlerts(); loadAlertsCard();
+    } else {
+      showAlert(data.error || data.message || 'Failed to resolve alert.', 'error');
+      btn.disabled = false; btn.textContent = 'Resolve';
+    }
+  } catch {
+    showAlert('Network error while resolving alert.', 'error');
+    btn.disabled = false; btn.textContent = 'Resolve';
+  }
+}
+
+// ══════════════════════════════════════════════
+// RESTOCK
+// ══════════════════════════════════════════════
+async function loadRestockPanel() {
+  const select    = document.getElementById('restockBranchSelect');
+  const loadingEl = document.getElementById('restockBranchLoading');
+  select.innerHTML = '<option value="">— Choose a branch —</option>';
+  document.getElementById('restockProductsSection').classList.add('hidden');
+  loadingEl.classList.remove('hidden');
+  try {
+    const res  = await apiFetch('/api/admin/branches/');
+    const data = await res.json();
+    const branches = data.branches || [];
+    branches.forEach(b => {
+      const opt = document.createElement('option');
+      opt.value = b.branch_id;
+      opt.textContent = b.name + (b.is_active ? '' : ' (Inactive)');
+      select.appendChild(opt);
+    });
+  } catch {
+    showAlert('Failed to load branches for restock.', 'error');
+  }
+  loadingEl.classList.add('hidden');
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// onRestockBranchChange — FIX 2
+// BEFORE: /api/admin/inventory/branch/${branchId}/
+//   → "branch" captured as branch_id, actual branchId as product_id
+//   → hits AdminInventoryDetailView (PATCH only) → 405
+//
+// AFTER: /api/admin/inventory/${branchId}/
+//   → correctly hits AdminBranchInventoryView (GET) → 200
+//   → removed the broken 404-fallback block
+// ═══════════════════════════════════════════════════════════════════
+async function onRestockBranchChange() {
+  const branchId = document.getElementById('restockBranchSelect').value;
+  const section  = document.getElementById('restockProductsSection');
+  if (!branchId) { section.classList.add('hidden'); return; }
+
+  section.classList.remove('hidden');
+  document.getElementById('restockProductsLoading').classList.remove('hidden');
+  document.getElementById('restockProductsTable').classList.add('hidden');
+  document.getElementById('restockProductsEmpty').classList.add('hidden');
+
+  const branchName = document.getElementById('restockBranchSelect').selectedOptions[0].textContent;
+  document.getElementById('restockBranchLabel').textContent = '— ' + branchName;
+
+  try {
+    // FIX: correct URL → AdminBranchInventoryView (GET supported)
+    const res = await apiFetch(`/api/admin/inventory/${branchId}/`);
+
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      const errMsg  = errData.error || errData.detail || `HTTP ${res.status}`;
+      document.getElementById('restockProductsLoading').classList.add('hidden');
+      showAlert(`Could not load inventory (${res.status}): ${errMsg}`, 'error');
+      return;
+    }
+
+    const data = await res.json();
+    // AdminBranchInventoryView returns a plain list directly
+    const records = Array.isArray(data) ? data : (data.results || data.inventory || []);
+
+    if (!records.length) {
+      document.getElementById('restockProductsLoading').classList.add('hidden');
+      document.getElementById('restockProductsEmpty').classList.remove('hidden');
+      return;
+    }
+
+    document.getElementById('restockProductsBody').innerHTML = records.map(r => {
+      const stock    = r.stock ?? 0;
+      const thresh   = r.low_stock_threshold ?? 0;
+      const isLow    = r.is_low ?? (stock <= thresh);
+      const prodId   = r.product?.product_id ?? '';
+      const prodName = r.product?.name ?? '—';
+      const safeName = prodName.replace(/'/g, "\\'");
+      return `
+        <tr style="border-bottom:1px solid rgba(0,200,150,0.06);" class="hover:bg-white/[0.02] transition-colors">
+          <td class="td-main px-4 py-3">${prodName}</td>
+          <td class="td-amt px-4 py-3" style="${isLow ? 'color:#ff6b6b;' : ''}">${stock}</td>
+          <td class="td-sub px-4 py-3">${thresh}</td>
+          <td class="px-4 py-3">
+            ${isLow ? `<span class="badge badge-critical">Low</span>` : `<span class="badge badge-active">OK</span>`}
+          </td>
+          <td class="px-4 py-3">
+            <input type="number" min="1" placeholder="Units"
+              id="restockQty_${prodId}"
+              class="input-field text-xs w-24" style="padding:0.4rem 0.6rem;"/>
+          </td>
+          <td class="px-4 py-3">
+            <button class="action-btn action-btn-primary text-xs"
+              onclick="submitRestock('${branchId}', '${prodId}', '${safeName}', this)">
+              Restock
+            </button>
+          </td>
+        </tr>
+      `;
+    }).join('');
+
+    document.getElementById('restockProductsLoading').classList.add('hidden');
+    document.getElementById('restockProductsTable').classList.remove('hidden');
+  } catch(e) {
+    console.error('Restock load error:', e);
+    document.getElementById('restockProductsLoading').classList.add('hidden');
+    showAlert('Failed to load inventory for this branch.', 'error');
+  }
+}
+
+async function submitRestock(branchId, productId, productName, btn) {
+  const qtyInput = document.getElementById(`restockQty_${productId}`);
+  const qty = parseInt(qtyInput?.value, 10);
+  if (!qty || qty < 1) { showAlert('Please enter a valid quantity (minimum 1).', 'error'); return; }
+  btn.disabled = true; btn.textContent = 'Restocking…';
+  try {
+    const res  = await apiFetch(`/api/admin/inventory/${branchId}/${productId}/restock/`, {
+      method: 'POST',
+      body: JSON.stringify({ quantity: qty })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      showAlert(data.message || `${productName} restocked. New stock: ${data.current_stock}`, 'ok');
+      if (qtyInput) qtyInput.value = '';
+      onRestockBranchChange();
+      loadAlertsCard();
+    } else {
+      const errMsg = data.error || data.detail || Object.values(data).flat().join(' ') || 'Restock failed.';
+      showAlert(errMsg, 'error');
+      btn.disabled = false; btn.textContent = 'Restock';
+    }
+  } catch(e) {
+    console.error('Restock submit error:', e);
+    showAlert('Network error during restock.', 'error');
+    btn.disabled = false; btn.textContent = 'Restock';
+  }
+}
+
+// ══════════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════════
+function showLoading(section) {
+  document.getElementById(section + 'Loading').classList.remove('hidden');
+  document.getElementById(section + 'Table').classList.add('hidden');
+  document.getElementById(section + 'Empty')?.classList.add('hidden');
+}
+function showTable(section) {
+  document.getElementById(section + 'Loading').classList.add('hidden');
+  document.getElementById(section + 'Table').classList.remove('hidden');
+  document.getElementById(section + 'Empty')?.classList.add('hidden');
+}
+function showEmpty(section) {
+  document.getElementById(section + 'Loading').classList.add('hidden');
+  document.getElementById(section + 'Table').classList.add('hidden');
+  document.getElementById(section + 'Empty')?.classList.remove('hidden');
+}
+function showAlert(msg, type = 'ok') {
+  const bar = document.getElementById('alertBar');
+  document.getElementById('alertMsg').textContent = msg;
+  bar.className = `alert-bar show ${type}`;
+  setTimeout(hideAlert, 5000);
+}
+function hideAlert() { document.getElementById('alertBar').classList.remove('show'); }
+
+function fmtDate(iso) {
+  if (!iso) return '—';
+  return new Date(iso).toLocaleDateString('en-KE', { day:'2-digit', month:'short', year:'numeric' });
+}
+function fmtTime(iso) {
+  if (!iso) return '—';
+  return new Date(iso).toLocaleTimeString('en-KE', { hour:'2-digit', minute:'2-digit' });
+}
+function fmtDateTime(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  return d.toLocaleDateString('en-KE', { day:'2-digit', month:'short' }) + ' ' +
+         d.toLocaleTimeString('en-KE', { hour:'2-digit', minute:'2-digit' });
+}
+
+function openMobileSidebar() {
+  document.getElementById('sidebar').classList.add('open');
+  document.getElementById('sidebarOverlay').classList.add('show');
+}
+function closeMobileSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('show');
+}
+
+function handleLogout() {
+  sessionStorage.clear();
+  localStorage.removeItem('access_token');
+  localStorage.removeItem('refresh_token');
+  localStorage.removeItem('username');
+  localStorage.removeItem('user_id');
+  localStorage.removeItem('is_staff');
+  window.location.href = '/login/';
+}
+</script>
+</body>
+</html>

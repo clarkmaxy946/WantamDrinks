@@ -322,7 +322,7 @@
   };
 
   // Redirect if already logged in
-  if (Auth.isLoggedIn()) window.location.href = Auth.isStaff() ? '/admin-dashboard/' : '/dashboard/';
+  if (Auth.isLoggedIn()) window.location.href = Auth.isStaff() ? '/admin_dashboard/' : '/dashboard/';
 
   // Toggle password visibility
   document.getElementById('togglePw').addEventListener('click', () => {
@@ -452,7 +452,7 @@
         Auth.save(data);
         showAlert('Login successful! Redirecting…', 'success');
         setTimeout(() => {
-          window.location.href = Auth.isStaff() ? '/admin-dashboard/' : '/dashboard/';
+          window.location.href = Auth.isStaff() ? '/admin_dashboard/' : '/dashboard/';
         }, 800);
       } else {
         // ---- FIX: Always extract a meaningful error message ----

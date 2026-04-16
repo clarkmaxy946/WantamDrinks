@@ -21,13 +21,15 @@
             spin:    { to:{ transform:'rotate(360deg)' } },
             btnGlow: { '0%,100%':{ boxShadow:'0 0 20px rgba(128,0,255,0.5),0 0 60px rgba(0,163,255,0.3)' }, '50%':{ boxShadow:'0 0 40px rgba(128,0,255,0.8),0 0 100px rgba(0,163,255,0.5)' } },
             pulse2:  { '0%,100%':{ opacity:'1', transform:'scale(1)' }, '50%':{ opacity:'0.4', transform:'scale(1.5)' } },
+            scanPulse: { '0%,100%':{ opacity:'1' }, '50%':{ opacity:'0.5' } },
           },
           animation: {
-            fadeUp:  'fadeUp 0.6s ease both',
-            shimmer: 'shimmer 2s linear infinite',
-            spin:    'spin 0.8s linear infinite',
-            btnGlow: 'btnGlow 2.5s ease-in-out infinite',
-            pulse2:  'pulse2 2s ease-in-out infinite',
+            fadeUp:    'fadeUp 0.6s ease both',
+            shimmer:   'shimmer 2s linear infinite',
+            spin:      'spin 0.8s linear infinite',
+            btnGlow:   'btnGlow 2.5s ease-in-out infinite',
+            pulse2:    'pulse2 2s ease-in-out infinite',
+            scanPulse: 'scanPulse 1.2s ease-in-out infinite',
           },
         }
       }
@@ -154,6 +156,8 @@
     .badge-failed   { background: rgba(255,80,80,0.15); color: #ff6b6b; border: 1px solid rgba(255,80,80,0.3); }
     .badge-active   { background: rgba(0,200,150,0.1);  color: #00C896; border: 1px solid rgba(0,200,150,0.3); }
     .badge-inactive { background: rgba(122,154,176,0.12); color: #7A9AB0; border: 1px solid rgba(122,154,176,0.25); }
+    .badge-success  { background: rgba(0,200,150,0.1);  color: #00C896; border: 1px solid rgba(0,200,150,0.3); }
+    .badge-cancelled{ background: rgba(122,154,176,0.12); color: #7A9AB0; border: 1px solid rgba(122,154,176,0.25); }
 
     .panel-card {
       background: rgba(15,52,96,0.45);
@@ -216,6 +220,10 @@
       background: rgba(122,154,176,0.1); border-color: rgba(122,154,176,0.2); color: #7A9AB0;
     }
     .action-btn-muted:hover { background: rgba(122,154,176,0.18); color: #E8F4F8; }
+    .action-btn-warning {
+      background: rgba(255,180,0,0.1); border-color: rgba(255,180,0,0.3); color: #ffc107;
+    }
+    .action-btn-warning:hover { background: rgba(255,180,0,0.2); }
 
     .tab-btn {
       padding: 0.45rem 1rem; border-radius: 10px;
@@ -230,6 +238,36 @@
 
     .trend-up   { color: #00C896; }
     .trend-down { color: #ff6b6b; }
+
+    /* Scan results panel */
+    .scan-result-card {
+      background: rgba(255,180,0,0.06);
+      border: 1px solid rgba(255,180,0,0.2);
+      border-radius: 14px;
+      padding: 1rem 1.2rem;
+      animation: fadeUp 0.4s ease both;
+    }
+    .scan-result-card.critical-card {
+      background: rgba(255,80,80,0.06);
+      border-color: rgba(255,80,80,0.25);
+    }
+
+    /* Scan button pulse when active */
+    .scan-btn-active {
+      animation: scanPulse 1.2s ease-in-out infinite;
+    }
+
+    /* Collapsible scan section */
+    #scanResultsSection {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.4s ease, opacity 0.3s ease;
+      opacity: 0;
+    }
+    #scanResultsSection.open {
+      max-height: 2000px;
+      opacity: 1;
+    }
   </style>
 </head>
 
@@ -398,21 +436,23 @@
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
-        <div class="stat-card" style="animation-delay:0s">
+
+        <div class="stat-card" style="animation-delay:0.3s">
           <div class="flex items-start justify-between mb-4">
-            <div class="stat-icon" style="background:rgba(0,200,150,0.12);border:1px solid rgba(0,200,150,0.2);">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00C896" stroke-width="2">
-                <line x1="12" y1="1" x2="12" y2="23"/>
-                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+            <div class="stat-icon" style="background:rgba(123,47,247,0.12);border:1px solid rgba(123,47,247,0.2);">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#b44fff" stroke-width="2">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
               </svg>
             </div>
-            <span class="text-xs font-head font-semibold px-2 py-1 rounded-lg" style="background:rgba(0,200,150,0.08);color:#00C896;border:1px solid rgba(0,200,150,0.15);">TODAY</span>
+            <span class="text-xs font-head font-semibold px-2 py-1 rounded-lg" style="background:rgba(123,47,247,0.08);color:#b44fff;border:1px solid rgba(123,47,247,0.2);">TOTAL</span>
           </div>
-          <p class="text-xs font-head font-bold uppercase tracking-widest mb-1" style="color:#7A9AB0;">Total Revenue</p>
-          <p id="statRevenue" class="font-head font-black text-2xl text-wdtext mb-1">
-            <span class="skeleton inline-block w-28 h-7 rounded"></span>
+          <p class="text-xs font-head font-bold uppercase tracking-widest mb-1" style="color:#7A9AB0;">Registered Users</p>
+          <p id="statUsers" class="font-head font-black text-2xl text-wdtext mb-1">
+            <span class="skeleton inline-block w-16 h-7 rounded"></span>
           </p>
-          <p class="text-xs" style="color:#7A9AB0;" id="statRevenueNote">from sales analytics API</p>
+          <p class="text-xs" style="color:#7A9AB0;" id="statUsersNote">all registered customers</p>
         </div>
 
         <div class="stat-card" style="animation-delay:0.1s">
@@ -433,6 +473,23 @@
           <p class="text-xs" style="color:#7A9AB0;" id="statOrdersNote">— across all branches</p>
         </div>
 
+        <div class="stat-card" style="animation-delay:0s">
+          <div class="flex items-start justify-between mb-4">
+            <div class="stat-icon" style="background:rgba(0,200,150,0.12);border:1px solid rgba(0,200,150,0.2);">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00C896" stroke-width="2">
+                <line x1="12" y1="1" x2="12" y2="23"/>
+                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+              </svg>
+            </div>
+            <span class="text-xs font-head font-semibold px-2 py-1 rounded-lg" style="background:rgba(0,200,150,0.08);color:#00C896;border:1px solid rgba(0,200,150,0.15);">TODAY</span>
+          </div>
+          <p class="text-xs font-head font-bold uppercase tracking-widest mb-1" style="color:#7A9AB0;">Total Revenue</p>
+          <p id="statRevenue" class="font-head font-black text-2xl text-wdtext mb-1">
+            <span class="skeleton inline-block w-28 h-7 rounded"></span>
+          </p>
+          <p class="text-xs" style="color:#7A9AB0;" id="statRevenueNote">from sales analytics API</p>
+        </div>
+
         <div class="stat-card" style="animation-delay:0.2s">
           <div class="flex items-start justify-between mb-4">
             <div class="stat-icon" style="background:rgba(255,80,80,0.1);border:1px solid rgba(255,80,80,0.2);">
@@ -450,23 +507,6 @@
           <p class="text-xs" style="color:#7A9AB0;" id="statAlertsNote">— across all branches</p>
         </div>
 
-        <div class="stat-card" style="animation-delay:0.3s">
-          <div class="flex items-start justify-between mb-4">
-            <div class="stat-icon" style="background:rgba(123,47,247,0.12);border:1px solid rgba(123,47,247,0.2);">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#b44fff" stroke-width="2">
-                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                <circle cx="9" cy="7" r="4"/>
-                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-              </svg>
-            </div>
-            <span class="text-xs font-head font-semibold px-2 py-1 rounded-lg" style="background:rgba(123,47,247,0.08);color:#b44fff;border:1px solid rgba(123,47,247,0.2);">TOTAL</span>
-          </div>
-          <p class="text-xs font-head font-bold uppercase tracking-widest mb-1" style="color:#7A9AB0;">Registered Users</p>
-          <p id="statUsers" class="font-head font-black text-2xl text-wdtext mb-1">
-            <span class="skeleton inline-block w-16 h-7 rounded"></span>
-          </p>
-          <p class="text-xs" style="color:#7A9AB0;" id="statUsersNote">all registered customers</p>
-        </div>
       </div>
 
       <div class="grid grid-cols-1 xl:grid-cols-3 gap-5">
@@ -705,8 +745,6 @@
                   <th class="th-cell">Name</th>
                   <th class="th-cell">Price (KES)</th>
                   <th class="th-cell">Status</th>
-                  <th class="th-cell">Image</th>
-                  <th class="th-cell">Action</th>
                 </tr>
               </thead>
               <tbody id="productsBody"></tbody>
@@ -715,47 +753,6 @@
           <p id="productsEmpty" class="hidden text-center py-10 text-muted text-sm">No products found.</p>
         </div>
       </div>
-
-      # edit module
-
-      <div id="editProductModal" class="modal-backdrop hidden">
-        <div class="modal-box">
-          <div class="flex items-center justify-between mb-2">
-            <h3 class="font-head font-bold text-lg text-wdtext">Edit Product</h3>
-            <button onclick="closeEditProductModal()" class="text-muted hover:text-wdtext transition-colors text-xl leading-none">✕</button>
-          </div>
-          <p class="text-xs text-muted mb-5">Update product details. Changes affect all branches.</p>
-          <input type="hidden" id="editProductOriginalId"/>
-          <div class="space-y-4">
-            <div>
-              <label class="block text-xs font-bold text-muted uppercase tracking-wider mb-1">Product ID</label>
-              <input id="editProductId" type="text" class="input-field w-full" placeholder="e.g. COKE_500"/>
-              <p class="field-hint">Changing the ID may affect inventory and order records.</p>
-            </div>
-            <div>
-              <label class="block text-xs font-bold text-muted uppercase tracking-wider mb-1">Product Name</label>
-              <input id="editProductName" type="text" class="input-field w-full" placeholder="e.g. Coca-Cola 500ml"/>
-            </div>
-            <div>
-              <label class="block text-xs font-bold text-muted uppercase tracking-wider mb-1">Price (KES)</label>
-              <input id="editProductPrice" type="number" step="0.01" min="0.01" class="input-field w-full" placeholder="e.g. 60.00"/>
-            </div>
-            <div>
-              <label class="block text-xs font-bold text-muted uppercase tracking-wider mb-1">Image Filename</label>
-              <input id="editProductImage" type="text" class="input-field w-full" placeholder="e.g. cocacola.png"/>
-              <p class="field-hint">Filename only — file must exist in /static/images/</p>
-            </div>
-          </div>
-          <div class="flex gap-3 mt-6">
-            <button onclick="submitEditProduct(this)" class="action-btn action-btn-warning flex-1">Save Changes</button>
-            <button onclick="closeEditProductModal()" class="action-btn action-btn-muted flex-1">Cancel</button>
-          </div>
-          <p id="editProductError" class="hidden mt-3 text-xs text-center" style="color:#ff9b9b;"></p>
-        </div>
-      </div>
-
-
-
 
       <!-- INVENTORY PANEL -->
       <div id="inventoryContent" class="hidden">
@@ -838,14 +835,24 @@
         </div>
       </div>
 
-      <!-- TRANSACTIONS PANEL -->
+      <!-- ══════════════════════════════════════════════════════════
+           TRANSACTIONS PANEL — Orders tab + Payments tab
+      ══════════════════════════════════════════════════════════ -->
       <div id="transactionsContent" class="hidden">
         <div class="flex items-center justify-between mb-5">
           <div>
             <h2 class="font-head font-bold text-xl text-wdtext">Transactions</h2>
-            <p class="text-xs text-muted mt-0.5">All orders across all branches</p>
+            <p class="text-xs text-muted mt-0.5">Orders &amp; payments across all branches</p>
           </div>
-          <div class="flex gap-2 flex-wrap">
+          <div class="flex gap-2">
+            <button id="tabTxOrders"   class="tab-btn active" onclick="switchTxTab('orders')">Orders</button>
+            <button id="tabTxPayments" class="tab-btn"        onclick="switchTxTab('payments')">Payments</button>
+          </div>
+        </div>
+
+        <!-- ── ORDERS TAB ── -->
+        <div id="txOrdersTab">
+          <div class="flex gap-2 flex-wrap mb-4 items-center">
             <select id="txFilterStatus" class="input-field text-xs" onchange="loadTransactions()">
               <option value="">All Statuses</option>
               <option value="PENDING">Pending</option>
@@ -853,29 +860,68 @@
               <option value="FAILED">Failed</option>
             </select>
           </div>
+          <div class="panel-card p-5">
+            <div id="transactionsLoading" class="text-center py-10">
+              <div class="spinner w-8 h-8 mx-auto mb-3"></div>
+              <p class="text-sm text-muted">Loading orders…</p>
+            </div>
+            <div id="transactionsTable" class="hidden overflow-x-auto">
+              <table class="w-full border-collapse">
+                <thead>
+                  <tr style="border-bottom:1px solid rgba(0,200,150,0.1);">
+                    <th class="th-cell">Order ID</th>
+                    <th class="th-cell">Customer</th>
+                    <th class="th-cell">Branch</th>
+                    <th class="th-cell">Total</th>
+                    <th class="th-cell">Status</th>
+                    <th class="th-cell">Transaction ID</th>
+                    <th class="th-cell">Date</th>
+                  </tr>
+                </thead>
+                <tbody id="transactionsBody"></tbody>
+              </table>
+            </div>
+            <p id="transactionsEmpty" class="hidden text-center py-10 text-muted text-sm">No orders found.</p>
+          </div>
         </div>
-        <div class="panel-card p-5">
-          <div id="transactionsLoading" class="text-center py-10">
-            <div class="spinner w-8 h-8 mx-auto mb-3"></div>
-            <p class="text-sm text-muted">Loading transactions…</p>
+
+        <!-- ── PAYMENTS TAB ── -->
+        <div id="txPaymentsTab" class="hidden">
+          <div class="flex gap-2 flex-wrap mb-4 items-center">
+            <select id="pmtFilterStatus" class="input-field text-xs" onchange="loadPayments()">
+              <option value="">All Statuses</option>
+              <option value="PENDING">Pending</option>
+              <option value="SUCCESS">Success</option>
+              <option value="FAILED">Failed</option>
+              <option value="CANCELLED">Cancelled</option>
+            </select>
           </div>
-          <div id="transactionsTable" class="hidden overflow-x-auto">
-            <table class="w-full border-collapse">
-              <thead>
-                <tr style="border-bottom:1px solid rgba(0,200,150,0.1);">
-                  <th class="th-cell">Order ID</th>
-                  <th class="th-cell">Customer</th>
-                  <th class="th-cell">Branch</th>
-                  <th class="th-cell">Total</th>
-                  <th class="th-cell">Status</th>
-                  <th class="th-cell">Transaction ID</th>
-                  <th class="th-cell">Date</th>
-                </tr>
-              </thead>
-              <tbody id="transactionsBody"></tbody>
-            </table>
+          <div class="panel-card p-5">
+            <div id="paymentsLoading" class="text-center py-10">
+              <div class="spinner w-8 h-8 mx-auto mb-3"></div>
+              <p class="text-sm text-muted">Loading payments…</p>
+            </div>
+            <div id="paymentsTable" class="hidden overflow-x-auto">
+              <table class="w-full border-collapse">
+                <thead>
+                  <tr style="border-bottom:1px solid rgba(0,200,150,0.1);">
+                    <th class="th-cell">Payment ID</th>
+                    <th class="th-cell">Order ID</th>
+                    <th class="th-cell">Branch</th>
+                    <th class="th-cell">Customer</th>
+                    <th class="th-cell">Phone</th>
+                    <th class="th-cell">Amount</th>
+                    <th class="th-cell">Status</th>
+                    <th class="th-cell">Receipt #</th>
+                    <th class="th-cell">Failure Reason</th>
+                    <th class="th-cell">Date</th>
+                  </tr>
+                </thead>
+                <tbody id="paymentsBody"></tbody>
+              </table>
+            </div>
+            <p id="paymentsEmpty" class="hidden text-center py-10 text-muted text-sm">No payments found.</p>
           </div>
-          <p id="transactionsEmpty" class="hidden text-center py-10 text-muted text-sm">No transactions found.</p>
         </div>
       </div>
 
@@ -955,14 +1001,26 @@
         </div>
       </div>
 
-      <!-- ALERTS PANEL -->
+      <!-- ══════════════════════════════════════════════════════════
+           ALERTS PANEL — with Scan Inventory button + inline results
+      ══════════════════════════════════════════════════════════ -->
       <div id="alertsContent" class="hidden">
-        <div class="flex items-center justify-between mb-5">
+        <div class="flex items-center justify-between mb-5 flex-wrap gap-3">
           <div>
             <h2 class="font-head font-bold text-xl text-wdtext">Stock Alerts</h2>
             <p class="text-xs text-muted mt-0.5">Low stock notifications from all branches</p>
           </div>
-          <div class="flex gap-2 flex-wrap">
+          <div class="flex gap-2 flex-wrap items-center">
+            <!-- SCAN INVENTORY BUTTON -->
+            <button id="scanInventoryBtn" class="action-btn action-btn-warning flex items-center gap-2" onclick="toggleScanResults()">
+              <svg id="scanIcon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+                <line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/>
+              </svg>
+              Scan Inventory
+              <span id="scanBadge" class="hidden text-xs font-bold px-1.5 py-0.5 rounded-full"
+                    style="background:rgba(255,80,80,0.3);color:#ff6b6b;font-family:'Syne',sans-serif;">0</span>
+            </button>
             <select id="alertFilterResolved" class="input-field text-xs" onchange="loadAlerts()">
               <option value="false">Unresolved</option>
               <option value="true">Resolved</option>
@@ -975,6 +1033,40 @@
             </select>
           </div>
         </div>
+
+        <!-- ── SCAN RESULTS — collapsible section shown alongside main table ── -->
+        <div id="scanResultsSection" class="mb-5">
+          <div class="panel-card p-5" style="border-color:rgba(255,180,0,0.25);background:rgba(255,180,0,0.03);">
+            <div class="flex items-center justify-between mb-4">
+              <div class="flex items-center gap-3">
+                <div style="width:10px;height:10px;border-radius:50%;background:#ffc107;box-shadow:0 0 8px rgba(255,193,7,0.6);animation:pulse2 1.5s ease-in-out infinite;flex-shrink:0;"></div>
+                <h3 class="font-head font-bold text-base text-wdtext">Inventory Scan Results</h3>
+                <span id="scanTimestamp" class="text-xs text-muted"></span>
+              </div>
+              <button onclick="closeScanResults()" class="text-muted hover:text-wdtext transition-colors text-sm">✕ Close</button>
+            </div>
+            <div id="scanLoading" class="text-center py-8 hidden">
+              <div class="spinner w-6 h-6 mx-auto mb-2"></div>
+              <p class="text-xs text-muted">Scanning all branches for low stock…</p>
+            </div>
+            <div id="scanResultsBody">
+              <!-- Populated by scanInventory() -->
+            </div>
+            <div id="scanSummaryFooter" class="hidden mt-4 pt-3 flex items-center justify-between flex-wrap gap-3"
+                 style="border-top:1px solid rgba(255,180,0,0.15);">
+              <p id="scanSummaryText" class="text-xs text-muted"></p>
+              <button onclick="showPanel('restock', document.getElementById('navRestock'))"
+                      class="action-btn action-btn-primary text-xs flex items-center gap-1">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/>
+                </svg>
+                Go to Restock →
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── MAIN ALERTS TABLE ── -->
         <div class="panel-card p-5">
           <div id="alertsLoading" class="text-center py-10">
             <div class="spinner w-8 h-8 mx-auto mb-3"></div>
@@ -1122,7 +1214,7 @@ async function loadOrdersCard() {
     const res   = await apiFetch(`/api/admin/orders/?date=${today}`);
     const data  = await res.json();
     if (res.ok) {
-      const orders  = data.orders || [];
+      const orders    = data.orders || [];
       const pending   = orders.filter(o => o.status === 'PENDING').length;
       const completed = orders.filter(o => o.status === 'COMPLETED').length;
       document.getElementById('statOrders').textContent = data.total_orders ?? orders.length;
@@ -1264,7 +1356,7 @@ function showPanel(section, btn) {
     case 'branches':     loadBranches();     break;
     case 'products':     loadProducts();     break;
     case 'inventory':    loadInventory();    break;
-    case 'transactions': loadTransactions(); break;
+    case 'transactions': initTransactions(); break;
     case 'analytics':    loadDailySummary(); break;
     case 'alerts':       loadAlerts();       break;
     case 'restock':      loadRestockPanel(); break;
@@ -1406,12 +1498,6 @@ async function loadBranches() {
   } catch { showEmpty('branches'); }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// FIX 1: await loadBranches() so the table fully re-renders before the user
-//         can interact with it again, eliminating the race-condition where the
-//         Delete button could be clicked against a branch still marked active
-//         in the DB (because the GET response hadn't come back yet).
-// ─────────────────────────────────────────────────────────────────────────────
 async function deactivateBranch(branchId, branchName, btn) {
   if (!confirm(`Deactivate branch '${branchName}'?\n\nIt will be hidden from customers and can be deleted afterward.`)) return;
   btn.disabled = true; btn.textContent = 'Deactivating…';
@@ -1423,12 +1509,9 @@ async function deactivateBranch(branchId, branchName, btn) {
     const data = await res.json();
     if (res.ok) {
       showAlert(data.message || `Branch '${branchName}' deactivated.`, 'ok');
-      // FIX: await so table is fully updated before user can click Delete
-      await loadBranches();
+      loadBranches();
     } else {
-      // FIX: surface the actual backend error instead of a generic message
-      const errMsg = data.error || data.detail || JSON.stringify(data) || 'Failed to deactivate branch.';
-      showAlert(errMsg, 'error');
+      showAlert(data.error || 'Failed to deactivate branch.', 'error');
       btn.disabled = false; btn.textContent = 'Deactivate';
     }
   } catch {
@@ -1448,11 +1531,9 @@ async function activateBranch(branchId, branchName, btn) {
     const data = await res.json().catch(() => ({}));
     if (res.ok) {
       showAlert(data.message || `Branch '${branchName}' reactivated.`, 'ok');
-      // FIX: await so table is fully updated before user can interact
-      await loadBranches();
+      loadBranches();
     } else {
-      const errMsg = data.error || data.detail || 'Failed to activate branch.';
-      showAlert(errMsg, 'error');
+      showAlert(data.error || 'Failed to activate branch.', 'error');
       btn.disabled = false; btn.textContent = 'Activate';
     }
   } catch {
@@ -1461,7 +1542,6 @@ async function activateBranch(branchId, branchName, btn) {
   }
 }
 
-// ADD BRANCH MODAL
 function openAddBranchModal() {
   ['newBranchId','newBranchName','newBranchLocation','newBranchManager','newBranchPhone'].forEach(id => {
     document.getElementById(id).value = '';
@@ -1479,11 +1559,9 @@ async function submitAddBranch(btn) {
   const manager_phone= document.getElementById('newBranchPhone').value.trim();
   const errEl        = document.getElementById('addBranchError');
   errEl.classList.add('hidden');
-
   if (!branch_id || !name || !location || !manager_name || !manager_phone) {
     errEl.textContent = 'All fields are required.'; errEl.classList.remove('hidden'); return;
   }
-
   btn.disabled = true; btn.textContent = 'Creating…';
   try {
     const res  = await apiFetch('/api/admin/branches/', {
@@ -1507,71 +1585,26 @@ async function submitAddBranch(btn) {
   btn.disabled = false; btn.textContent = 'Create Branch';
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// FIX 2: deleteBranch — pre-flight GET to verify is_active === false in the DB
-//         before sending DELETE. This is the primary guard against the scenario
-//         where the frontend shows "Inactive" but the DB still has is_active=true
-//         (e.g. PATCH returned 200 but didn't save, or a stale cache issue).
-//
-//         Also: surfaces the real backend error message instead of falling back
-//         to the generic "Ensure the branch is inactive first" string.
-// ─────────────────────────────────────────────────────────────────────────────
 async function deleteBranch(branchId, branchName, btn) {
   if (!confirm(`Delete branch '${branchName}'? This cannot be undone.`)) return;
-  btn.disabled = true; btn.textContent = 'Checking…';
-
-  // Pre-flight: fetch the current branch state directly from the DB
-  try {
-    const checkRes = await apiFetch(`/api/admin/branches/${branchId}/`);
-    if (!checkRes.ok) {
-      showAlert('Could not verify branch status. Please refresh the page and try again.', 'error');
-      btn.disabled = false; btn.textContent = 'Delete';
-      return;
-    }
-    const checkData = await checkRes.json();
-    // AdminBranchDetailView GET returns the branch object directly (or wrapped in .data)
-    const branchObj = checkData.data || checkData;
-    if (branchObj.is_active === true) {
-      showAlert(
-        `Branch '${branchName}' is still active in the database. ` +
-        `Please deactivate it first, then refresh the page before deleting.`,
-        'error'
-      );
-      btn.disabled = false; btn.textContent = 'Delete';
-      // Re-render to reflect the true DB state
-      await loadBranches();
-      return;
-    }
-  } catch {
-    showAlert('Network error while verifying branch status. Please try again.', 'error');
-    btn.disabled = false; btn.textContent = 'Delete';
-    return;
-  }
-
-  // Confirmed inactive — proceed with DELETE
-  btn.textContent = 'Deleting…';
+  btn.disabled = true; btn.textContent = 'Deleting…';
   try {
     const res = await apiFetch(`/api/admin/branches/${branchId}/`, { method: 'DELETE' });
     if (res.ok) {
-      let msg = `Branch '${branchName}' deleted successfully.`;
+      let msg = `Branch '${branchName}' deleted.`;
       if (res.status !== 204) {
         const data = await res.json().catch(() => ({}));
         msg = data.message || msg;
       }
       showAlert(msg, 'ok');
-      await loadBranches();
+      loadBranches();
     } else {
-      // FIX: extract the real backend error — don't use a generic fallback
-      let errMsg = 'Failed to delete branch.';
-      try {
-        const data = await res.json();
-        errMsg = data.error || data.detail || JSON.stringify(data) || errMsg;
-      } catch (_) { /* body already consumed or empty */ }
-      showAlert(errMsg, 'error');
+      const data = await res.json().catch(() => ({}));
+      showAlert(data.error || 'Failed to delete. Ensure the branch is inactive first.', 'error');
       btn.disabled = false; btn.textContent = 'Delete';
     }
   } catch {
-    showAlert('Network error during deletion. Please try again.', 'error');
+    showAlert('Network error.', 'error');
     btn.disabled = false; btn.textContent = 'Delete';
   }
 }
@@ -1582,7 +1615,7 @@ async function deleteBranch(branchId, branchName, btn) {
 async function loadProducts() {
   showLoading('products');
   try {
-    const res  = await fetch(API_BASE + '/api/admin/products/', { headers: authHeaders() });
+    const res  = await fetch(API_BASE + '/api/products/', { headers: authHeaders() });
     const data = await res.json();
     const products = Array.isArray(data) ? data : (data.products || data.results || []);
     if (!products.length) { showEmpty('products'); return; }
@@ -1592,8 +1625,6 @@ async function loadProducts() {
         <td class="td-main px-4 py-3">${p.name}</td>
         <td class="td-amt px-4 py-3">${Number(p.price || 0).toLocaleString('en-KE')}</td>
         <td class="px-4 py-3"><span class="badge ${p.is_available !== false ? 'badge-active' : 'badge-inactive'}">${p.is_available !== false ? 'Available' : 'Unavailable'}</span></td>
-        <td class="td-main px-4 py-3">${p.image || '—'}</td>
-        
       </tr>
     `).join('');
     showTable('products');
@@ -1632,8 +1663,29 @@ async function loadInventory() {
 }
 
 // ══════════════════════════════════════════════
-// TRANSACTIONS
+// TRANSACTIONS — Orders + Payments tabs
 // ══════════════════════════════════════════════
+let currentTxTab = 'orders';
+
+function initTransactions() {
+  currentTxTab = 'orders';
+  document.getElementById('tabTxOrders').classList.add('active');
+  document.getElementById('tabTxPayments').classList.remove('active');
+  document.getElementById('txOrdersTab').classList.remove('hidden');
+  document.getElementById('txPaymentsTab').classList.add('hidden');
+  loadTransactions();
+}
+
+function switchTxTab(tab) {
+  currentTxTab = tab;
+  const isOrders = tab === 'orders';
+  document.getElementById('txOrdersTab').classList.toggle('hidden', !isOrders);
+  document.getElementById('txPaymentsTab').classList.toggle('hidden', isOrders);
+  document.getElementById('tabTxOrders').classList.toggle('active', isOrders);
+  document.getElementById('tabTxPayments').classList.toggle('active', !isOrders);
+  if (isOrders) loadTransactions(); else loadPayments();
+}
+
 async function loadTransactions() {
   showLoading('transactions');
   try {
@@ -1657,6 +1709,44 @@ async function loadTransactions() {
     `).join('');
     showTable('transactions');
   } catch { showEmpty('transactions'); }
+}
+
+async function loadPayments() {
+  showLoading('payments');
+  try {
+    const status = document.getElementById('pmtFilterStatus').value;
+    let url = '/api/admin/payments/';
+    if (status) url += `?status=${status}`;
+    const res  = await apiFetch(url);
+    const data = await res.json();
+    const payments = data.payments || [];
+    if (!payments.length) { showEmpty('payments'); return; }
+    document.getElementById('paymentsBody').innerHTML = payments.map(p => {
+      const statusKey = (p.status || '').toLowerCase();
+      const badgeClass = statusKey === 'success' ? 'badge-success'
+        : statusKey === 'failed' ? 'badge-failed'
+        : statusKey === 'cancelled' ? 'badge-cancelled'
+        : 'badge-pending';
+      const failReason = p.failure_reason
+        ? `<span class="text-xs" style="color:#ff9b9b;max-width:140px;display:inline-block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${p.failure_reason}">${p.failure_reason}</span>`
+        : '<span class="text-xs text-muted">—</span>';
+      return `
+        <tr style="border-bottom:1px solid rgba(0,200,150,0.06);" class="hover:bg-white/[0.02] transition-colors">
+          <td class="td-id px-4 py-3">${p.payment_id || '—'}</td>
+          <td class="td-id px-4 py-3">${p.order_id || '—'}</td>
+          <td class="td-sub px-4 py-3">${p.order_branch || '—'}</td>
+          <td class="td-sub px-4 py-3">${p.customer_id || '—'}</td>
+          <td class="td-sub px-4 py-3">${p.phone_number || '—'}</td>
+          <td class="td-amt px-4 py-3">KES ${Number(p.amount || 0).toLocaleString('en-KE')}</td>
+          <td class="px-4 py-3"><span class="badge ${badgeClass}">${p.status || '—'}</span></td>
+          <td class="td-id px-4 py-3">${p.receipt_number || '—'}</td>
+          <td class="px-4 py-3">${failReason}</td>
+          <td class="td-date px-4 py-3">${fmtDateTime(p.created_at)}</td>
+        </tr>
+      `;
+    }).join('');
+    showTable('payments');
+  } catch { showEmpty('payments'); }
 }
 
 // ══════════════════════════════════════════════
@@ -1743,24 +1833,29 @@ async function loadAlerts() {
     const data = await res.json();
     const alerts = data.alerts || [];
     if (!alerts.length) { showEmpty('alerts'); return; }
-    document.getElementById('alertsBody').innerHTML = alerts.map(a => `
-      <tr style="border-bottom:1px solid rgba(0,200,150,0.06);" class="hover:bg-white/[0.02] transition-colors">
-        <td class="td-id px-4 py-3">${a.id}</td>
-        <td class="td-sub px-4 py-3">${a.branch_name}</td>
-        <td class="td-main px-4 py-3">${a.product_name}</td>
-        <td class="td-sub px-4 py-3 text-center">${a.stock_at_alert}</td>
-        <td class="td-sub px-4 py-3 text-center" style="${a.current_stock <= a.threshold ? 'color:#ff6b6b;' : 'color:#00C896;'}">${a.current_stock}</td>
-        <td class="px-4 py-3"><span class="badge badge-${(a.severity || '').toLowerCase()}">${a.severity}</span></td>
-        <td class="px-4 py-3"><span class="badge ${a.is_resolved ? 'badge-resolved' : 'badge-critical'}">${a.is_resolved ? 'Resolved' : 'Open'}</span></td>
-        <td class="td-sub px-4 py-3">${a.resolved_by || '—'}</td>
-        <td class="td-date px-4 py-3">${fmtDate(a.created_at)}</td>
-        <td class="px-4 py-3">
-          ${!a.is_resolved
-            ? `<button class="action-btn action-btn-primary text-xs" onclick="resolveAlert(${a.id}, this)">Resolve</button>`
-            : `<span class="text-xs text-muted">Done</span>`}
-        </td>
-      </tr>
-    `).join('');
+    document.getElementById('alertsBody').innerHTML = alerts.map(a => {
+      const stillLow = a.current_stock <= a.threshold;
+      return `
+        <tr style="border-bottom:1px solid rgba(0,200,150,0.06);" class="hover:bg-white/[0.02] transition-colors">
+          <td class="td-id px-4 py-3">${a.id}</td>
+          <td class="td-sub px-4 py-3">${a.branch_name}</td>
+          <td class="td-main px-4 py-3">${a.product_name}</td>
+          <td class="td-sub px-4 py-3 text-center">${a.stock_at_alert}</td>
+          <td class="td-sub px-4 py-3 text-center" style="${stillLow ? 'color:#ff6b6b;' : 'color:#00C896;'}">${a.current_stock}</td>
+          <td class="px-4 py-3"><span class="badge badge-${(a.severity || '').toLowerCase()}">${a.severity}</span></td>
+          <td class="px-4 py-3"><span class="badge ${a.is_resolved ? 'badge-resolved' : 'badge-critical'}">${a.is_resolved ? 'Resolved' : 'Open'}</span></td>
+          <td class="td-sub px-4 py-3">${a.resolved_by || '—'}</td>
+          <td class="td-date px-4 py-3">${fmtDate(a.created_at)}</td>
+          <td class="px-4 py-3">
+            ${!a.is_resolved
+              ? stillLow
+                ? `<button class="action-btn action-btn-warning text-xs" onclick="goToRestock('${a.branch_name}', '${a.branch_id || ''}')" title="Stock still below threshold — restock first">Restock First</button>`
+                : `<button class="action-btn action-btn-primary text-xs" onclick="resolveAlert(${a.id}, this)">Resolve</button>`
+              : `<span class="text-xs text-muted">Done</span>`}
+          </td>
+        </tr>
+      `;
+    }).join('');
     showTable('alerts');
   } catch { showEmpty('alerts'); }
 }
@@ -1774,12 +1869,183 @@ async function resolveAlert(alertId, btn) {
       showAlert(data.message || 'Alert resolved successfully.', 'ok');
       loadAlerts(); loadAlertsCard();
     } else {
-      showAlert(data.error || data.message || 'Failed to resolve alert.', 'error');
+      // Backend blocked resolve because stock still below threshold
+      const errDetail = data.error || data.message || 'Failed to resolve alert.';
+      const unitsNeeded = data.units_needed;
+      const msg = unitsNeeded
+        ? `${errDetail} Need ${unitsNeeded} more unit(s). Go to Restock to fix this.`
+        : errDetail;
+      showAlert(msg, 'error');
       btn.disabled = false; btn.textContent = 'Resolve';
     }
   } catch {
     showAlert('Network error while resolving alert.', 'error');
     btn.disabled = false; btn.textContent = 'Resolve';
+  }
+}
+
+// Navigate to Restock panel
+function goToRestock(branchName = null, branchId = null) {
+  showPanel('restock', document.getElementById('navRestock'));
+  
+  if (branchId) {
+    // Wait for loadRestockPanel() to finish populating the select, then auto-select
+    const trySelect = (attempts = 0) => {
+      const select = document.getElementById('restockBranchSelect');
+      const option = Array.from(select.options).find(o => o.value === branchId);
+      if (option) {
+        select.value = branchId;
+        onRestockBranchChange();
+      } else if (attempts < 15) {
+        // Branch options not loaded yet — retry after 200ms
+        setTimeout(() => trySelect(attempts + 1), 200);
+      }
+    };
+    trySelect();
+  }
+}
+
+// ── SCAN INVENTORY ────────────────────────────
+let scanOpen = false;
+
+function toggleScanResults() {
+  if (scanOpen) {
+    closeScanResults();
+  } else {
+    openScanResults();
+  }
+}
+
+function closeScanResults() {
+  scanOpen = false;
+  const section = document.getElementById('scanResultsSection');
+  section.classList.remove('open');
+  const btn = document.getElementById('scanInventoryBtn');
+  btn.style.background = '';
+  btn.style.borderColor = '';
+}
+
+async function openScanResults() {
+  scanOpen = true;
+  const section = document.getElementById('scanResultsSection');
+  section.classList.add('open');
+
+  // Animate button while loading
+  const btn = document.getElementById('scanInventoryBtn');
+  btn.style.background = 'rgba(255,180,0,0.2)';
+  btn.style.borderColor = 'rgba(255,180,0,0.5)';
+
+  // Show loading
+  document.getElementById('scanLoading').classList.remove('hidden');
+  document.getElementById('scanResultsBody').innerHTML = '';
+  document.getElementById('scanSummaryFooter').classList.add('hidden');
+  document.getElementById('scanTimestamp').textContent = '';
+
+  try {
+    // Fetch all unresolved alerts — these are items still needing restock
+    // NEW — actually scans inventory and creates missing alerts
+    // NEW — actually scans inventory and creates missing alerts
+    const res  = await apiFetch('/api/admin/inventory/scan/', { method: 'POST' });
+    const data = await res.json();
+
+    // Then re-fetch alerts to get the full enriched list (with branch/product names etc)
+    const alertsRes  = await apiFetch('/api/admin/alerts/?is_resolved=false');
+    const alertsData = await alertsRes.json();
+    const alerts = alertsData.alerts || [];
+
+
+    document.getElementById('scanLoading').classList.add('hidden');
+    document.getElementById('scanTimestamp').textContent =
+      '· Scanned at ' + new Date().toLocaleTimeString('en-KE', { hour:'2-digit', minute:'2-digit' });
+
+    if (!alerts.length) {
+      document.getElementById('scanResultsBody').innerHTML = `
+        <div class="flex items-center gap-4 p-4 rounded-xl"
+             style="background:rgba(0,200,150,0.06);border:1px solid rgba(0,200,150,0.2);">
+          <div style="width:36px;height:36px;border-radius:10px;background:rgba(0,200,150,0.12);
+                      display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00C896" stroke-width="2.5">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+          </div>
+          <div>
+            <p class="font-head font-bold text-sm" style="color:#00C896;">All Clear — No Low Stock Detected</p>
+            <p class="text-xs text-muted mt-0.5">Every product in every branch is above its restock threshold.</p>
+          </div>
+        </div>
+      `;
+      // Update scan badge
+      document.getElementById('scanBadge').classList.add('hidden');
+      return;
+    }
+
+    // Group by branch for a cleaner display
+    const byBranch = {};
+    alerts.forEach(a => {
+      if (!byBranch[a.branch_name]) byBranch[a.branch_name] = [];
+      byBranch[a.branch_name].push(a);
+    });
+
+    let html = '';
+    for (const [branch, items] of Object.entries(byBranch)) {
+      const critCount = items.filter(i => i.severity === 'CRITICAL').length;
+      html += `
+        <div class="mb-3">
+          <div class="flex items-center gap-2 mb-2">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#7A9AB0" stroke-width="2">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+            </svg>
+            <span class="text-xs font-head font-bold text-wdtext">${branch}</span>
+            ${critCount > 0 ? `<span class="badge badge-critical ml-1">${critCount} CRITICAL</span>` : ''}
+          </div>
+          <div class="flex flex-col gap-2 pl-4">
+            ${items.map(a => {
+              const isCrit = a.severity === 'CRITICAL';
+              const deficit = a.threshold - a.current_stock;
+              return `
+                <div class="scan-result-card ${isCrit ? 'critical-card' : ''} flex items-center justify-between gap-4 flex-wrap">
+                  <div class="flex items-center gap-3 min-w-0">
+                    <div style="width:8px;height:8px;border-radius:50%;background:${isCrit ? '#ff6b6b' : '#ffc107'};flex-shrink:0;
+                                box-shadow:0 0 6px ${isCrit ? 'rgba(255,80,80,0.5)' : 'rgba(255,193,7,0.5)'};"></div>
+                    <div class="min-w-0">
+                      <p class="td-main truncate">${a.product_name}</p>
+                      <p class="text-xs mt-0.5" style="color:#7A9AB0;">
+                        Stock: <span style="color:${isCrit ? '#ff6b6b' : '#ffc107'};font-weight:700;">${a.current_stock}</span>
+                        &nbsp;/&nbsp; Threshold: <span style="color:#B8D4E3;">${a.threshold}</span>
+                        &nbsp;·&nbsp; Need <span style="color:#ffc107;font-weight:700;">${deficit + 1}</span> more unit${deficit !== 0 ? 's' : ''}
+                      </p>
+                    </div>
+                  </div>
+                  <span class="badge badge-${isCrit ? 'critical' : 'low'} flex-shrink-0">${a.severity}</span>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      `;
+    }
+    document.getElementById('scanResultsBody').innerHTML = html;
+
+    // Update badge count on the Scan button
+    const badge = document.getElementById('scanBadge');
+    badge.textContent = alerts.length;
+    badge.classList.remove('hidden');
+
+    // Footer summary + go-to-restock button
+    const critTotal = alerts.filter(a => a.severity === 'CRITICAL').length;
+    const lowTotal  = alerts.filter(a => a.severity === 'LOW').length;
+    document.getElementById('scanSummaryText').innerHTML =
+      `Found <strong style="color:#E8F4F8;">${alerts.length}</strong> item${alerts.length !== 1 ? 's' : ''} below threshold across
+       <strong style="color:#E8F4F8;">${Object.keys(byBranch).length}</strong> branch${Object.keys(byBranch).length !== 1 ? 'es' : ''} &nbsp;·&nbsp;
+       <span style="color:#ff6b6b;">${critTotal} Critical</span> &nbsp;·&nbsp;
+       <span style="color:#ffc107;">${lowTotal} Low</span>`;
+    document.getElementById('scanSummaryFooter').classList.remove('hidden');
+
+  } catch {
+    document.getElementById('scanLoading').classList.add('hidden');
+    document.getElementById('scanResultsBody').innerHTML = `
+      <p class="text-sm text-muted text-center py-4">Failed to scan inventory. Please try again.</p>
+    `;
   }
 }
 
@@ -1823,7 +2089,6 @@ async function onRestockBranchChange() {
 
   try {
     const res = await apiFetch(`/api/admin/inventory/${branchId}/`);
-
     if (!res.ok) {
       const errData = await res.json().catch(() => ({}));
       const errMsg  = errData.error || errData.detail || `HTTP ${res.status}`;
@@ -1831,16 +2096,13 @@ async function onRestockBranchChange() {
       showAlert(`Could not load inventory (${res.status}): ${errMsg}`, 'error');
       return;
     }
-
     const data = await res.json();
     const records = Array.isArray(data) ? data : (data.results || data.inventory || []);
-
     if (!records.length) {
       document.getElementById('restockProductsLoading').classList.add('hidden');
       document.getElementById('restockProductsEmpty').classList.remove('hidden');
       return;
     }
-
     document.getElementById('restockProductsBody').innerHTML = records.map(r => {
       const stock    = r.stock ?? 0;
       const thresh   = r.low_stock_threshold ?? 0;
@@ -1870,7 +2132,6 @@ async function onRestockBranchChange() {
         </tr>
       `;
     }).join('');
-
     document.getElementById('restockProductsLoading').classList.add('hidden');
     document.getElementById('restockProductsTable').classList.remove('hidden');
   } catch(e) {

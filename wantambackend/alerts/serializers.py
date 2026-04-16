@@ -37,7 +37,8 @@ class StockAlertSerializer(serializers.ModelSerializer):
         model = StockAlert
         fields = [
             'id',
-            'branch_name',          # "Nairobi" instead of BRN-NBI
+            'branch_name',
+            'branch_id',# "Nairobi" instead of BRN-NBI
             'product_name',         # "Coke" instead of PRD-001
             'stock_at_alert',       # Snapshot — what stock was when alert fired
             'threshold',            # Snapshot — what threshold was at alert time

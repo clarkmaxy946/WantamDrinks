@@ -259,3 +259,63 @@ class AdminRestockLogView(APIView):
             },
             status=status.HTTP_200_OK
         )
+
+class AdminScanInventoryView(APIView):
+    
+    permission_classes = [IsAuthenticated, IsAdminUser]
+
+    def post(self, request):
+        from alerts.models import StockAlert
+
+        inventory_items = Inventory.objects.select_related(
+            'branch', 'product'
+        ).all()
+
+        newly_created = []
+        already_alerted = []
+
+        for item in inventory_items:
+            if item.is_low:
+                exists = StockAlert.objects.filter(
+                    inventory=item,
+                    is_resolved=False
+                ).exists()
+
+                if not exists:
+                    severity = (
+                        StockAlert.Severity.CRITICAL
+                        if item.stock <= 1
+                        else StockAlert.Severity.LOW
+                    )
+                    alert = StockAlert.objects.create(
+                        inventory=item,
+                        branch=item.branch,
+                        product=item.product,
+                        stock_at_alert=item.stock,
+                        threshold=item.low_stock_threshold,
+                        severity=severity
+                    )
+                    newly_created.append({
+                        'branch_name': item.branch.name,
+                        'product_name': item.product.name,
+                        'current_stock': item.stock,
+                        'threshold': item.low_stock_threshold,
+                        'severity': severity,
+                        'alert_id': alert.id,
+                    })
+                else:
+                    already_alerted.append({
+                        'branch_name': item.branch.name,
+                        'product_name': item.product.name,
+                        'current_stock': item.stock,
+                        'threshold': item.low_stock_threshold,
+                    })
+
+        all_low = newly_created + already_alerted
+
+        return Response({
+            'scanned': inventory_items.count(),
+            'total_low_stock': len(all_low),
+            'new_alerts_created': len(newly_created),
+            'items': all_low,
+        }, status=status.HTTP_200_OK)

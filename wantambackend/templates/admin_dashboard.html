@@ -224,6 +224,11 @@
       background: rgba(255,180,0,0.1); border-color: rgba(255,180,0,0.3); color: #ffc107;
     }
     .action-btn-warning:hover { background: rgba(255,180,0,0.2); }
+    /* NEW: blue-toned edit button */
+    .action-btn-edit {
+      background: rgba(0,163,255,0.1); border-color: rgba(0,163,255,0.3); color: #00A3FF;
+    }
+    .action-btn-edit:hover { background: rgba(0,163,255,0.2); }
 
     .tab-btn {
       padding: 0.45rem 1rem; border-radius: 10px;
@@ -724,6 +729,42 @@
         </div>
       </div>
 
+      <!-- EDIT BRANCH MODAL -->
+      <div id="editBranchModal" class="hidden fixed inset-0 z-50 flex items-center justify-center" style="background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);">
+        <div class="panel-card p-7 w-full max-w-md mx-4 animate-fadeUp">
+          <div class="flex items-center justify-between mb-6">
+            <div>
+              <h3 class="font-head font-bold text-lg text-wdtext">Edit Branch</h3>
+              <p id="editBranchIdLabel" class="text-xs mt-0.5" style="color:#7A9AB0;font-family:monospace;"></p>
+            </div>
+            <button onclick="closeEditBranchModal()" class="text-muted hover:text-wdtext transition-colors text-xl leading-none">✕</button>
+          </div>
+          <div class="space-y-4">
+            <div>
+              <label class="block text-xs font-bold text-muted uppercase tracking-wider mb-1">Branch Name</label>
+              <input id="editBranchName" type="text" class="input-field w-full" placeholder="e.g. Nakuru"/>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-muted uppercase tracking-wider mb-1">Location / Address</label>
+              <input id="editBranchLocation" type="text" class="input-field w-full" placeholder="e.g. Kenyatta Ave, Nakuru"/>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-muted uppercase tracking-wider mb-1">Manager Name</label>
+              <input id="editBranchManagerName" type="text" class="input-field w-full" placeholder="e.g. Jane Wanjiku"/>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-muted uppercase tracking-wider mb-1">Manager Phone (07/01XXXXXXXX)</label>
+              <input id="editBranchManagerPhone" type="tel" class="input-field w-full" placeholder="0712345678"/>
+            </div>
+          </div>
+          <div class="flex gap-3 mt-6">
+            <button id="editBranchSubmitBtn" onclick="submitEditBranch(this)" class="action-btn action-btn-edit flex-1">Save Changes</button>
+            <button onclick="closeEditBranchModal()" class="action-btn action-btn-muted flex-1">Cancel</button>
+          </div>
+          <p id="editBranchError" class="hidden mt-3 text-xs text-center" style="color:#ff9b9b;"></p>
+        </div>
+      </div>
+
       <!-- PRODUCTS PANEL -->
       <div id="productsContent" class="hidden">
         <div class="flex items-center justify-between mb-5">
@@ -745,12 +786,38 @@
                   <th class="th-cell">Name</th>
                   <th class="th-cell">Price (KES)</th>
                   <th class="th-cell">Status</th>
+                  <th class="th-cell">Action</th>
                 </tr>
               </thead>
               <tbody id="productsBody"></tbody>
             </table>
           </div>
           <p id="productsEmpty" class="hidden text-center py-10 text-muted text-sm">No products found.</p>
+        </div>
+      </div>
+
+      <!-- EDIT PRODUCT MODAL -->
+      <div id="editProductModal" class="hidden fixed inset-0 z-50 flex items-center justify-center" style="background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);">
+        <div class="panel-card p-7 w-full max-w-sm mx-4 animate-fadeUp">
+          <div class="flex items-center justify-between mb-6">
+            <div>
+              <h3 class="font-head font-bold text-lg text-wdtext">Edit Product Price</h3>
+              <p id="editProductNameLabel" class="text-xs mt-0.5 font-head font-semibold" style="color:#00C896;"></p>
+            </div>
+            <button onclick="closeEditProductModal()" class="text-muted hover:text-wdtext transition-colors text-xl leading-none">✕</button>
+          </div>
+          <div class="space-y-4">
+            <div>
+              <label class="block text-xs font-bold text-muted uppercase tracking-wider mb-1">New Price (KES)</label>
+              <input id="editProductPrice" type="number" min="1" step="0.01" class="input-field w-full" placeholder="e.g. 50.00"/>
+              <p class="text-xs mt-1" style="color:#7A9AB0;">Must be between KES 1 and KES 100,000</p>
+            </div>
+          </div>
+          <div class="flex gap-3 mt-6">
+            <button id="editProductSubmitBtn" onclick="submitEditProduct(this)" class="action-btn action-btn-edit flex-1">Update Price</button>
+            <button onclick="closeEditProductModal()" class="action-btn action-btn-muted flex-1">Cancel</button>
+          </div>
+          <p id="editProductError" class="hidden mt-3 text-xs text-center" style="color:#ff9b9b;"></p>
         </div>
       </div>
 
@@ -785,52 +852,110 @@
         </div>
       </div>
 
-      <!-- RESTOCK PANEL -->
+      <!-- ══════════════════════════════════════════════════════════
+           RESTOCK PANEL — Restock tab + Audit Log tab
+      ══════════════════════════════════════════════════════════ -->
       <div id="restockContent" class="hidden">
         <div class="flex items-center justify-between mb-5">
           <div>
-            <h2 class="font-head font-bold text-xl text-wdtext">Restock Inventory</h2>
-            <p class="text-xs text-muted mt-0.5">Select a branch, then add stock to any product</p>
+            <h2 class="font-head font-bold text-xl text-wdtext">Restock</h2>
+            <p class="text-xs text-muted mt-0.5">Manage stock &amp; review restock history</p>
+          </div>
+          <div class="flex gap-2">
+            <button id="tabRestockAction" class="tab-btn active" onclick="switchRestockTab('action')">Restock</button>
+            <button id="tabRestockLog"    class="tab-btn"        onclick="switchRestockTab('log')">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="inline mr-1">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+                <polyline points="10 9 9 9 8 9"/>
+              </svg>
+              Audit Log
+            </button>
           </div>
         </div>
 
-        <div class="panel-card p-5 mb-5">
-          <p class="font-head text-sm font-bold text-wdtext mb-3">Step 1 — Select Branch</p>
-          <div class="flex gap-3 flex-wrap items-center">
-            <select id="restockBranchSelect" class="input-field" onchange="onRestockBranchChange()">
-              <option value="">— Choose a branch —</option>
+        <!-- ── RESTOCK ACTION TAB ── -->
+        <div id="restockActionTab">
+          <div class="panel-card p-5 mb-5">
+            <p class="font-head text-sm font-bold text-wdtext mb-3">Step 1 — Select Branch</p>
+            <div class="flex gap-3 flex-wrap items-center">
+              <select id="restockBranchSelect" class="input-field" onchange="onRestockBranchChange()">
+                <option value="">— Choose a branch —</option>
+              </select>
+              <span id="restockBranchLoading" class="text-xs text-muted hidden">Loading branches…</span>
+            </div>
+          </div>
+
+          <div id="restockProductsSection" class="hidden">
+            <div class="panel-card p-5">
+              <div class="flex items-center justify-between mb-4">
+                <p class="font-head text-sm font-bold text-wdtext">Step 2 — Restock Products
+                  <span id="restockBranchLabel" class="ml-2 text-xs font-normal" style="color:#00C896;"></span>
+                </p>
+              </div>
+              <div id="restockProductsLoading" class="text-center py-8">
+                <div class="spinner w-6 h-6 mx-auto mb-2"></div>
+                <p class="text-xs text-muted">Loading inventory…</p>
+              </div>
+              <div id="restockProductsTable" class="hidden overflow-x-auto">
+                <table class="w-full border-collapse">
+                  <thead>
+                    <tr style="border-bottom:1px solid rgba(0,200,150,0.1);">
+                      <th class="th-cell">Product</th>
+                      <th class="th-cell">Current Stock</th>
+                      <th class="th-cell">Threshold</th>
+                      <th class="th-cell">Status</th>
+                      <th class="th-cell">Add Units</th>
+                      <th class="th-cell">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="restockProductsBody"></tbody>
+                </table>
+              </div>
+              <p id="restockProductsEmpty" class="hidden text-center py-8 text-muted text-sm">No inventory records found for this branch.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── AUDIT LOG TAB ── -->
+        <div id="restockLogTab" class="hidden">
+          <div class="flex gap-2 flex-wrap mb-4 items-center">
+            <select id="logFilterBranch" class="input-field text-xs" onchange="loadRestockLog()">
+              <option value="">All Branches</option>
             </select>
-            <span id="restockBranchLoading" class="text-xs text-muted hidden">Loading branches…</span>
+            <select id="logFilterProduct" class="input-field text-xs" onchange="loadRestockLog()">
+              <option value="">All Products</option>
+            </select>
+            <button onclick="loadRestockLog()" class="action-btn action-btn-muted text-xs flex items-center gap-1">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/>
+              </svg>
+              Refresh
+            </button>
           </div>
-        </div>
-
-        <div id="restockProductsSection" class="hidden">
           <div class="panel-card p-5">
-            <div class="flex items-center justify-between mb-4">
-              <p class="font-head text-sm font-bold text-wdtext">Step 2 — Restock Products
-                <span id="restockBranchLabel" class="ml-2 text-xs font-normal" style="color:#00C896;"></span>
-              </p>
+            <div id="restockLogLoading" class="text-center py-10">
+              <div class="spinner w-8 h-8 mx-auto mb-3"></div>
+              <p class="text-sm text-muted">Loading audit log…</p>
             </div>
-            <div id="restockProductsLoading" class="text-center py-8">
-              <div class="spinner w-6 h-6 mx-auto mb-2"></div>
-              <p class="text-xs text-muted">Loading inventory…</p>
-            </div>
-            <div id="restockProductsTable" class="hidden overflow-x-auto">
+            <div id="restockLogTable" class="hidden overflow-x-auto">
               <table class="w-full border-collapse">
                 <thead>
                   <tr style="border-bottom:1px solid rgba(0,200,150,0.1);">
+                    <th class="th-cell">Branch</th>
                     <th class="th-cell">Product</th>
-                    <th class="th-cell">Current Stock</th>
-                    <th class="th-cell">Threshold</th>
-                    <th class="th-cell">Status</th>
-                    <th class="th-cell">Add Units</th>
-                    <th class="th-cell">Action</th>
+                    <th class="th-cell">Units Added</th>
+                    <th class="th-cell">Stock Before</th>
+                    <th class="th-cell">Stock After</th>
+                    <th class="th-cell">Restocked By</th>
+                    <th class="th-cell">Date &amp; Time</th>
                   </tr>
                 </thead>
-                <tbody id="restockProductsBody"></tbody>
+                <tbody id="restockLogBody"></tbody>
               </table>
             </div>
-            <p id="restockProductsEmpty" class="hidden text-center py-8 text-muted text-sm">No inventory records found for this branch.</p>
+            <p id="restockLogEmpty" class="hidden text-center py-10 text-muted text-sm">No restock activity found.</p>
           </div>
         </div>
       </div>
@@ -1478,24 +1603,92 @@ async function loadBranches() {
       const deleteBtn = !b.is_active
         ? `<button class="action-btn action-btn-danger text-xs" onclick="deleteBranch('${b.branch_id}', '${b.name}', this)">Delete</button>`
         : `<button class="action-btn text-xs" style="opacity:0.35;cursor:not-allowed;" disabled title="Deactivate first">Delete</button>`;
+      // Escape single quotes for inline onclick data
+      const safeName     = (b.name || '').replace(/'/g, "\\'");
+      const safeLocation = (b.location || '').replace(/'/g, "\\'");
+      const safeMgrName  = (b.manager_name || '').replace(/'/g, "\\'");
+      const safeMgrPhone = (b.manager_phone || '').replace(/'/g, "\\'");
       return `
         <tr style="border-bottom:1px solid rgba(0,200,150,0.06);" class="hover:bg-white/[0.02] transition-colors">
           <td class="td-id px-4 py-3">${b.branch_id}</td>
           <td class="td-main px-4 py-3">${b.name}</td>
           <td class="td-sub px-4 py-3">${b.location || '—'}</td>
-          <td class="td-sub px-4 py-3">${b.manager_name || '—'}</td>
+          <td class="td-sub px-4 py-3">${b.manager_name || '—'}<br><span class="text-xs" style="color:#7A9AB0;">${b.manager_phone || ''}</span></td>
           <td class="px-4 py-3"><span class="badge ${b.is_active ? 'badge-active' : 'badge-inactive'}">${b.is_active ? 'Active' : 'Inactive'}</span></td>
           <td class="px-4 py-3">
             ${alertCount > 0
               ? `<span class="badge badge-critical">${alertCount} alert${alertCount !== 1 ? 's' : ''}</span>`
               : `<span class="text-xs" style="color:#00C896;">✓ Clear</span>`}
           </td>
-          <td class="px-4 py-3 flex gap-2">${toggleBtn}${deleteBtn}</td>
+          <td class="px-4 py-3">
+            <div class="flex gap-2 flex-wrap">
+              <button class="action-btn action-btn-edit text-xs"
+                onclick="openEditBranchModal('${b.branch_id}','${safeName}','${safeLocation}','${safeMgrName}','${safeMgrPhone}')">
+                Edit
+              </button>
+              ${toggleBtn}${deleteBtn}
+            </div>
+          </td>
         </tr>
       `;
     }).join('');
     showTable('branches');
   } catch { showEmpty('branches'); }
+}
+
+// ── Edit Branch Modal ──────────────────────────
+let _editBranchId = null;
+
+function openEditBranchModal(branchId, name, location, managerName, managerPhone) {
+  _editBranchId = branchId;
+  document.getElementById('editBranchIdLabel').textContent = 'ID: ' + branchId;
+  document.getElementById('editBranchName').value          = name;
+  document.getElementById('editBranchLocation').value      = location;
+  document.getElementById('editBranchManagerName').value   = managerName;
+  document.getElementById('editBranchManagerPhone').value  = managerPhone;
+  document.getElementById('editBranchError').classList.add('hidden');
+  document.getElementById('editBranchModal').classList.remove('hidden');
+}
+
+function closeEditBranchModal() {
+  document.getElementById('editBranchModal').classList.add('hidden');
+  _editBranchId = null;
+}
+
+async function submitEditBranch(btn) {
+  if (!_editBranchId) return;
+  const name         = document.getElementById('editBranchName').value.trim();
+  const location     = document.getElementById('editBranchLocation').value.trim();
+  const manager_name = document.getElementById('editBranchManagerName').value.trim();
+  const manager_phone= document.getElementById('editBranchManagerPhone').value.trim();
+  const errEl        = document.getElementById('editBranchError');
+  errEl.classList.add('hidden');
+
+  if (!name || !location || !manager_name || !manager_phone) {
+    errEl.textContent = 'All fields are required.'; errEl.classList.remove('hidden'); return;
+  }
+
+  btn.disabled = true; btn.textContent = 'Saving…';
+  try {
+    const res  = await apiFetch(`/api/admin/branches/${_editBranchId}/`, {
+      method: 'PATCH',
+      body: JSON.stringify({ name, location, manager_name, manager_phone })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      closeEditBranchModal();
+      showAlert(data.message || `Branch updated successfully.`, 'ok');
+      loadBranches();
+    } else {
+      const msgs = typeof data === 'object'
+        ? Object.entries(data).map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(' ') : v}`).join(' | ')
+        : 'Failed to update branch.';
+      errEl.textContent = msgs; errEl.classList.remove('hidden');
+    }
+  } catch {
+    errEl.textContent = 'Network error. Please try again.'; errEl.classList.remove('hidden');
+  }
+  btn.disabled = false; btn.textContent = 'Save Changes';
 }
 
 async function deactivateBranch(branchId, branchName, btn) {
@@ -1623,12 +1816,70 @@ async function loadProducts() {
       <tr style="border-bottom:1px solid rgba(0,200,150,0.06);" class="hover:bg-white/[0.02] transition-colors">
         <td class="td-id px-4 py-3">${p.product_id}</td>
         <td class="td-main px-4 py-3">${p.name}</td>
-        <td class="td-amt px-4 py-3">${Number(p.price || 0).toLocaleString('en-KE')}</td>
+        <td class="td-amt px-4 py-3">${Number(p.price || 0).toLocaleString('en-KE', {minimumFractionDigits:2})}</td>
         <td class="px-4 py-3"><span class="badge ${p.is_available !== false ? 'badge-active' : 'badge-inactive'}">${p.is_available !== false ? 'Available' : 'Unavailable'}</span></td>
+        <td class="px-4 py-3">
+          <button class="action-btn action-btn-edit text-xs"
+            onclick="openEditProductModal('${p.product_id}', '${p.name}', ${p.price})">
+            Edit Price
+          </button>
+        </td>
       </tr>
     `).join('');
     showTable('products');
   } catch { showEmpty('products'); }
+}
+
+// ── Edit Product Modal ─────────────────────────
+let _editProductId = null;
+
+function openEditProductModal(productId, productName, currentPrice) {
+  _editProductId = productId;
+  document.getElementById('editProductNameLabel').textContent = productName;
+  document.getElementById('editProductPrice').value           = currentPrice;
+  document.getElementById('editProductError').classList.add('hidden');
+  document.getElementById('editProductModal').classList.remove('hidden');
+}
+
+function closeEditProductModal() {
+  document.getElementById('editProductModal').classList.add('hidden');
+  _editProductId = null;
+}
+
+async function submitEditProduct(btn) {
+  if (!_editProductId) return;
+  const price  = parseFloat(document.getElementById('editProductPrice').value);
+  const errEl  = document.getElementById('editProductError');
+  errEl.classList.add('hidden');
+
+  if (isNaN(price) || price <= 0) {
+    errEl.textContent = 'Please enter a valid price greater than KES 0.'; errEl.classList.remove('hidden'); return;
+  }
+  if (price > 100000) {
+    errEl.textContent = 'Price cannot exceed KES 100,000.'; errEl.classList.remove('hidden'); return;
+  }
+
+  btn.disabled = true; btn.textContent = 'Saving…';
+  try {
+    const res  = await apiFetch(`/api/admin/products/${_editProductId}/`, {
+      method: 'PATCH',
+      body: JSON.stringify({ price: price.toFixed(2) })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      closeEditProductModal();
+      showAlert(data.message || `Product price updated to KES ${price.toLocaleString('en-KE', {minimumFractionDigits:2})}.`, 'ok');
+      loadProducts();
+    } else {
+      const msgs = typeof data === 'object'
+        ? Object.entries(data).map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(' ') : v}`).join(' | ')
+        : 'Failed to update price.';
+      errEl.textContent = msgs; errEl.classList.remove('hidden');
+    }
+  } catch {
+    errEl.textContent = 'Network error. Please try again.'; errEl.classList.remove('hidden');
+  }
+  btn.disabled = false; btn.textContent = 'Update Price';
 }
 
 // ══════════════════════════════════════════════
@@ -1660,6 +1911,226 @@ async function loadInventory() {
     }).join('');
     showTable('inventory');
   } catch { showEmpty('inventory'); }
+}
+
+// ══════════════════════════════════════════════
+// RESTOCK — tabs: action + audit log
+// ══════════════════════════════════════════════
+let currentRestockTab = 'action';
+
+function switchRestockTab(tab) {
+  currentRestockTab = tab;
+  const isAction = tab === 'action';
+  document.getElementById('restockActionTab').classList.toggle('hidden', !isAction);
+  document.getElementById('restockLogTab').classList.toggle('hidden', isAction);
+  document.getElementById('tabRestockAction').classList.toggle('active', isAction);
+  document.getElementById('tabRestockLog').classList.toggle('active', !isAction);
+  if (!isAction) loadRestockLog();
+}
+
+async function loadRestockPanel() {
+  // Always start on the Restock action tab
+  currentRestockTab = 'action';
+  document.getElementById('restockActionTab').classList.remove('hidden');
+  document.getElementById('restockLogTab').classList.add('hidden');
+  document.getElementById('tabRestockAction').classList.add('active');
+  document.getElementById('tabRestockLog').classList.remove('active');
+
+  const select    = document.getElementById('restockBranchSelect');
+  const loadingEl = document.getElementById('restockBranchLoading');
+  select.innerHTML = '<option value="">— Choose a branch —</option>';
+  document.getElementById('restockProductsSection').classList.add('hidden');
+  loadingEl.classList.remove('hidden');
+
+  try {
+    const res  = await apiFetch('/api/admin/branches/');
+    const data = await res.json();
+    const branches = data.branches || [];
+    branches.forEach(b => {
+      const opt = document.createElement('option');
+      opt.value = b.branch_id;
+      opt.textContent = b.name + (b.is_active ? '' : ' (Inactive)');
+      select.appendChild(opt);
+    });
+
+    // Also populate the audit log branch filter
+    const logFilter = document.getElementById('logFilterBranch');
+    logFilter.innerHTML = '<option value="">All Branches</option>';
+    branches.forEach(b => {
+      const opt = document.createElement('option');
+      opt.value = b.branch_id;
+      opt.textContent = b.name;
+      logFilter.appendChild(opt);
+    });
+  } catch {
+    showAlert('Failed to load branches for restock.', 'error');
+  }
+  loadingEl.classList.add('hidden');
+
+  // Populate product filter for audit log
+  try {
+    const res  = await fetch(API_BASE + '/api/products/', { headers: authHeaders() });
+    const data = await res.json();
+    const products = Array.isArray(data) ? data : (data.products || data.results || []);
+    const logProdFilter = document.getElementById('logFilterProduct');
+    logProdFilter.innerHTML = '<option value="">All Products</option>';
+    products.forEach(p => {
+      const opt = document.createElement('option');
+      opt.value = p.product_id;
+      opt.textContent = p.name;
+      logProdFilter.appendChild(opt);
+    });
+  } catch { /* non-fatal */ }
+}
+
+async function onRestockBranchChange() {
+  const branchId = document.getElementById('restockBranchSelect').value;
+  const section  = document.getElementById('restockProductsSection');
+  if (!branchId) { section.classList.add('hidden'); return; }
+
+  section.classList.remove('hidden');
+  document.getElementById('restockProductsLoading').classList.remove('hidden');
+  document.getElementById('restockProductsTable').classList.add('hidden');
+  document.getElementById('restockProductsEmpty').classList.add('hidden');
+
+  const branchName = document.getElementById('restockBranchSelect').selectedOptions[0].textContent;
+  document.getElementById('restockBranchLabel').textContent = '— ' + branchName;
+
+  try {
+    const res = await apiFetch(`/api/admin/inventory/${branchId}/`);
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      const errMsg  = errData.error || errData.detail || `HTTP ${res.status}`;
+      document.getElementById('restockProductsLoading').classList.add('hidden');
+      showAlert(`Could not load inventory (${res.status}): ${errMsg}`, 'error');
+      return;
+    }
+    const data = await res.json();
+    const records = Array.isArray(data) ? data : (data.results || data.inventory || []);
+    if (!records.length) {
+      document.getElementById('restockProductsLoading').classList.add('hidden');
+      document.getElementById('restockProductsEmpty').classList.remove('hidden');
+      return;
+    }
+    document.getElementById('restockProductsBody').innerHTML = records.map(r => {
+      const stock    = r.stock ?? 0;
+      const thresh   = r.low_stock_threshold ?? 0;
+      const isLow    = r.is_low ?? (stock <= thresh);
+      const prodId   = r.product?.product_id ?? '';
+      const prodName = r.product?.name ?? '—';
+      const safeName = prodName.replace(/'/g, "\\'");
+      return `
+        <tr style="border-bottom:1px solid rgba(0,200,150,0.06);" class="hover:bg-white/[0.02] transition-colors">
+          <td class="td-main px-4 py-3">${prodName}</td>
+          <td class="td-amt px-4 py-3" style="${isLow ? 'color:#ff6b6b;' : ''}">${stock}</td>
+          <td class="td-sub px-4 py-3">${thresh}</td>
+          <td class="px-4 py-3">
+            ${isLow ? `<span class="badge badge-critical">Low</span>` : `<span class="badge badge-active">OK</span>`}
+          </td>
+          <td class="px-4 py-3">
+            <input type="number" min="1" placeholder="Units"
+              id="restockQty_${prodId}"
+              class="input-field text-xs w-24" style="padding:0.4rem 0.6rem;"/>
+          </td>
+          <td class="px-4 py-3">
+            <button class="action-btn action-btn-primary text-xs"
+              onclick="submitRestock('${branchId}', '${prodId}', '${safeName}', this)">
+              Restock
+            </button>
+          </td>
+        </tr>
+      `;
+    }).join('');
+    document.getElementById('restockProductsLoading').classList.add('hidden');
+    document.getElementById('restockProductsTable').classList.remove('hidden');
+  } catch(e) {
+    console.error('Restock load error:', e);
+    document.getElementById('restockProductsLoading').classList.add('hidden');
+    showAlert('Failed to load inventory for this branch.', 'error');
+  }
+}
+
+async function submitRestock(branchId, productId, productName, btn) {
+  const qtyInput = document.getElementById(`restockQty_${productId}`);
+  const qty = parseInt(qtyInput?.value, 10);
+  if (!qty || qty < 1) { showAlert('Please enter a valid quantity (minimum 1).', 'error'); return; }
+  btn.disabled = true; btn.textContent = 'Restocking…';
+  try {
+    const res  = await apiFetch(`/api/admin/inventory/${branchId}/${productId}/restock/`, {
+      method: 'POST',
+      body: JSON.stringify({ quantity: qty })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      showAlert(data.message || `${productName} restocked. New stock: ${data.current_stock}`, 'ok');
+      if (qtyInput) qtyInput.value = '';
+      onRestockBranchChange();
+      loadAlertsCard();
+    } else {
+      const errMsg = data.error || data.detail || Object.values(data).flat().join(' ') || 'Restock failed.';
+      showAlert(errMsg, 'error');
+      btn.disabled = false; btn.textContent = 'Restock';
+    }
+  } catch(e) {
+    console.error('Restock submit error:', e);
+    showAlert('Network error during restock.', 'error');
+    btn.disabled = false; btn.textContent = 'Restock';
+  }
+}
+
+// ── AUDIT LOG ─────────────────────────────────
+async function loadRestockLog() {
+  document.getElementById('restockLogLoading').classList.remove('hidden');
+  document.getElementById('restockLogTable').classList.add('hidden');
+  document.getElementById('restockLogEmpty').classList.add('hidden');
+
+  try {
+    const branchId  = document.getElementById('logFilterBranch').value;
+    const productId = document.getElementById('logFilterProduct').value;
+    let url = '/api/admin/inventory/logs/?';
+    if (branchId)  url += `branch_id=${branchId}&`;
+    if (productId) url += `product_id=${productId}&`;
+
+    const res  = await apiFetch(url);
+    const data = await res.json();
+    const logs = data.logs || [];
+
+    if (!logs.length) {
+      document.getElementById('restockLogLoading').classList.add('hidden');
+      document.getElementById('restockLogEmpty').classList.remove('hidden');
+      return;
+    }
+
+    document.getElementById('restockLogBody').innerHTML = logs.map(log => {
+      const branchName  = log.inventory?.branch?.name  || log.branch_name  || '—';
+      const productName = log.inventory?.product?.name || log.product_name || '—';
+      const added       = log.quantity_added ?? 0;
+      const before      = log.stock_before ?? '—';
+      const after       = log.stock_after  ?? '—';
+      const who         = log.restocked_by || '—';
+      return `
+        <tr style="border-bottom:1px solid rgba(0,200,150,0.06);" class="hover:bg-white/[0.02] transition-colors">
+          <td class="td-sub px-4 py-3">${branchName}</td>
+          <td class="td-main px-4 py-3">${productName}</td>
+          <td class="px-4 py-3">
+            <span class="font-head font-bold text-sm" style="color:#00C896;">+${added}</span>
+          </td>
+          <td class="td-sub px-4 py-3 text-center">${before}</td>
+          <td class="td-sub px-4 py-3 text-center" style="color:#00C896;">${after}</td>
+          <td class="td-sub px-4 py-3">${who}</td>
+          <td class="td-date px-4 py-3">${fmtDateTime(log.restocked_at)}</td>
+        </tr>
+      `;
+    }).join('');
+
+    document.getElementById('restockLogLoading').classList.add('hidden');
+    document.getElementById('restockLogTable').classList.remove('hidden');
+  } catch(e) {
+    console.error('Audit log error:', e);
+    document.getElementById('restockLogLoading').classList.add('hidden');
+    document.getElementById('restockLogEmpty').classList.remove('hidden');
+    document.getElementById('restockLogEmpty').textContent = 'Failed to load audit log.';
+  }
 }
 
 // ══════════════════════════════════════════════
@@ -1869,7 +2340,6 @@ async function resolveAlert(alertId, btn) {
       showAlert(data.message || 'Alert resolved successfully.', 'ok');
       loadAlerts(); loadAlertsCard();
     } else {
-      // Backend blocked resolve because stock still below threshold
       const errDetail = data.error || data.message || 'Failed to resolve alert.';
       const unitsNeeded = data.units_needed;
       const msg = unitsNeeded
@@ -1887,9 +2357,7 @@ async function resolveAlert(alertId, btn) {
 // Navigate to Restock panel
 function goToRestock(branchName = null, branchId = null) {
   showPanel('restock', document.getElementById('navRestock'));
-  
   if (branchId) {
-    // Wait for loadRestockPanel() to finish populating the select, then auto-select
     const trySelect = (attempts = 0) => {
       const select = document.getElementById('restockBranchSelect');
       const option = Array.from(select.options).find(o => o.value === branchId);
@@ -1897,7 +2365,6 @@ function goToRestock(branchName = null, branchId = null) {
         select.value = branchId;
         onRestockBranchChange();
       } else if (attempts < 15) {
-        // Branch options not loaded yet — retry after 200ms
         setTimeout(() => trySelect(attempts + 1), 200);
       }
     };
@@ -1909,11 +2376,7 @@ function goToRestock(branchName = null, branchId = null) {
 let scanOpen = false;
 
 function toggleScanResults() {
-  if (scanOpen) {
-    closeScanResults();
-  } else {
-    openScanResults();
-  }
+  if (scanOpen) { closeScanResults(); } else { openScanResults(); }
 }
 
 function closeScanResults() {
@@ -1930,29 +2393,22 @@ async function openScanResults() {
   const section = document.getElementById('scanResultsSection');
   section.classList.add('open');
 
-  // Animate button while loading
   const btn = document.getElementById('scanInventoryBtn');
   btn.style.background = 'rgba(255,180,0,0.2)';
   btn.style.borderColor = 'rgba(255,180,0,0.5)';
 
-  // Show loading
   document.getElementById('scanLoading').classList.remove('hidden');
   document.getElementById('scanResultsBody').innerHTML = '';
   document.getElementById('scanSummaryFooter').classList.add('hidden');
   document.getElementById('scanTimestamp').textContent = '';
 
   try {
-    // Fetch all unresolved alerts — these are items still needing restock
-    // NEW — actually scans inventory and creates missing alerts
-    // NEW — actually scans inventory and creates missing alerts
     const res  = await apiFetch('/api/admin/inventory/scan/', { method: 'POST' });
     const data = await res.json();
 
-    // Then re-fetch alerts to get the full enriched list (with branch/product names etc)
     const alertsRes  = await apiFetch('/api/admin/alerts/?is_resolved=false');
     const alertsData = await alertsRes.json();
     const alerts = alertsData.alerts || [];
-
 
     document.getElementById('scanLoading').classList.add('hidden');
     document.getElementById('scanTimestamp').textContent =
@@ -1974,12 +2430,10 @@ async function openScanResults() {
           </div>
         </div>
       `;
-      // Update scan badge
       document.getElementById('scanBadge').classList.add('hidden');
       return;
     }
 
-    // Group by branch for a cleaner display
     const byBranch = {};
     alerts.forEach(a => {
       if (!byBranch[a.branch_name]) byBranch[a.branch_name] = [];
@@ -2026,12 +2480,10 @@ async function openScanResults() {
     }
     document.getElementById('scanResultsBody').innerHTML = html;
 
-    // Update badge count on the Scan button
     const badge = document.getElementById('scanBadge');
     badge.textContent = alerts.length;
     badge.classList.remove('hidden');
 
-    // Footer summary + go-to-restock button
     const critTotal = alerts.filter(a => a.severity === 'CRITICAL').length;
     const lowTotal  = alerts.filter(a => a.severity === 'LOW').length;
     document.getElementById('scanSummaryText').innerHTML =
@@ -2046,126 +2498,6 @@ async function openScanResults() {
     document.getElementById('scanResultsBody').innerHTML = `
       <p class="text-sm text-muted text-center py-4">Failed to scan inventory. Please try again.</p>
     `;
-  }
-}
-
-// ══════════════════════════════════════════════
-// RESTOCK
-// ══════════════════════════════════════════════
-async function loadRestockPanel() {
-  const select    = document.getElementById('restockBranchSelect');
-  const loadingEl = document.getElementById('restockBranchLoading');
-  select.innerHTML = '<option value="">— Choose a branch —</option>';
-  document.getElementById('restockProductsSection').classList.add('hidden');
-  loadingEl.classList.remove('hidden');
-  try {
-    const res  = await apiFetch('/api/admin/branches/');
-    const data = await res.json();
-    const branches = data.branches || [];
-    branches.forEach(b => {
-      const opt = document.createElement('option');
-      opt.value = b.branch_id;
-      opt.textContent = b.name + (b.is_active ? '' : ' (Inactive)');
-      select.appendChild(opt);
-    });
-  } catch {
-    showAlert('Failed to load branches for restock.', 'error');
-  }
-  loadingEl.classList.add('hidden');
-}
-
-async function onRestockBranchChange() {
-  const branchId = document.getElementById('restockBranchSelect').value;
-  const section  = document.getElementById('restockProductsSection');
-  if (!branchId) { section.classList.add('hidden'); return; }
-
-  section.classList.remove('hidden');
-  document.getElementById('restockProductsLoading').classList.remove('hidden');
-  document.getElementById('restockProductsTable').classList.add('hidden');
-  document.getElementById('restockProductsEmpty').classList.add('hidden');
-
-  const branchName = document.getElementById('restockBranchSelect').selectedOptions[0].textContent;
-  document.getElementById('restockBranchLabel').textContent = '— ' + branchName;
-
-  try {
-    const res = await apiFetch(`/api/admin/inventory/${branchId}/`);
-    if (!res.ok) {
-      const errData = await res.json().catch(() => ({}));
-      const errMsg  = errData.error || errData.detail || `HTTP ${res.status}`;
-      document.getElementById('restockProductsLoading').classList.add('hidden');
-      showAlert(`Could not load inventory (${res.status}): ${errMsg}`, 'error');
-      return;
-    }
-    const data = await res.json();
-    const records = Array.isArray(data) ? data : (data.results || data.inventory || []);
-    if (!records.length) {
-      document.getElementById('restockProductsLoading').classList.add('hidden');
-      document.getElementById('restockProductsEmpty').classList.remove('hidden');
-      return;
-    }
-    document.getElementById('restockProductsBody').innerHTML = records.map(r => {
-      const stock    = r.stock ?? 0;
-      const thresh   = r.low_stock_threshold ?? 0;
-      const isLow    = r.is_low ?? (stock <= thresh);
-      const prodId   = r.product?.product_id ?? '';
-      const prodName = r.product?.name ?? '—';
-      const safeName = prodName.replace(/'/g, "\\'");
-      return `
-        <tr style="border-bottom:1px solid rgba(0,200,150,0.06);" class="hover:bg-white/[0.02] transition-colors">
-          <td class="td-main px-4 py-3">${prodName}</td>
-          <td class="td-amt px-4 py-3" style="${isLow ? 'color:#ff6b6b;' : ''}">${stock}</td>
-          <td class="td-sub px-4 py-3">${thresh}</td>
-          <td class="px-4 py-3">
-            ${isLow ? `<span class="badge badge-critical">Low</span>` : `<span class="badge badge-active">OK</span>`}
-          </td>
-          <td class="px-4 py-3">
-            <input type="number" min="1" placeholder="Units"
-              id="restockQty_${prodId}"
-              class="input-field text-xs w-24" style="padding:0.4rem 0.6rem;"/>
-          </td>
-          <td class="px-4 py-3">
-            <button class="action-btn action-btn-primary text-xs"
-              onclick="submitRestock('${branchId}', '${prodId}', '${safeName}', this)">
-              Restock
-            </button>
-          </td>
-        </tr>
-      `;
-    }).join('');
-    document.getElementById('restockProductsLoading').classList.add('hidden');
-    document.getElementById('restockProductsTable').classList.remove('hidden');
-  } catch(e) {
-    console.error('Restock load error:', e);
-    document.getElementById('restockProductsLoading').classList.add('hidden');
-    showAlert('Failed to load inventory for this branch.', 'error');
-  }
-}
-
-async function submitRestock(branchId, productId, productName, btn) {
-  const qtyInput = document.getElementById(`restockQty_${productId}`);
-  const qty = parseInt(qtyInput?.value, 10);
-  if (!qty || qty < 1) { showAlert('Please enter a valid quantity (minimum 1).', 'error'); return; }
-  btn.disabled = true; btn.textContent = 'Restocking…';
-  try {
-    const res  = await apiFetch(`/api/admin/inventory/${branchId}/${productId}/restock/`, {
-      method: 'POST',
-      body: JSON.stringify({ quantity: qty })
-    });
-    const data = await res.json();
-    if (res.ok) {
-      showAlert(data.message || `${productName} restocked. New stock: ${data.current_stock}`, 'ok');
-      if (qtyInput) qtyInput.value = '';
-      onRestockBranchChange();
-      loadAlertsCard();
-    } else {
-      const errMsg = data.error || data.detail || Object.values(data).flat().join(' ') || 'Restock failed.';
-      showAlert(errMsg, 'error');
-      btn.disabled = false; btn.textContent = 'Restock';
-    }
-  } catch(e) {
-    console.error('Restock submit error:', e);
-    showAlert('Network error during restock.', 'error');
-    btn.disabled = false; btn.textContent = 'Restock';
   }
 }
 

@@ -21,6 +21,7 @@
             spin:    { to:{ transform:'rotate(360deg)' } },
             btnGlow: { '0%,100%':{ boxShadow:'0 0 20px rgba(128,0,255,0.5),0 0 60px rgba(0,163,255,0.3)' }, '50%':{ boxShadow:'0 0 40px rgba(128,0,255,0.8),0 0 100px rgba(0,163,255,0.5)' } },
             pulse2:  { '0%,100%':{ opacity:'1', transform:'scale(1)' }, '50%':{ opacity:'0.4', transform:'scale(1.5)' } },
+            modalIn: { from:{ opacity:'0', transform:'scale(0.94) translateY(12px)' }, to:{ opacity:'1', transform:'scale(1) translateY(0)' } },
           },
           animation: {
             fadeUp:  'fadeUp 0.6s ease both',
@@ -28,6 +29,7 @@
             spin:    'spin 0.8s linear infinite',
             btnGlow: 'btnGlow 2.5s ease-in-out infinite',
             pulse2:  'pulse2 2s ease-in-out infinite',
+            modalIn: 'modalIn 0.3s cubic-bezier(0.34,1.56,0.64,1) both',
           },
         }
       }
@@ -170,10 +172,7 @@
       border-color: rgba(0,200,150,0.5) !important;
     }
 
-    /* Branch selector in order panel */
-    .branch-select-wrapper {
-      position: relative;
-    }
+    .branch-select-wrapper { position: relative; }
     .branch-select-trigger {
       display: flex; align-items: center; gap: 8px;
       padding: 0.6rem 1rem; border-radius: 12px;
@@ -181,8 +180,7 @@
       cursor: pointer; transition: all 0.2s; user-select: none;
       background: rgba(10,37,64,0.7);
       border: 1px solid rgba(0,200,150,0.25);
-      color: #7A9AB0;
-      min-width: 200px;
+      color: #7A9AB0; min-width: 200px;
     }
     .branch-select-trigger.has-value { color: #00C896; border-color: rgba(0,200,150,0.45); }
     .branch-select-trigger:hover { border-color: rgba(0,200,150,0.5); background: rgba(10,37,64,0.85); }
@@ -191,8 +189,7 @@
       min-width: 220px; z-index: 50;
       background: rgba(6,22,42,0.97);
       border: 1px solid rgba(0,200,150,0.2);
-      border-radius: 14px;
-      padding: 6px;
+      border-radius: 14px; padding: 6px;
       box-shadow: 0 16px 48px rgba(0,0,0,0.5);
       display: none;
     }
@@ -206,22 +203,14 @@
     .branch-select-option:hover { background: rgba(0,200,150,0.08); color: #E8F4F8; }
     .branch-select-option.selected { color: #00C896; font-weight: 600; background: rgba(0,200,150,0.06); }
 
-    /* Order locked state */
     #orderLockOverlay {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 3.5rem 2rem;
-      border-radius: 20px;
-      border: 1px dashed rgba(0,200,150,0.2);
-      background: rgba(10,37,64,0.35);
-      margin-bottom: 1.5rem;
-      gap: 1rem;
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; padding: 3.5rem 2rem;
+      border-radius: 20px; border: 1px dashed rgba(0,200,150,0.2);
+      background: rgba(10,37,64,0.35); margin-bottom: 1.5rem; gap: 1rem;
     }
     #orderLockOverlay.hidden { display: none; }
 
-    /* ── Table cell color helpers ── */
     .td-id    { font-family: monospace; font-size: 12px; color: #9BBFD6; }
     .td-main  { font-size: 13px; color: #E8F4F8; }
     .td-sub   { font-size: 12px; color: #B8D4E3; }
@@ -238,36 +227,201 @@
     }
     @media (min-width: 769px) { #mobileMenuBtn { display: none; } }
 
+    /* ── Profile field styles ── */
+    .profile-field-label {
+      font-size: 11px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.08em; color: #7A9AB0; margin-bottom: 6px; margin-left: 2px;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .field-badge {
+      font-size: 9px; padding: 2px 7px; border-radius: 100px;
+      font-weight: 700; letter-spacing: 0.05em;
+    }
+    .field-badge.editable {
+      background: rgba(0,200,150,0.12);
+      border: 1px solid rgba(0,200,150,0.3);
+      color: #00C896;
+    }
+    .field-badge.locked {
+      background: rgba(122,154,176,0.1);
+      border: 1px solid rgba(122,154,176,0.2);
+      color: #7A9AB0;
+    }
+    .field-badge.otp-required {
+      background: rgba(0,163,255,0.12);
+      border: 1px solid rgba(0,163,255,0.3);
+      color: #00A3FF;
+    }
+    .profile-input {
+      width: 100%;
+      background: rgba(10,37,64,0.5);
+      border: 1px solid rgba(122,154,176,0.15);
+      border-radius: 14px;
+      padding: 0.9rem 1.1rem;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.9rem; color: #E8F4F8;
+      outline: none; transition: all 0.2s;
+    }
+    .profile-input:focus {
+      border-color: #00C896;
+      box-shadow: 0 0 0 3px rgba(0,200,150,0.1);
+      background: rgba(10,37,64,0.7);
+    }
+    .profile-input:disabled {
+      color: #7A9AB0; cursor: not-allowed;
+      background: rgba(10,37,64,0.3);
+      border-color: rgba(122,154,176,0.08);
+    }
+    .profile-input.readonly-display {
+      color: #9BBFD6; cursor: default;
+      background: rgba(10,37,64,0.25);
+      border-color: rgba(122,154,176,0.1);
+    }
+    .phone-otp-btn {
+      display: flex; align-items: center; gap: 8px;
+      padding: 0.9rem 1.2rem; border-radius: 14px;
+      font-family: 'Syne', sans-serif; font-size: 0.8rem; font-weight: 700;
+      letter-spacing: 1px; text-transform: uppercase; white-space: nowrap;
+      cursor: pointer; transition: all 0.2s; flex-shrink: 0;
+      background: rgba(0,163,255,0.1);
+      border: 1px solid rgba(0,163,255,0.3);
+      color: #00A3FF;
+    }
+    .phone-otp-btn:hover {
+      background: rgba(0,163,255,0.2);
+      border-color: rgba(0,163,255,0.5);
+      transform: translateY(-1px);
+    }
+    .phone-otp-btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+    /* Edit / Save / Cancel profile buttons */
+    .edit-profile-btn {
+      display: flex; align-items: center; gap: 8px;
+      padding: 0.6rem 1.2rem; border-radius: 12px;
+      font-family: 'Syne', sans-serif; font-size: 0.8rem; font-weight: 700;
+      letter-spacing: 1px; text-transform: uppercase;
+      cursor: pointer; transition: all 0.2s;
+      background: rgba(0,200,150,0.1);
+      border: 1px solid rgba(0,200,150,0.3);
+      color: #00C896;
+    }
+    .edit-profile-btn:hover { background: rgba(0,200,150,0.2); transform: translateY(-1px); }
+    .save-profile-btn {
+      display: flex; align-items: center; gap: 8px;
+      padding: 0.9rem 1.5rem; border-radius: 14px;
+      font-family: 'Syne', sans-serif; font-size: 0.9rem; font-weight: 800;
+      letter-spacing: 1.5px; text-transform: uppercase;
+      cursor: pointer; transition: all 0.2s; width: 100%;
+      background: linear-gradient(90deg, #00C896, #00A3FF);
+      border: none; color: #0A2540;
+      box-shadow: 0 4px 20px rgba(0,200,150,0.3);
+      justify-content: center;
+    }
+    .save-profile-btn:hover { filter: brightness(1.1); transform: translateY(-2px); }
+    .save-profile-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; filter: none; }
+    .cancel-profile-btn {
+      display: flex; align-items: center; gap: 8px;
+      padding: 0.9rem 1.5rem; border-radius: 14px;
+      font-family: 'Syne', sans-serif; font-size: 0.9rem; font-weight: 700;
+      letter-spacing: 1px; text-transform: uppercase;
+      cursor: pointer; transition: all 0.2s; width: 100%;
+      background: rgba(122,154,176,0.08);
+      border: 1px solid rgba(122,154,176,0.2);
+      color: #7A9AB0; justify-content: center;
+    }
+    .cancel-profile-btn:hover { background: rgba(122,154,176,0.15); color: #E8F4F8; }
+
+    /* ── OTP MODAL ── */
+    #otpModalBackdrop {
+      position: fixed; inset: 0; z-index: 100;
+      background: rgba(5,16,32,0.75);
+      backdrop-filter: blur(8px);
+      display: flex; align-items: center; justify-content: center;
+      padding: 1rem;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.25s;
+    }
+    #otpModalBackdrop.open { opacity: 1; pointer-events: all; }
+    .otp-modal {
+      background: rgba(6,22,42,0.98);
+      border: 1px solid rgba(0,200,150,0.2);
+      border-radius: 28px;
+      padding: 2.5rem 2rem;
+      width: 100%; max-width: 420px;
+      position: relative;
+      box-shadow: 0 32px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(0,200,150,0.08);
+    }
+    #otpModalBackdrop.open .otp-modal { animation: modalIn 0.3s cubic-bezier(0.34,1.56,0.64,1) both; }
+    .otp-step { display: none; }
+    .otp-step.active { display: block; }
+    .otp-input-row {
+      display: flex; gap: 10px; justify-content: center; margin: 1.5rem 0;
+    }
+    .otp-digit {
+      width: 48px; height: 60px; border-radius: 14px;
+      background: rgba(10,37,64,0.7);
+      border: 1.5px solid rgba(0,200,150,0.2);
+      font-family: 'Syne', sans-serif; font-size: 1.6rem; font-weight: 800;
+      color: #E8F4F8; text-align: center; outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      caret-color: #00C896;
+    }
+    .otp-digit:focus {
+      border-color: #00C896;
+      box-shadow: 0 0 0 3px rgba(0,200,150,0.15);
+      background: rgba(10,37,64,0.9);
+    }
+    .otp-digit.filled { border-color: rgba(0,200,150,0.45); }
+    .otp-action-btn {
+      width: 100%; padding: 1rem; border-radius: 14px;
+      font-family: 'Syne', sans-serif; font-size: 0.95rem; font-weight: 800;
+      letter-spacing: 1.5px; text-transform: uppercase;
+      cursor: pointer; transition: all 0.2s; border: none;
+      background: linear-gradient(90deg, #00C896, #00A3FF);
+      color: #0A2540;
+      box-shadow: 0 4px 20px rgba(0,200,150,0.3);
+    }
+    .otp-action-btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
+    .otp-action-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; filter: none; }
+    .otp-secondary-btn {
+      width: 100%; padding: 0.85rem; border-radius: 14px;
+      font-family: 'Syne', sans-serif; font-size: 0.85rem; font-weight: 700;
+      letter-spacing: 1px; text-transform: uppercase;
+      cursor: pointer; transition: all 0.2s;
+      background: transparent; border: 1px solid rgba(122,154,176,0.2);
+      color: #7A9AB0; margin-top: 10px;
+    }
+    .otp-secondary-btn:hover { background: rgba(122,154,176,0.08); color: #E8F4F8; }
+    .otp-modal-alert {
+      border-radius: 10px; padding: 0.6rem 0.9rem;
+      font-size: 0.82rem; display: none;
+      align-items: center; gap: 8px; margin-bottom: 1rem;
+    }
+    .otp-modal-alert.show { display: flex; }
+    .otp-modal-alert.error { background: rgba(255,107,107,0.1); border: 1px solid rgba(255,107,107,0.3); color: #ff9b9b; }
+    .otp-modal-alert.ok    { background: rgba(0,200,150,0.1); border: 1px solid rgba(0,200,150,0.3); color: #00C896; }
+
     /* ══ PAYMENT PANEL STYLES ══ */
     .pay-card {
       background: rgba(15,52,96,0.45);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border: 1px solid rgba(0,200,150,0.18);
-      border-radius: 24px;
+      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(0,200,150,0.18); border-radius: 24px;
       animation: fadeUp 0.55s ease both;
     }
     .phone-input {
-      background: rgba(10,37,64,0.65);
-      border: 1px solid rgba(0,200,150,0.2);
-      border-radius: 12px;
-      padding: 0.85rem 1rem 0.85rem 3.2rem;
-      font-family: 'DM Sans', sans-serif;
-      font-size: 1rem; color: #E8F4F8;
-      outline: none; width: 100%;
-      transition: border-color 0.2s, box-shadow 0.2s;
+      background: rgba(10,37,64,0.65); border: 1px solid rgba(0,200,150,0.2);
+      border-radius: 12px; padding: 0.85rem 1rem 0.85rem 3.2rem;
+      font-family: 'DM Sans', sans-serif; font-size: 1rem; color: #E8F4F8;
+      outline: none; width: 100%; transition: border-color 0.2s, box-shadow 0.2s;
       letter-spacing: 0.5px;
     }
     .phone-input:focus { border-color: #00C896; box-shadow: 0 0 0 3px rgba(0,200,150,0.1); }
     .phone-input::placeholder { color: #4a7090; }
     .pay-btn {
       background: linear-gradient(90deg, #7B2FF7, #00A3FF, #00C896);
-      background-size: 200% 100%;
-      border: none; border-radius: 14px;
-      padding: 1rem 2rem;
-      font-family: 'Syne', sans-serif;
-      font-size: 1.05rem; font-weight: 800;
-      color: white; cursor: pointer; width: 100%;
+      background-size: 200% 100%; border: none; border-radius: 14px;
+      padding: 1rem 2rem; font-family: 'Syne', sans-serif;
+      font-size: 1.05rem; font-weight: 800; color: white; cursor: pointer; width: 100%;
       letter-spacing: 2px; text-transform: uppercase;
       transition: background-position 0.4s, transform 0.15s;
       animation: btnGlow 2.5s ease-in-out infinite;
@@ -275,50 +429,36 @@
     .pay-btn:hover { background-position: 100% 0; transform: translateY(-2px); }
     .pay-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; animation: none; }
     .cancel-btn {
-      background: rgba(255,107,107,0.07);
-      border: 1px solid rgba(255,107,107,0.25);
-      border-radius: 14px;
-      padding: 0.9rem 2rem;
-      font-family: 'Syne', sans-serif;
-      font-size: 0.92rem; font-weight: 700;
-      color: rgba(255,107,107,0.85);
-      cursor: pointer; width: 100%;
-      letter-spacing: 1.5px; text-transform: uppercase;
-      transition: all 0.2s;
+      background: rgba(255,107,107,0.07); border: 1px solid rgba(255,107,107,0.25);
+      border-radius: 14px; padding: 0.9rem 2rem;
+      font-family: 'Syne', sans-serif; font-size: 0.92rem; font-weight: 700;
+      color: rgba(255,107,107,0.85); cursor: pointer; width: 100%;
+      letter-spacing: 1.5px; text-transform: uppercase; transition: all 0.2s;
     }
     .cancel-btn:hover { background: rgba(255,107,107,0.14); border-color: rgba(255,107,107,0.5); color: #ff6b6b; transform: translateY(-1px); }
     .cancel-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
     .dash-btn {
-      background: rgba(0,200,150,0.1);
-      border: 1px solid rgba(0,200,150,0.3);
-      border-radius: 14px;
-      padding: 0.9rem 2rem;
-      font-family: 'Syne', sans-serif;
-      font-size: 0.95rem; font-weight: 700;
-      color: #00C896;
-      cursor: pointer; width: 100%;
-      letter-spacing: 1.5px; text-transform: uppercase;
-      transition: all 0.2s;
+      background: rgba(0,200,150,0.1); border: 1px solid rgba(0,200,150,0.3);
+      border-radius: 14px; padding: 0.9rem 2rem;
+      font-family: 'Syne', sans-serif; font-size: 0.95rem; font-weight: 700;
+      color: #00C896; cursor: pointer; width: 100%;
+      letter-spacing: 1.5px; text-transform: uppercase; transition: all 0.2s;
     }
     .dash-btn:hover { background: rgba(0,200,150,0.18); transform: translateY(-1px); }
     .polling-ring {
       width: 64px; height: 64px; border-radius: 50%;
-      border: 2px solid rgba(0,163,255,0.15);
-      border-top-color: #00A3FF;
-      animation: spin 1.2s linear infinite;
-      margin: 0 auto;
+      border: 2px solid rgba(0,163,255,0.15); border-top-color: #00A3FF;
+      animation: spin 1.2s linear infinite; margin: 0 auto;
     }
     .polling-ring-outer {
       width: 80px; height: 80px; border-radius: 50%;
-      border: 1px solid rgba(0,163,255,0.08);
-      border-top-color: rgba(0,163,255,0.25);
+      border: 1px solid rgba(0,163,255,0.08); border-top-color: rgba(0,163,255,0.25);
       animation: spin 2s linear infinite reverse;
       position: absolute; top: -8px; left: -8px;
     }
     .order-item-row {
       display: flex; align-items: center; justify-content: space-between;
-      padding: 0.6rem 0;
-      border-bottom: 1px solid rgba(0,200,150,0.07);
+      padding: 0.6rem 0; border-bottom: 1px solid rgba(0,200,150,0.07);
     }
     .order-item-row:last-child { border-bottom: none; }
     .pay-view { display: none; }
@@ -326,11 +466,9 @@
     .check-path { stroke-dasharray: 100; stroke-dashoffset: 100; animation: checkDraw 0.6s ease 0.3s forwards; }
     .x-path     { stroke-dasharray: 100; stroke-dashoffset: 100; animation: xDraw 0.5s ease 0.3s forwards; }
 
-    /* extra keyframes for payment panel */
     @keyframes checkDraw { from{ stroke-dashoffset:100 } to{ stroke-dashoffset:0 } }
     @keyframes xDraw     { from{ stroke-dashoffset:100 } to{ stroke-dashoffset:0 } }
     @keyframes ping2     { 0%{ transform:scale(1);opacity:0.8 } 100%{ transform:scale(2.2);opacity:0 } }
-    @keyframes countUp   { from{ opacity:0;transform:translateY(8px) } to{ opacity:1;transform:translateY(0) } }
   </style>
 </head>
 
@@ -338,13 +476,86 @@
 
 <div id="sidebarOverlay" onclick="closeMobileSidebar()"></div>
 
+<!-- OTP MODAL -->
+<div id="otpModalBackdrop">
+  <div class="otp-modal">
+    <button onclick="closeOtpModal()" style="position:absolute;top:1rem;right:1rem;background:rgba(122,154,176,0.1);border:1px solid rgba(122,154,176,0.2);border-radius:8px;padding:6px 10px;color:#7A9AB0;cursor:pointer;font-size:12px;transition:all 0.2s;"
+            onmouseover="this.style.color='#E8F4F8'" onmouseout="this.style.color='#7A9AB0'">✕ Close</button>
+
+    <!-- Step 1: Enter new phone -->
+    <div class="otp-step active" id="otpStep1">
+      <div class="w-12 h-12 rounded-2xl flex items-center justify-center mb-5"
+           style="background:rgba(0,163,255,0.12);border:1px solid rgba(0,163,255,0.25);">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#00A3FF" stroke-width="2">
+          <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.27 12 19.79 19.79 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>
+        </svg>
+      </div>
+      <h3 class="font-head font-bold text-xl text-wdtext mb-1">Change Phone Number</h3>
+      <p class="text-sm mb-5" style="color:#7A9AB0;">Enter your new phone number. We'll send a 6-digit code to your registered email for verification.</p>
+      <div class="otp-modal-alert" id="step1Alert"><span id="step1AlertMsg"></span></div>
+      <label class="profile-field-label">New Phone Number</label>
+      <input type="tel" id="otpNewPhone" maxlength="10" placeholder="07XXXXXXXX"
+             class="profile-input mb-5" style="margin-bottom:1.25rem;"
+             oninput="this.value=this.value.replace(/\D/g,'')"/>
+      <p class="text-xs mb-5" style="color:rgba(122,154,176,0.6);">Must be a valid Safaricom number — 10 digits starting with 07 or 01.</p>
+      <button class="otp-action-btn" id="sendOtpBtn" onclick="requestOtp()">Send Verification Code</button>
+      <button class="otp-secondary-btn" onclick="closeOtpModal()">Cancel</button>
+    </div>
+
+    <!-- Step 2: Enter OTP -->
+    <div class="otp-step" id="otpStep2">
+      <div class="w-12 h-12 rounded-2xl flex items-center justify-center mb-5"
+           style="background:rgba(0,200,150,0.12);border:1px solid rgba(0,200,150,0.25);">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#00C896" stroke-width="2">
+          <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-4 0v2"/><line x1="12" y1="12" x2="12" y2="16"/>
+        </svg>
+      </div>
+      <h3 class="font-head font-bold text-xl text-wdtext mb-1">Enter Verification Code</h3>
+      <p class="text-sm mb-1" style="color:#7A9AB0;">A 6-digit code has been sent to</p>
+      <p class="font-head font-bold text-sm mb-5" id="otpEmailDisplay" style="color:#00C896;">your email</p>
+      <div class="otp-modal-alert" id="step2Alert"><span id="step2AlertMsg"></span></div>
+      <div class="otp-input-row" id="otpDigitRow">
+        <input class="otp-digit" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]" data-index="0"/>
+        <input class="otp-digit" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]" data-index="1"/>
+        <input class="otp-digit" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]" data-index="2"/>
+        <input class="otp-digit" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]" data-index="3"/>
+        <input class="otp-digit" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]" data-index="4"/>
+        <input class="otp-digit" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]" data-index="5"/>
+      </div>
+      <p class="text-xs text-center mb-5" style="color:rgba(122,154,176,0.5);">Code expires in 10 minutes.</p>
+      <button class="otp-action-btn" id="verifyOtpBtn" onclick="verifyOtp()">Verify &amp; Update</button>
+      <button class="otp-secondary-btn" onclick="goToOtpStep(1)">← Use Different Number</button>
+      <div class="text-center mt-4">
+        <button onclick="requestOtp(true)" id="resendBtn"
+                style="background:none;border:none;color:rgba(0,163,255,0.7);font-size:12px;cursor:pointer;transition:color 0.2s;"
+                onmouseover="this.style.color='#00A3FF'" onmouseout="this.style.color='rgba(0,163,255,0.7)'">
+          Didn't receive it? Resend code
+        </button>
+      </div>
+    </div>
+
+    <!-- Step 3: Success -->
+    <div class="otp-step" id="otpStep3">
+      <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6"
+           style="background:rgba(0,200,150,0.12);border:2px solid rgba(0,200,150,0.4);">
+        <svg width="32" height="32" viewBox="0 0 44 44" fill="none">
+          <path class="check-path" d="M10 22 L19 31 L34 13" stroke="#00C896" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <h3 class="font-head font-bold text-xl text-wdtext mb-2 text-center">Phone Updated!</h3>
+      <p class="text-sm mb-2 text-center" style="color:#7A9AB0;">Your phone number has been updated to</p>
+      <p class="font-head font-bold text-lg text-center mb-6" id="otpSuccessPhone" style="color:#00C896;">—</p>
+      <button class="otp-action-btn" onclick="closeOtpModal()">Done</button>
+    </div>
+  </div>
+</div>
+
 <!-- ══════════════════════════════════════════════
      SIDEBAR
 ══════════════════════════════════════════════ -->
 <aside id="sidebar" class="sb relative z-20 flex flex-col w-72 min-h-screen overflow-y-auto flex-shrink-0"
        style="background:rgba(6,22,42,0.97);border-right:1px solid rgba(0,200,150,0.1);">
 
-  <!-- Logo -->
   <div class="flex items-center gap-3 px-5 py-5 flex-shrink-0" style="border-bottom:1px solid rgba(0,200,150,0.1);">
     <div class="relative w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden"
          style="background:linear-gradient(135deg,#00C896,#00A3FF);box-shadow:0 0 20px rgba(0,200,150,0.4);">
@@ -354,17 +565,13 @@
     <span style="font-family:Syne,sans-serif;font-weight:700;font-size:1.5rem;color:#f0e8ff">Wantam<span style="color:#b44fff">Drinks</span></span>
   </div>
 
-  <!-- Nav -->
   <nav class="flex flex-col gap-1 px-3 pt-5 flex-1">
-
     <button id="profileNav" class="nav-item w-full" onclick="showPanel('profile', this)">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
       </svg>
       My Profile
     </button>
-
-    <!-- Catalogue nav item (no dropdown) -->
     <button id="catalogueNav" class="nav-item w-full active" onclick="showCatalogue(this)">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
@@ -372,21 +579,18 @@
       </svg>
       Catalogue
     </button>
-
     <button class="nav-item w-full text-left" onclick="showPanel('transactions', this)">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/>
       </svg>
       My Past Transactions
     </button>
-
     <button id="paymentNav" class="nav-item w-full text-left hidden" onclick="showPanel('payment', this)">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/>
       </svg>
       Payment
     </button>
-
   </nav>
 
   <div class="px-3 mt-4">
@@ -401,12 +605,8 @@
   <div class="mx-3 mb-4 mt-3 rounded-2xl p-4 flex-shrink-0" style="background:rgba(10,37,64,0.6);border:1px solid rgba(0,200,150,0.12);">
     <p class="font-head text-xs font-bold mb-3 text-wdtext">Contact Us</p>
     <div class="flex flex-col gap-2">
-      <a href="tel:+254716984886" class="text-xs text-muted hover:text-accent transition-colors flex items-center gap-2">
-        📞 +254 716 984 886
-      </a>
-      <a href="/cdn-cgi/l/email-protection#bdded1dccfd6d0dcc5cad8d1d184898bfddad0dcd4d193ded2d0" class="text-xs text-muted hover:text-accent2 transition-colors flex items-center gap-2">
-        📧 <span class="__cf_email__" data-cfemail="adcec1ccdfc6c0ccd5dac8c1c194999bedcac0ccc4c183cec2c0">[email&#160;protected]</span>
-      </a>
+      <a href="tel:+254716984886" class="text-xs text-muted hover:text-accent transition-colors flex items-center gap-2">📞 +254 716 984 886</a>
+      <a href="mailto:clarkmaxwell946@gmail.com" class="text-xs text-muted hover:text-accent2 transition-colors flex items-center gap-2">📧 clarkmaxwell946@gmail.com</a>
     </div>
   </div>
 </aside>
@@ -422,11 +622,9 @@
     <button id="mobileMenuBtn" class="mr-3 p-2 rounded-xl" style="background:rgba(15,52,96,0.5);border:1px solid rgba(0,200,150,0.15);" onclick="openMobileSidebar()">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7A9AB0" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
     </button>
-
     <h1 class="font-head font-black text-2xl md:text-3xl flex-1 truncate text-wdtext">
       Welcome,&nbsp;<span id="usernameDisplay" style="background:linear-gradient(90deg,#00C896,#00A3FF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">—</span>
     </h1>
-
     <div class="flex items-center gap-3">
       <div class="relative hidden sm:block">
         <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -445,12 +643,9 @@
 
   <main class="sb relative z-10 flex-1 overflow-y-auto px-5 md:px-8 pb-8 pt-4">
 
-    <!-- Global alert bar -->
     <div class="alert-bar" id="alertBar"><span id="alertMsg"></span><button onclick="hideAlert()" class="ml-auto">✕</button></div>
 
-    <!-- ══════════════════════════════════════
-         CATALOGUE VIEW
-    ══════════════════════════════════════ -->
+    <!-- CATALOGUE VIEW -->
     <div id="catalogueView">
       <div class="flex items-center gap-2 mb-5">
         <div class="notif-dot"></div>
@@ -459,80 +654,183 @@
           <span class="font-head font-semibold" style="color:#00C896;">Catalogue</span>
         </p>
       </div>
-
       <div id="productGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-6">
         <div class="product-card skeleton h-64"></div>
         <div class="product-card skeleton h-64"></div>
         <div class="product-card skeleton h-64"></div>
       </div>
-
       <div id="noResults" class="hidden text-center py-16">
         <p class="font-head text-lg text-muted/50">No products found</p>
         <button onclick="resetSearch()" class="mt-3 text-sm text-accent hover:underline">Clear search</button>
       </div>
-
       <div class="mt-2">
-        <button class="make-order-btn" id="makeOrderBtn" onclick="openOrderPanel()">
-          Make Order
-        </button>
+        <button class="make-order-btn" id="makeOrderBtn" onclick="openOrderPanel()">Make Order</button>
       </div>
-
       <div class="flex items-center justify-between mt-10 pt-3 border-t border-white/5">
         <span class="text-xs text-muted/40">Powered by Wantam Platform</span>
         <span class="text-xs font-head text-muted/40">Supervisor: <span class="text-accent">Maxy Clark</span></span>
       </div>
     </div>
 
-    <!-- ══════════════════════════════════════
-         INLINE PANEL
-    ══════════════════════════════════════ -->
+    <!-- INLINE PANEL -->
     <div id="inlinePanel">
-
       <button onclick="closePanel()" class="flex items-center gap-2 text-sm mb-6 text-muted hover:text-accent transition-colors">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polyline points="15 18 9 12 15 6"/>
-        </svg>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
         Back to Catalogue
       </button>
 
-      <!-- ── PROFILE CONTENT ── -->
+      <!-- ══ PROFILE CONTENT ══ -->
       <div id="profileContent" class="hidden">
-        <div class="max-w-2xl rounded-3xl p-8 md:p-12 backdrop-blur-xl bg-white/5 border border-white/10">
-          <div class="flex flex-col md:flex-row items-center gap-8 mb-10">
-            <div id="profileAvatar" class="w-24 h-24 rounded-3xl bg-gradient-to-br from-accent to-accent2 flex items-center justify-center text-4xl font-black text-primary shadow-2xl shadow-accent/20">—</div>
-            <div class="text-center md:text-left">
-              <h2 id="profileNameHeader" class="font-head font-bold text-3xl text-wdtext mb-1">—</h2>
-              <p id="profileIdDisplay" class="text-accent2 font-bold tracking-widest text-xs uppercase">USER ID: —</p>
+        <div class="max-w-2xl">
+
+          <!-- Header card -->
+          <div class="rounded-3xl p-6 md:p-8 mb-5 backdrop-blur-xl"
+               style="background:rgba(15,52,96,0.35);border:1px solid rgba(0,200,150,0.12);">
+            <div class="flex flex-col sm:flex-row items-center sm:items-start gap-6">
+              <!-- Avatar -->
+              <div id="profileAvatar"
+                   class="w-20 h-20 rounded-2xl flex items-center justify-center text-3xl font-black flex-shrink-0"
+                   style="background:linear-gradient(135deg,#00C896,#00A3FF);color:#0A2540;box-shadow:0 8px 32px rgba(0,200,150,0.25);">
+                —
+              </div>
+              <div class="flex-1 text-center sm:text-left">
+                <h2 id="profileNameHeader" class="font-head font-bold text-2xl text-wdtext mb-1">—</h2>
+                <p id="profileIdDisplay" class="text-xs tracking-widest mb-3" style="color:#7A9AB0;">USER ID: —</p>
+                <div class="flex flex-wrap gap-2 justify-center sm:justify-start">
+                  <span class="text-xs px-3 py-1 rounded-full font-head font-semibold"
+                        style="background:rgba(0,200,150,0.1);border:1px solid rgba(0,200,150,0.2);color:#00C896;">
+                    Active Account
+                  </span>
+                  <span id="profileMemberSince" class="text-xs px-3 py-1 rounded-full"
+                        style="background:rgba(122,154,176,0.08);border:1px solid rgba(122,154,176,0.15);color:#7A9AB0;">
+                    Member since —
+                  </span>
+                </div>
+              </div>
+              <!-- Edit button (view mode) -->
+              <div id="editProfileBtnWrap">
+                <button class="edit-profile-btn" onclick="enterEditMode()">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                  </svg>
+                  Edit Profile
+                </button>
+              </div>
             </div>
           </div>
 
-          <form id="profileUpdateForm" class="space-y-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div class="space-y-1">
-                <label class="text-xs font-bold text-muted uppercase tracking-wider ml-1">Username</label>
-                <input type="text" id="inputUsername" class="w-full bg-primary/40 border border-white/10 rounded-xl px-4 py-4 text-sm focus:border-accent outline-none text-white transition-all">
+          <!-- Profile alert -->
+          <div class="alert-bar mb-4" id="profileAlertBar">
+            <span id="profileAlertMsg"></span>
+            <button onclick="hideProfileAlert()" class="ml-auto">✕</button>
+          </div>
+
+          <!-- VIEW MODE: read-only fields -->
+          <div id="profileViewMode" class="rounded-3xl p-6 md:p-8 backdrop-blur-xl"
+               style="background:rgba(15,52,96,0.35);border:1px solid rgba(0,200,150,0.12);">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div>
+                <div class="profile-field-label">
+                  Username
+                  <span class="field-badge editable">Editable</span>
+                </div>
+                <input type="text" id="viewUsername" class="profile-input readonly-display" readonly/>
               </div>
-              <div class="space-y-1">
-                <label class="text-xs font-bold text-muted uppercase tracking-wider ml-1">Email Address</label>
-                <input type="email" id="inputEmail" class="w-full bg-primary/40 border border-white/10 rounded-xl px-4 py-4 text-sm focus:border-accent outline-none text-white transition-all" readonly>
+              <div>
+                <div class="profile-field-label">
+                  Email Address
+                  <span class="field-badge locked">Permanent</span>
+                </div>
+                <input type="email" id="viewEmail" class="profile-input readonly-display" readonly/>
               </div>
-              <div class="space-y-1 md:col-span-2">
-                <label class="text-xs font-bold text-muted uppercase tracking-wider ml-1">Phone Number</label>
-                <input type="tel" id="inputPhone" class="w-full bg-primary/40 border border-white/10 rounded-xl px-4 py-4 text-sm focus:border-accent outline-none text-white transition-all" placeholder="Enter phone number">
+              <div class="md:col-span-2">
+                <div class="profile-field-label">
+                  Phone Number
+                  <span class="field-badge otp-required">OTP Required to Change</span>
+                </div>
+                <input type="tel" id="viewPhone" class="profile-input readonly-display" readonly/>
               </div>
             </div>
-            <button type="submit" class="w-full py-5 bg-accent text-primary font-head font-black uppercase tracking-widest rounded-2xl hover:brightness-110 active:scale-95 transition-all shadow-lg">
-              Update Profile Details
-            </button>
-          </form>
+          </div>
+
+          <!-- EDIT MODE: editable fields (hidden by default) -->
+          <div id="profileEditMode" class="hidden rounded-3xl p-6 md:p-8 backdrop-blur-xl"
+               style="background:rgba(15,52,96,0.35);border:1px solid rgba(0,200,150,0.18);">
+
+            <!-- Edit mode hint banner -->
+            <div class="flex items-center gap-3 p-3 rounded-2xl mb-6"
+                 style="background:rgba(0,200,150,0.06);border:1px solid rgba(0,200,150,0.15);">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00C896" stroke-width="2" style="flex-shrink:0;">
+                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+              </svg>
+              <p class="text-xs" style="color:#7A9AB0;">
+                <span style="color:#00C896;font-weight:600;">Edit mode.</span>
+                Username is freely editable. Changing your phone number requires email OTP verification.
+              </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
+              <!-- Username — freely editable -->
+              <div>
+                <div class="profile-field-label">
+                  Username
+                  <span class="field-badge editable">Editable</span>
+                </div>
+                <input type="text" id="editUsername" class="profile-input" placeholder="Enter username"/>
+              </div>
+              <!-- Email — permanent -->
+              <div>
+                <div class="profile-field-label">
+                  Email Address
+                  <span class="field-badge locked">Permanent</span>
+                </div>
+                <input type="email" id="editEmail" class="profile-input" readonly style="color:#7A9AB0;cursor:not-allowed;"/>
+              </div>
+              <!-- Phone — OTP gate -->
+              <div class="md:col-span-2">
+                <div class="profile-field-label">
+                  Phone Number
+                  <span class="field-badge otp-required">OTP Required</span>
+                </div>
+                <div class="flex gap-3 items-stretch">
+                  <input type="tel" id="editPhone" class="profile-input readonly-display flex-1"
+                         readonly style="cursor:not-allowed;" placeholder="Use the button to change →"/>
+                  <button class="phone-otp-btn" onclick="openOtpModal()" title="Change phone number via email OTP">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                    </svg>
+                    Change
+                  </button>
+                </div>
+                <p class="text-xs mt-2 ml-1" style="color:rgba(122,154,176,0.55);">
+                  A verification code will be sent to your registered email address.
+                </p>
+              </div>
+            </div>
+
+            <!-- Action buttons -->
+            <div class="flex flex-col sm:flex-row gap-3">
+              <button class="save-profile-btn" id="saveProfileBtn" onclick="saveProfile()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+                Save Changes
+              </button>
+              <button class="cancel-profile-btn" onclick="exitEditMode()">
+                Cancel
+              </button>
+            </div>
+          </div>
+
         </div>
       </div>
+      <!-- end profileContent -->
 
       <!-- ── TRANSACTIONS CONTENT ── -->
       <div id="transactionsContent" class="hidden">
         <div class="rounded-2xl p-6 md:p-8 bg-white/5 border border-white/10">
-
-          <!-- Tabs -->
           <div class="flex gap-2 mb-6">
             <button id="txTabPayments" onclick="switchTxTab('payments')"
               class="px-4 py-2 rounded-xl text-sm font-head font-semibold transition-all"
@@ -545,20 +843,15 @@
               Order History
             </button>
           </div>
-
-          <!-- ── Payments table ── -->
           <div id="txPanePayments">
             <p style="font-size:12px;color:#9BBFD6;margin-bottom:12px;">All M-Pesa transactions, most recent first.</p>
             <div class="overflow-x-auto rounded-xl" style="border:1px solid rgba(0,200,150,0.12);">
               <table class="w-full" style="min-width:740px;border-collapse:collapse;">
                 <thead>
                   <tr style="background:rgba(10,37,64,0.75);">
-                    <th class="th-cell">Payment ID</th>
-                    <th class="th-cell">Order ID</th>
-                    <th class="th-cell">Amount</th>
-                    <th class="th-cell">Status</th>
-                    <th class="th-cell">Receipt No.</th>
-                    <th class="th-cell">Date &amp; Time</th>
+                    <th class="th-cell">Payment ID</th><th class="th-cell">Order ID</th>
+                    <th class="th-cell">Amount</th><th class="th-cell">Status</th>
+                    <th class="th-cell">Receipt No.</th><th class="th-cell">Date &amp; Time</th>
                   </tr>
                 </thead>
                 <tbody id="paymentsTableBody">
@@ -567,21 +860,15 @@
               </table>
             </div>
           </div>
-
-          <!-- ── Orders table ── -->
           <div id="txPaneOrders" class="hidden">
             <p style="font-size:12px;color:#9BBFD6;margin-bottom:12px;">All your orders. Pending orders without payment can be paid below.</p>
             <div class="overflow-x-auto rounded-xl" style="border:1px solid rgba(0,200,150,0.12);">
               <table class="w-full" style="min-width:740px;border-collapse:collapse;">
                 <thead>
                   <tr style="background:rgba(10,37,64,0.75);">
-                    <th class="th-cell">Order ID</th>
-                    <th class="th-cell">Branch</th>
-                    <th class="th-cell">Items</th>
-                    <th class="th-cell">Total</th>
-                    <th class="th-cell">Status</th>
-                    <th class="th-cell">Date</th>
-                    <th class="th-cell">Action</th>
+                    <th class="th-cell">Order ID</th><th class="th-cell">Branch</th>
+                    <th class="th-cell">Items</th><th class="th-cell">Total</th>
+                    <th class="th-cell">Status</th><th class="th-cell">Date</th><th class="th-cell">Action</th>
                   </tr>
                 </thead>
                 <tbody id="ordersTableBody">
@@ -590,27 +877,20 @@
               </table>
             </div>
           </div>
-
         </div>
       </div>
 
-      <!-- ══════════════════════════════════════
-           ORDER CONTENT
-      ══════════════════════════════════════ -->
+      <!-- ══ ORDER CONTENT ══ -->
       <div id="orderContent" class="hidden">
-
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
           <div>
             <h2 class="font-head font-bold text-2xl text-wdtext">Make an Order</h2>
             <p class="text-sm mt-0.5" style="color:#7A9AB0;">Select your branch, then choose your drinks.</p>
           </div>
-
-          <!-- Branch selector dropdown (replaces static pill) -->
           <div class="branch-select-wrapper" id="branchSelectWrapper">
             <div class="branch-select-trigger" id="branchSelectTrigger" onclick="toggleBranchDropdown()">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-                <circle cx="12" cy="10" r="3"/>
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
               </svg>
               <span id="branchSelectLabel" class="flex-1 text-left">— Select Branch —</span>
               <svg id="branchSelectChevron" style="transition:transform 0.3s;flex-shrink:0;" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -624,39 +904,27 @@
             </div>
           </div>
         </div>
-
         <div class="alert-bar" id="orderAlertBar">
           <span id="orderAlertMsg"></span>
           <button onclick="hideOrderAlert()" class="ml-auto text-lg leading-none">✕</button>
         </div>
-
-        <!-- Lock state: shown when no branch selected -->
         <div id="orderLockOverlay">
           <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="rgba(0,200,150,0.4)" stroke-width="1.5">
-            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
           </svg>
           <p class="font-head font-semibold text-sm" style="color:#7A9AB0;">Select a branch to view available products</p>
           <p class="text-xs" style="color:rgba(122,154,176,0.55);">Use the branch selector above to get started</p>
         </div>
-
-        <!-- Product grid (hidden until branch selected) -->
         <div id="orderProductGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-6 hidden"></div>
-
         <div id="orderNoProducts" class="hidden text-center py-12">
           <p class="font-head text-lg" style="color:rgba(122,154,176,0.5);">No products available at this branch.</p>
         </div>
-
-        <!-- Order summary (hidden until branch selected) -->
         <div id="orderSummaryCard" class="rounded-2xl p-5 md:p-6 mt-2 hidden"
              style="background:rgba(10,37,64,0.65);border:1px solid rgba(0,200,150,0.18);backdrop-filter:blur(16px);">
-
           <h3 class="font-head font-bold text-base text-wdtext mb-4">Order Summary</h3>
-
           <div id="orderSummaryList" class="space-y-2 mb-4 min-h-[2rem]">
             <p class="text-sm" style="color:rgba(122,154,176,0.6);">No items selected yet.</p>
           </div>
-
           <div style="border-top:1px solid rgba(0,200,150,0.12);" class="pt-4 mb-5">
             <div class="flex items-center justify-between">
               <span class="font-head font-bold text-sm" style="color:#7A9AB0;text-transform:uppercase;letter-spacing:1.5px;">Total</span>
@@ -668,39 +936,23 @@
               </div>
             </div>
           </div>
-
-          <button id="placeOrderBtn" onclick="submitOrder()" class="make-order-btn" disabled>
-            Place Order
-          </button>
-
+          <button id="placeOrderBtn" onclick="submitOrder()" class="make-order-btn" disabled>Place Order</button>
           <p class="text-center text-xs mt-3" style="color:rgba(122,154,176,0.5);">
             You will be redirected to the payment page after placing your order.
           </p>
         </div>
-
       </div>
-      <!-- end #orderContent -->
 
-      <!-- ══════════════════════════════════════
-           PAYMENT CONTENT
-      ══════════════════════════════════════ -->
+      <!-- ══ PAYMENT CONTENT ══ -->
       <div id="paymentContent" class="hidden">
-
-        <!-- ── VIEW: PAYMENT FORM ── -->
         <div id="payViewPayment" class="pay-view active">
           <div class="max-w-xl">
-            <div class="alert-bar" id="payAlertBar">
-              <span id="payAlertMsg"></span>
-              <button onclick="hidePayAlert()" class="ml-auto text-lg leading-none">✕</button>
-            </div>
-
-            <!-- Order Summary Card -->
+            <div class="alert-bar" id="payAlertBar"><span id="payAlertMsg"></span><button onclick="hidePayAlert()" class="ml-auto text-lg leading-none">✕</button></div>
             <div class="pay-card p-6 mb-5" id="payOrderSummaryCard">
               <div id="payOrderSkeleton">
                 <div class="skeleton h-5 w-40 mb-4 rounded"></div>
                 <div class="skeleton h-4 w-full mb-2 rounded"></div>
                 <div class="skeleton h-4 w-3/4 mb-2 rounded"></div>
-                <div class="skeleton h-4 w-1/2 mb-5 rounded"></div>
                 <div class="skeleton h-8 w-36 rounded ml-auto"></div>
               </div>
               <div id="payOrderDetails" class="hidden">
@@ -729,8 +981,6 @@
                 </div>
               </div>
             </div>
-
-            <!-- Payment Input Card -->
             <div class="pay-card p-6 mb-5" id="payInputCard">
               <h3 class="font-head font-bold text-base text-wdtext mb-1">M-Pesa Payment</h3>
               <p class="text-sm mb-5" style="color:#7A9AB0;">Enter the M-Pesa number to receive the payment prompt.</p>
@@ -747,9 +997,8 @@
               <button class="cancel-btn" id="payCancelBtn" onclick="payConfirmCancel()">Cancel Order</button>
             </div>
           </div>
-        </div><!-- end payViewPayment -->
+        </div>
 
-        <!-- ── VIEW: POLLING ── -->
         <div id="payViewPolling" class="pay-view">
           <div class="max-w-md mx-auto mt-8">
             <div class="pay-card p-10 text-center">
@@ -777,9 +1026,8 @@
               <p class="text-xs" style="color:rgba(122,154,176,0.5);">Do not navigate away. This will automatically update once payment is confirmed.</p>
             </div>
           </div>
-        </div><!-- end payViewPolling -->
+        </div>
 
-        <!-- ── VIEW: SUCCESS ── -->
         <div id="payViewSuccess" class="pay-view">
           <div class="max-w-md mx-auto mt-8">
             <div class="pay-card p-10 text-center">
@@ -812,9 +1060,8 @@
               <button class="dash-btn" onclick="closePanel()">Back to Catalogue</button>
             </div>
           </div>
-        </div><!-- end payViewSuccess -->
+        </div>
 
-        <!-- ── VIEW: FAILURE ── -->
         <div id="payViewFailure" class="pay-view">
           <div class="max-w-md mx-auto mt-8">
             <div class="pay-card p-10 text-center">
@@ -831,7 +1078,7 @@
               <p class="text-sm mb-5" id="payFailureReason" style="color:#7A9AB0;">Your payment could not be completed.</p>
               <div class="rounded-2xl p-5 mb-6 text-left" style="background:rgba(255,107,107,0.06);border:1px solid rgba(255,107,107,0.18);">
                 <p class="text-xs font-head font-bold uppercase tracking-widest mb-2" style="color:rgba(255,107,107,0.7);">What happened?</p>
-                <p class="text-sm" id="payFailureDetail" style="color:rgba(232,244,248,0.7);">The payment could not be processed. This may be due to insufficient funds, an incorrect PIN, or a cancelled request.</p>
+                <p class="text-sm" id="payFailureDetail" style="color:rgba(232,244,248,0.7);">The payment could not be processed.</p>
               </div>
               <div class="rounded-xl p-3 mb-6 text-sm" style="background:rgba(0,163,255,0.07);border:1px solid rgba(0,163,255,0.18);color:rgba(122,154,176,0.9);">
                 Your reserved stock has been released. Please place a new order to try again.
@@ -839,9 +1086,8 @@
               <button class="dash-btn" onclick="closePanel()">Back to Catalogue</button>
             </div>
           </div>
-        </div><!-- end payViewFailure -->
+        </div>
 
-        <!-- ── VIEW: CANCEL CONFIRM ── -->
         <div id="payViewCancelConfirm" class="pay-view">
           <div class="max-w-md mx-auto mt-8">
             <div class="pay-card p-10 text-center">
@@ -852,7 +1098,7 @@
                 </svg>
               </div>
               <h2 class="font-head font-bold text-xl text-wdtext mb-2">Cancel This Order?</h2>
-              <p class="text-sm mb-6" style="color:#7A9AB0;">This will cancel your order and release all reserved stock back to inventory. This action <span class="text-wdtext font-semibold">cannot be undone.</span></p>
+              <p class="text-sm mb-6" style="color:#7A9AB0;">This will cancel your order and release all reserved stock. This action <span class="text-wdtext font-semibold">cannot be undone.</span></p>
               <div class="rounded-xl p-3 mb-7 text-sm" style="background:rgba(10,37,64,0.65);border:1px solid rgba(0,200,150,0.12);">
                 <span style="color:#7A9AB0;">Order: </span>
                 <span class="font-head font-bold text-wdtext" id="payCancelOrderRef">—</span>
@@ -865,9 +1111,8 @@
               <button class="dash-btn" onclick="showPayView('payViewPayment')">Keep My Order</button>
             </div>
           </div>
-        </div><!-- end payViewCancelConfirm -->
+        </div>
 
-        <!-- ── VIEW: ORDER CANCELLED ── -->
         <div id="payViewCancelled" class="pay-view">
           <div class="max-w-md mx-auto mt-8">
             <div class="pay-card p-10 text-center">
@@ -887,12 +1132,12 @@
               <button class="dash-btn" onclick="closePanel()">Back to Catalogue</button>
             </div>
           </div>
-        </div><!-- end payViewCancelled -->
-
+        </div>
       </div>
-      <!-- end #paymentContent -->
+      <!-- end paymentContent -->
 
     </div>
+    <!-- end inlinePanel -->
 
   </main>
 </div>
@@ -900,12 +1145,10 @@
 <!-- ══════════════════════════════════════════════
      SCRIPTS
 ══════════════════════════════════════════════ -->
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+<script>
   const API = '/api';
 
-  /* ─────────────────────────────────────────────
-     AUTH HELPER
-  ───────────────────────────────────────────── */
+  /* ── AUTH ── */
   const Auth = {
     async getValidToken() {
       const token = sessionStorage.getItem('access_token');
@@ -914,9 +1157,8 @@
       if (Date.now() >= exp - 30000) {
         const rt = sessionStorage.getItem('refresh_token');
         try {
-          const res = await fetch(`${API}/auth/token/refresh/`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+          const res  = await fetch(`${API}/auth/token/refresh/`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ refresh: rt }),
           });
           const data = await res.json();
@@ -930,18 +1172,12 @@
       const token = await Auth.getValidToken();
       return fetch(url, {
         ...options,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-          ...(options.headers || {}),
-        },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`, ...(options.headers || {}) },
       });
     }
   };
 
-  /* ─────────────────────────────────────────────
-     ALERTS
-  ───────────────────────────────────────────── */
+  /* ── ALERTS ── */
   function showAlert(msg, type = 'error') {
     const bar = document.getElementById('alertBar');
     document.getElementById('alertMsg').textContent = msg;
@@ -950,19 +1186,26 @@
   }
   function hideAlert() { document.getElementById('alertBar').className = 'alert-bar'; }
 
+  function showProfileAlert(msg, type = 'error') {
+    const bar = document.getElementById('profileAlertBar');
+    document.getElementById('profileAlertMsg').textContent = msg;
+    bar.className = `alert-bar show ${type === 'ok' ? 'ok' : 'error'}`;
+    if (type === 'ok') setTimeout(hideProfileAlert, 5000);
+  }
+  function hideProfileAlert() {
+    const bar = document.getElementById('profileAlertBar');
+    if (bar) bar.className = 'alert-bar';
+  }
+
   function showOrderAlert(msg, type = 'error') {
     const bar = document.getElementById('orderAlertBar');
     document.getElementById('orderAlertMsg').textContent = msg;
     bar.className = `alert-bar show ${type === 'ok' ? 'ok' : 'error'}`;
     if (type === 'ok') setTimeout(hideOrderAlert, 5000);
   }
-  function hideOrderAlert() {
-    document.getElementById('orderAlertBar').className = 'alert-bar';
-  }
+  function hideOrderAlert() { document.getElementById('orderAlertBar').className = 'alert-bar'; }
 
-  /* ─────────────────────────────────────────────
-     UTILITIES
-  ───────────────────────────────────────────── */
+  /* ── UTILITIES ── */
   function handleLogout() { sessionStorage.clear(); window.location.href = '/login/'; }
   function openMobileSidebar() {
     document.getElementById('sidebar').classList.add('open');
@@ -973,17 +1216,245 @@
     document.getElementById('sidebarOverlay').classList.remove('show');
   }
 
-  /* ─────────────────────────────────────────────
-     BRANCHES (for Order panel only)
-  ───────────────────────────────────────────── */
+  /* ── PROFILE — view / edit modes ── */
+  let _profileData = {};
+
+  async function fetchProfile() {
+    try {
+      const res  = await Auth.fetch(`${API}/auth/profile/`);
+      const user = await res.json();
+      _profileData = user;
+      applyProfileToUI(user);
+    } catch { console.error('Profile load failed'); }
+  }
+
+  function applyProfileToUI(user) {
+    const init = user.username ? user.username.charAt(0).toUpperCase() : '?';
+    // Header
+    document.getElementById('usernameDisplay').textContent  = user.username;
+    document.getElementById('headerUsername').textContent   = user.username;
+    document.getElementById('avatarInitial').textContent    = init;
+    // Profile card
+    document.getElementById('profileAvatar').textContent    = init;
+    document.getElementById('profileNameHeader').textContent = user.username;
+    document.getElementById('profileIdDisplay').textContent  = `USER ID: ${user.user_id || '—'}`;
+    // Member since
+    if (user.created_at) {
+      const d = new Date(user.created_at);
+      document.getElementById('profileMemberSince').textContent =
+        'Member since ' + d.toLocaleDateString('en-KE', { month:'short', year:'numeric' });
+    }
+    // View mode fields
+    document.getElementById('viewUsername').value = user.username || '';
+    document.getElementById('viewEmail').value    = user.email    || '';
+    document.getElementById('viewPhone').value    = user.phone_number || user.phone || '';
+    // Edit mode fields (pre-fill for when user enters edit)
+    document.getElementById('editUsername').value = user.username || '';
+    document.getElementById('editEmail').value    = user.email    || '';
+    document.getElementById('editPhone').value    = user.phone_number || user.phone || '';
+    // Payment phone prefill
+    const ph = user.phone_number || user.phone || '';
+    if (ph) document.getElementById('payPhoneInput').value = ph;
+  }
+
+  function enterEditMode() {
+    document.getElementById('profileViewMode').classList.add('hidden');
+    document.getElementById('profileEditMode').classList.remove('hidden');
+    document.getElementById('editProfileBtnWrap').classList.add('hidden');
+    hideProfileAlert();
+  }
+
+  function exitEditMode() {
+    document.getElementById('profileEditMode').classList.add('hidden');
+    document.getElementById('profileViewMode').classList.remove('hidden');
+    document.getElementById('editProfileBtnWrap').classList.remove('hidden');
+    // Reset edit fields to last known good values
+    document.getElementById('editUsername').value = _profileData.username || '';
+    document.getElementById('editPhone').value    = _profileData.phone_number || _profileData.phone || '';
+    hideProfileAlert();
+  }
+
+  async function saveProfile() {
+    const btn      = document.getElementById('saveProfileBtn');
+    const username = document.getElementById('editUsername').value.trim();
+    if (!username) { showProfileAlert('Username cannot be empty.'); return; }
+
+    btn.disabled  = true;
+    btn.innerHTML = `<span class="spinner inline-block w-4 h-4" style="border-width:2px;"></span> Saving…`;
+
+    const payload = { username };
+    try {
+      const res  = await Auth.fetch(`${API}/auth/profile/`, { method: 'PATCH', body: JSON.stringify(payload) });
+      const data = await res.json();
+      if (!res.ok) {
+        const raw = data.username?.[0] || data.error || data.detail || 'Update failed.';
+        showProfileAlert(Array.isArray(raw) ? raw.join(' ') : raw);
+        return;
+      }
+      showProfileAlert('Profile updated successfully!', 'ok');
+      await fetchProfile();
+      exitEditMode();
+    } catch {
+      showProfileAlert('Network error. Please try again.');
+    } finally {
+      btn.disabled  = false;
+      btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Save Changes`;
+    }
+  }
+
+  /* ── OTP MODAL ── */
+  let _otpPendingPhone = '';
+
+  function openOtpModal() {
+    document.getElementById('otpNewPhone').value = '';
+    clearOtpDigits();
+    showOtpStep(1);
+    hideOtpAlert(1); hideOtpAlert(2);
+    document.getElementById('otpModalBackdrop').classList.add('open');
+    setTimeout(() => document.getElementById('otpNewPhone').focus(), 350);
+  }
+
+  function closeOtpModal() {
+    document.getElementById('otpModalBackdrop').classList.remove('open');
+    _otpPendingPhone = '';
+  }
+
+  function showOtpStep(n) {
+    document.querySelectorAll('.otp-step').forEach(s => s.classList.remove('active'));
+    document.getElementById(`otpStep${n}`).classList.add('active');
+  }
+  function goToOtpStep(n) { showOtpStep(n); }
+
+  function showOtpAlert(step, msg, type = 'error') {
+    const bar = document.getElementById(`step${step}Alert`);
+    document.getElementById(`step${step}AlertMsg`).textContent = msg;
+    bar.className = `otp-modal-alert show ${type}`;
+  }
+  function hideOtpAlert(step) {
+    const bar = document.getElementById(`step${step}Alert`);
+    if (bar) bar.className = 'otp-modal-alert';
+  }
+
+  async function requestOtp(isResend = false) {
+    const phone = (document.getElementById('otpNewPhone').value || '').trim();
+    if (!phone) { showOtpAlert(1, 'Please enter a phone number.'); return; }
+    if (!/^(07|01)\d{8}$/.test(phone)) {
+      showOtpAlert(1, 'Phone must be 10 digits starting with 07 or 01.');
+      return;
+    }
+    const btn = document.getElementById('sendOtpBtn');
+    const resendBtn = document.getElementById('resendBtn');
+    if (isResend) {
+      resendBtn.disabled = true;
+      resendBtn.textContent = 'Sending…';
+    } else {
+      btn.disabled  = true;
+      btn.innerHTML = `<span class="spinner inline-block w-4 h-4 mr-2" style="border-width:2px;vertical-align:middle;"></span> Sending…`;
+    }
+    try {
+      const res  = await Auth.fetch(`${API}/auth/phone-change/request-otp/`, {
+        method: 'POST', body: JSON.stringify({ new_phone: phone }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        const msg = data.error || data.detail || 'Failed to send code.';
+        showOtpAlert(1, msg);
+        return;
+      }
+      _otpPendingPhone = phone;
+      // Show which email the code went to (masked)
+      const email = _profileData.email || '';
+      const masked = email ? email.replace(/(.{2}).+(@.+)/, '$1***$2') : 'your registered email';
+      document.getElementById('otpEmailDisplay').textContent = masked;
+      clearOtpDigits();
+      hideOtpAlert(2);
+      showOtpStep(2);
+      setTimeout(() => document.querySelectorAll('.otp-digit')[0]?.focus(), 200);
+      if (isResend) showOtpAlert(2, 'A new code has been sent.', 'ok');
+    } catch {
+      showOtpAlert(1, 'Network error. Please check your connection.');
+    } finally {
+      btn.disabled  = false;
+      btn.innerHTML = 'Send Verification Code';
+      if (resendBtn) { resendBtn.disabled = false; resendBtn.textContent = "Didn't receive it? Resend code"; }
+    }
+  }
+
+  async function verifyOtp() {
+    const digits = [...document.querySelectorAll('.otp-digit')].map(d => d.value).join('');
+    if (digits.length < 6) { showOtpAlert(2, 'Please enter all 6 digits.'); return; }
+    const btn = document.getElementById('verifyOtpBtn');
+    btn.disabled  = true;
+    btn.innerHTML = `<span class="spinner inline-block w-4 h-4 mr-2" style="border-width:2px;vertical-align:middle;"></span> Verifying…`;
+    try {
+      const res  = await Auth.fetch(`${API}/auth/phone-change/verify-otp/`, {
+        method: 'POST',
+        body: JSON.stringify({ new_phone: _otpPendingPhone, otp: digits }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        const msg = data.error || data.detail || 'Verification failed.';
+        showOtpAlert(2, msg);
+        return;
+      }
+      // Success
+      document.getElementById('otpSuccessPhone').textContent = _otpPendingPhone;
+      showOtpStep(3);
+      // Update the profile data + UI without a full refetch
+      _profileData.phone_number = _otpPendingPhone;
+      document.getElementById('viewPhone').value = _otpPendingPhone;
+      document.getElementById('editPhone').value = _otpPendingPhone;
+      showProfileAlert('Phone number updated successfully!', 'ok');
+    } catch {
+      showOtpAlert(2, 'Network error. Please check your connection.');
+    } finally {
+      btn.disabled  = false;
+      btn.innerHTML = 'Verify &amp; Update';
+    }
+  }
+
+  /* OTP digit input keyboard navigation */
+  function clearOtpDigits() {
+    document.querySelectorAll('.otp-digit').forEach(d => { d.value = ''; d.classList.remove('filled'); });
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const digits = document.querySelectorAll('.otp-digit');
+    digits.forEach((input, idx) => {
+      input.addEventListener('input', (e) => {
+        const val = e.target.value.replace(/\D/g, '');
+        e.target.value = val.slice(-1);
+        e.target.classList.toggle('filled', !!e.target.value);
+        if (e.target.value && idx < digits.length - 1) digits[idx + 1].focus();
+      });
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Backspace' && !e.target.value && idx > 0) {
+          digits[idx - 1].focus();
+          digits[idx - 1].value = '';
+          digits[idx - 1].classList.remove('filled');
+        }
+        if (e.key === 'Enter') verifyOtp();
+      });
+      input.addEventListener('paste', (e) => {
+        e.preventDefault();
+        const pasted = (e.clipboardData.getData('text') || '').replace(/\D/g, '').slice(0, 6);
+        [...pasted].forEach((ch, i) => {
+          if (digits[i]) {
+            digits[i].value = ch;
+            digits[i].classList.add('filled');
+          }
+        });
+        digits[Math.min(pasted.length, 5)].focus();
+      });
+    });
+  });
+
+  /* ── BRANCHES ── */
   let branchList = [];
   let orderActiveBranch = { id: null, name: null };
 
   async function loadBranchesForOrder() {
-    if (branchList.length > 0) {
-      renderBranchSelectList();
-      return;
-    }
+    if (branchList.length > 0) { renderBranchSelectList(); return; }
     try {
       const res = await fetch(`${API}/branches/`);
       const raw = await res.json();
@@ -1002,8 +1473,8 @@
       return;
     }
     list.innerHTML = branchList.map(b => {
-      const bid  = b.branch_id || b.id;
-      const sel  = orderActiveBranch.id == bid;
+      const bid = b.branch_id || b.id;
+      const sel = orderActiveBranch.id == bid;
       return `<div class="branch-select-option${sel ? ' selected' : ''}" data-id="${bid}" data-name="${b.name}"
                    onclick="selectOrderBranch('${bid}', '${b.name}')">
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -1021,68 +1492,42 @@
     dd.classList.toggle('open', !isOpen);
     chv.style.transform = isOpen ? '' : 'rotate(180deg)';
   }
-
   function closeBranchDropdown() {
     document.getElementById('branchSelectDropdown').classList.remove('open');
     document.getElementById('branchSelectChevron').style.transform = '';
   }
-
   function selectOrderBranch(id, name) {
     orderActiveBranch = { id, name };
-
-    // Update trigger label
-    const trigger = document.getElementById('branchSelectTrigger');
-    const label   = document.getElementById('branchSelectLabel');
-    label.textContent = name;
-    trigger.classList.add('has-value');
-
-    // Highlight selected option
+    document.getElementById('branchSelectLabel').textContent = name;
+    document.getElementById('branchSelectTrigger').classList.add('has-value');
     document.querySelectorAll('#branchSelectList .branch-select-option').forEach(el => {
       el.classList.toggle('selected', el.dataset.id == id);
     });
-
     closeBranchDropdown();
-
-    // Reveal product grid + summary card, hide lock overlay
     document.getElementById('orderLockOverlay').classList.add('hidden');
     document.getElementById('orderProductGrid').classList.remove('hidden');
     document.getElementById('orderSummaryCard').classList.remove('hidden');
-
-    // Load products for selected branch
     loadOrderPanelProducts(id, name);
   }
-
-  // Close dropdown when clicking outside
   document.addEventListener('click', function(e) {
     const wrapper = document.getElementById('branchSelectWrapper');
-    if (wrapper && !wrapper.contains(e.target)) {
-      closeBranchDropdown();
-    }
+    if (wrapper && !wrapper.contains(e.target)) closeBranchDropdown();
   });
 
-  /* ─────────────────────────────────────────────
-     PRODUCT NORMALIZER
-  ───────────────────────────────────────────── */
+  /* ── PRODUCT NORMALIZER ── */
   function normalizeProduct(raw) {
     const p = (raw.product && typeof raw.product === 'object') ? raw.product : raw;
     return {
-      product_id:  p.product_id || p.id          || raw.product_id || raw.id,
-      name:        p.name       || p.title        || raw.name       || raw.title       || '—',
-      price:       parseFloat(p.price || p.unit_price || raw.price || raw.unit_price   || 0),
-      image:       p.image_url  || p.image        || raw.image_url  || raw.image       || '/static/images/placeholder.png',
-      stock:       raw.stock    !== undefined ? parseInt(raw.stock)
-                 : raw.quantity !== undefined ? parseInt(raw.quantity)
-                 : p.stock      !== undefined ? parseInt(p.stock)
-                 : 99,
+      product_id: p.product_id || p.id || raw.product_id || raw.id,
+      name:       p.name || p.title || raw.name || raw.title || '—',
+      price:      parseFloat(p.price || p.unit_price || raw.price || raw.unit_price || 0),
+      image:      p.image_url || p.image || raw.image_url || raw.image || '/static/images/placeholder.png',
+      stock:      raw.stock !== undefined ? parseInt(raw.stock) : raw.quantity !== undefined ? parseInt(raw.quantity) : p.stock !== undefined ? parseInt(p.stock) : 99,
     };
   }
 
-  /* ─────────────────────────────────────────────
-     CATALOGUE PRODUCTS
-     Loads ALL products from /api/products/ (no branch filter)
-  ───────────────────────────────────────────── */
+  /* ── CATALOGUE ── */
   let allProducts = [];
-
   async function loadCatalogueProducts() {
     const grid = document.getElementById('productGrid');
     grid.innerHTML = [1,2,3].map(() => `<div class="product-card skeleton h-64"></div>`).join('');
@@ -1101,24 +1546,19 @@
     grid.innerHTML = arr.map((p, i) => `
       <div class="product-card" style="animation-delay:${i * 0.05}s">
         <div class="h-40 flex items-center justify-center mb-4">
-          <img src="${p.image}"
-               class="max-h-full max-w-[130px] drop-shadow-2xl object-contain transition-transform hover:scale-110 duration-300"
-               onerror="this.src='/static/images/placeholder.png'">
+          <img src="${p.image}" class="max-h-full max-w-[130px] drop-shadow-2xl object-contain transition-transform hover:scale-110 duration-300" onerror="this.src='/static/images/placeholder.png'">
         </div>
         <p class="font-body text-wdtext mb-2 text-center font-medium">${p.name}</p>
         <div class="price-badge">KES ${p.price.toFixed(2)}</div>
       </div>`).join('');
   }
-
   function filterProducts() {
     const q = document.getElementById('searchInput').value.toLowerCase();
     renderProducts(allProducts.filter(p => p.name.toLowerCase().includes(q)));
   }
   function resetSearch() { document.getElementById('searchInput').value = ''; renderProducts(allProducts); }
 
-  /* ─────────────────────────────────────────────
-     PANEL NAVIGATION
-  ───────────────────────────────────────────── */
+  /* ── PANEL NAVIGATION ── */
   function showCatalogue(navEl, pushState = true) {
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
     if (navEl) navEl.classList.add('active');
@@ -1128,25 +1568,17 @@
     if (pushState) history.pushState({ panel: 'catalogue' }, '', '/dashboard/');
   }
 
-  const PANEL_URLS = {
-    profile:      '/profile/',
-    transactions: '/transactions/',
-    order:        '/order/',
-    payment:      '/payment/',
-  };
+  const PANEL_URLS = { profile:'/profile/', transactions:'/transactions/', order:'/order/', payment:'/payment/' };
 
   function showPanel(type, navEl, pushState = true) {
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
     if (navEl) navEl.classList.add('active');
-
     document.getElementById('catalogueView').classList.add('hide');
     document.getElementById('inlinePanel').classList.add('show');
-
     document.getElementById('profileContent').classList.toggle('hidden',      type !== 'profile');
     document.getElementById('transactionsContent').classList.toggle('hidden', type !== 'transactions');
     document.getElementById('orderContent').classList.toggle('hidden',        type !== 'order');
     document.getElementById('paymentContent').classList.toggle('hidden',      type !== 'payment');
-
     if (type === 'profile')      fetchProfile();
     if (type === 'transactions') loadTransactions();
     closeMobileSidebar();
@@ -1158,12 +1590,11 @@
     document.getElementById('catalogueView').classList.remove('hide');
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
     document.getElementById('catalogueNav').classList.add('active');
+    exitEditMode();
     if (pushState) history.pushState({ panel: 'catalogue' }, '', '/dashboard/');
   }
 
-  /* ─────────────────────────────────────────────
-     ORDER PANEL
-  ───────────────────────────────────────────── */
+  /* ── ORDER PANEL ── */
   function openOrderPanel(pushState = true) {
     showPanel('order', null, pushState);
     resetOrderPanel();
@@ -1171,43 +1602,29 @@
   }
 
   function resetOrderPanel() {
-    // Reset branch selection
     orderActiveBranch = { id: null, name: null };
-
-    const trigger = document.getElementById('branchSelectTrigger');
     const label   = document.getElementById('branchSelectLabel');
+    const trigger = document.getElementById('branchSelectTrigger');
     if (label)   label.textContent = '— Select Branch —';
     if (trigger) trigger.classList.remove('has-value');
-
-    // Highlight nothing in the list
-    document.querySelectorAll('#branchSelectList .branch-select-option').forEach(el => {
-      el.classList.remove('selected');
-    });
-
-    // Show lock overlay, hide product grid + summary
+    document.querySelectorAll('#branchSelectList .branch-select-option').forEach(el => el.classList.remove('selected'));
     document.getElementById('orderLockOverlay').classList.remove('hidden');
     document.getElementById('orderProductGrid').classList.add('hidden');
     document.getElementById('orderNoProducts').classList.add('hidden');
     document.getElementById('orderSummaryCard').classList.add('hidden');
-
-    // Reset cart state
-    orderProducts = [];
-    orderCart = {};
-    updateOrderSummary();
-    hideOrderAlert();
+    orderProducts = []; orderCart = {};
+    updateOrderSummary(); hideOrderAlert();
   }
 
   let orderProducts = [];
   let orderCart     = {};
 
-  async function loadOrderPanelProducts(branchId, branchName) {
+  async function loadOrderPanelProducts(branchId) {
     orderCart = {};
-
     const grid = document.getElementById('orderProductGrid');
     grid.innerHTML = [1,2,3].map(() => `<div class="product-card skeleton h-72"></div>`).join('');
     document.getElementById('orderNoProducts').classList.add('hidden');
     updateOrderSummary();
-
     try {
       let res = await Auth.fetch(`${API}/inventory/${branchId}/`);
       if (!res.ok) res = await Auth.fetch(`${API}/products/`);
@@ -1215,53 +1632,29 @@
       const list = Array.isArray(raw) ? raw : (raw.results || raw.products || raw.inventory || []);
       orderProducts = list.map(normalizeProduct);
       renderOrderGrid();
-    } catch {
-      grid.innerHTML = '';
-      showOrderAlert('Failed to load products. Please try again.');
-    }
+    } catch { grid.innerHTML = ''; showOrderAlert('Failed to load products. Please try again.'); }
   }
 
   function renderOrderGrid() {
     const grid = document.getElementById('orderProductGrid');
     const noP  = document.getElementById('orderNoProducts');
-
-    if (!orderProducts.length) {
-      grid.innerHTML = '';
-      noP.classList.remove('hidden');
-      return;
-    }
+    if (!orderProducts.length) { grid.innerHTML = ''; noP.classList.remove('hidden'); return; }
     noP.classList.add('hidden');
-
     grid.innerHTML = orderProducts.map((p, i) => {
-      const pid   = p.product_id;
-      const stock = p.stock;
-      const qty   = orderCart[pid] || 0;
-      const oos   = stock === 0;
-
+      const pid = p.product_id, stock = p.stock, qty = orderCart[pid] || 0, oos = stock === 0;
       return `
         <div class="product-card" style="animation-delay:${i * 0.05}s;">
-          ${oos ? `
-          <div style="position:absolute;inset:0;background:rgba(10,37,64,0.78);border-radius:20px;display:flex;align-items:center;justify-content:center;z-index:5;">
-            <span class="font-head text-sm font-bold" style="color:rgba(255,107,107,0.85);">Out of Stock</span>
-          </div>` : ''}
+          ${oos ? `<div style="position:absolute;inset:0;background:rgba(10,37,64,0.78);border-radius:20px;display:flex;align-items:center;justify-content:center;z-index:5;"><span class="font-head text-sm font-bold" style="color:rgba(255,107,107,0.85);">Out of Stock</span></div>` : ''}
           <div class="h-36 flex items-center justify-center mb-3">
-            <img src="${p.image}" alt="${p.name}"
-                 class="max-h-full max-w-[120px] drop-shadow-2xl object-contain transition-transform hover:scale-110 duration-300"
-                 onerror="this.src='/static/images/placeholder.png'"/>
+            <img src="${p.image}" alt="${p.name}" class="max-h-full max-w-[120px] drop-shadow-2xl object-contain transition-transform hover:scale-110 duration-300" onerror="this.src='/static/images/placeholder.png'"/>
           </div>
           <p class="font-body text-wdtext text-center font-medium text-sm mb-1 px-1 leading-snug">${p.name}</p>
           <div class="price-badge mb-3">KES ${p.price.toFixed(2)}</div>
           ${stock > 0 && stock <= 10 ? `<p class="text-xs mb-2" style="color:#f59e0b;">Only ${stock} left</p>` : ''}
           <div class="flex items-center gap-3 mt-auto">
-            <button id="btn-minus-${pid}" onclick="changeQty('${pid}', -1)"
-              class="qty-btn w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xl transition-all select-none"
-              style="background:rgba(0,200,150,0.1);border:1px solid rgba(0,200,150,0.25);color:#00C896;"
-              ${qty === 0 || oos ? 'disabled' : ''}>−</button>
+            <button id="btn-minus-${pid}" onclick="changeQty('${pid}', -1)" class="qty-btn w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xl transition-all select-none" style="background:rgba(0,200,150,0.1);border:1px solid rgba(0,200,150,0.25);color:#00C896;" ${qty === 0 || oos ? 'disabled' : ''}>−</button>
             <span id="qty-${pid}" class="w-8 text-center font-head font-bold text-base text-wdtext select-none">${qty}</span>
-            <button id="btn-plus-${pid}" onclick="changeQty('${pid}', 1)"
-              class="qty-btn w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xl transition-all select-none"
-              style="background:rgba(0,200,150,0.1);border:1px solid rgba(0,200,150,0.25);color:#00C896;"
-              ${qty >= stock || oos ? 'disabled' : ''}>+</button>
+            <button id="btn-plus-${pid}" onclick="changeQty('${pid}', 1)" class="qty-btn w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xl transition-all select-none" style="background:rgba(0,200,150,0.1);border:1px solid rgba(0,200,150,0.25);color:#00C896;" ${qty >= stock || oos ? 'disabled' : ''}>+</button>
           </div>
         </div>`;
     }).join('');
@@ -1270,16 +1663,15 @@
   function changeQty(pid, delta) {
     const product = orderProducts.find(p => p.product_id == pid);
     if (!product) return;
-    const stock   = product.stock !== undefined ? parseInt(product.stock) : 99;
-    const current = orderCart[pid] || 0;
-    const next    = Math.max(0, Math.min(stock, current + delta));
+    const stock = parseInt(product.stock ?? 99);
+    const next  = Math.max(0, Math.min(stock, (orderCart[pid] || 0) + delta));
     if (next === 0) { delete orderCart[pid]; } else { orderCart[pid] = next; }
-    const qtyEl    = document.getElementById(`qty-${pid}`);
-    const btnMinus = document.getElementById(`btn-minus-${pid}`);
-    const btnPlus  = document.getElementById(`btn-plus-${pid}`);
-    if (qtyEl)    qtyEl.textContent = next;
-    if (btnMinus) btnMinus.disabled = next === 0;
-    if (btnPlus)  btnPlus.disabled  = next >= stock;
+    const qtyEl = document.getElementById(`qty-${pid}`);
+    const bm    = document.getElementById(`btn-minus-${pid}`);
+    const bp    = document.getElementById(`btn-plus-${pid}`);
+    if (qtyEl) qtyEl.textContent = next;
+    if (bm)    bm.disabled = next === 0;
+    if (bp)    bp.disabled = next >= stock;
     updateOrderSummary();
   }
 
@@ -1287,442 +1679,257 @@
     const summaryEl = document.getElementById('orderSummaryList');
     const totalEl   = document.getElementById('orderTotalDisplay');
     const placeBtn  = document.getElementById('placeOrderBtn');
-    const cartKeys  = Object.keys(orderCart);
-
-    if (!cartKeys.length) {
+    const keys = Object.keys(orderCart);
+    if (!keys.length) {
       if (summaryEl) summaryEl.innerHTML = `<p class="text-sm" style="color:rgba(122,154,176,0.6);">No items selected yet.</p>`;
       if (totalEl)   totalEl.value = '0.00';
       if (placeBtn)  placeBtn.disabled = true;
       return;
     }
-
     let total = 0;
-    const lines = cartKeys.map(pid => {
+    const lines = keys.map(pid => {
       const p = orderProducts.find(pr => pr.product_id == pid);
       if (!p) return '';
-      const qty = orderCart[pid];
-      const sub = qty * p.price;
-      total += sub;
-      return `
-        <div class="flex items-center justify-between py-1.5" style="border-bottom:1px solid rgba(0,200,150,0.07);">
-          <div class="flex items-center gap-2">
-            <span class="text-sm text-wdtext">${p.name}</span>
-            <span class="text-xs px-1.5 py-0.5 rounded-md font-head font-bold" style="background:rgba(0,200,150,0.1);color:#00C896;">×${qty}</span>
-          </div>
-          <span class="text-sm font-head font-semibold text-wdtext">KES ${sub.toFixed(2)}</span>
-        </div>`;
+      const sub = orderCart[pid] * p.price; total += sub;
+      return `<div class="flex items-center justify-between py-1.5" style="border-bottom:1px solid rgba(0,200,150,0.07);">
+        <div class="flex items-center gap-2">
+          <span class="text-sm text-wdtext">${p.name}</span>
+          <span class="text-xs px-1.5 py-0.5 rounded-md font-head font-bold" style="background:rgba(0,200,150,0.1);color:#00C896;">×${orderCart[pid]}</span>
+        </div>
+        <span class="text-sm font-head font-semibold text-wdtext">KES ${sub.toFixed(2)}</span>
+      </div>`;
     });
-
     if (summaryEl) summaryEl.innerHTML = lines.join('');
     if (totalEl)   totalEl.value = total.toFixed(2);
     if (placeBtn)  placeBtn.disabled = false;
   }
 
   async function submitOrder() {
-    const btn      = document.getElementById('placeOrderBtn');
-    const cartKeys = Object.keys(orderCart);
-    if (!cartKeys.length) { showOrderAlert('Please select at least one item.'); return; }
-    if (!orderActiveBranch.id) { showOrderAlert('Please select a branch before placing your order.'); return; }
-
-    const payload = {
-      branch_id: orderActiveBranch.id,
-      items: cartKeys.map(pid => ({ product_id: pid, quantity: orderCart[pid] })),
-    };
-
+    const btn  = document.getElementById('placeOrderBtn');
+    const keys = Object.keys(orderCart);
+    if (!keys.length)             { showOrderAlert('Please select at least one item.');                       return; }
+    if (!orderActiveBranch.id)    { showOrderAlert('Please select a branch before placing your order.');       return; }
+    const payload = { branch_id: orderActiveBranch.id, items: keys.map(pid => ({ product_id: pid, quantity: orderCart[pid] })) };
     btn.disabled  = true;
     btn.innerHTML = `<span class="spinner inline-block w-5 h-5 mr-2" style="vertical-align:middle;"></span> Placing Order…`;
-
     try {
       const res  = await Auth.fetch(`${API}/orders/`, { method: 'POST', body: JSON.stringify(payload) });
       const data = await res.json();
       if (!res.ok) {
         const raw = data.error || data.detail || data.items?.[0] || data.branch_id?.[0];
-        const msg = Array.isArray(raw) ? raw.join(' ') : (raw || 'Order failed. Please try again.');
-        showOrderAlert(msg);
-        btn.disabled  = false;
-        btn.innerHTML = 'Place Order';
-        return;
+        showOrderAlert(Array.isArray(raw) ? raw.join(' ') : (raw || 'Order failed.'));
+        btn.disabled  = false; btn.innerHTML = 'Place Order'; return;
       }
       const orderId = data.data?.order_id || data.order_id || '';
       showOrderAlert('Order placed! Opening payment…', 'ok');
-      // Re-enable the button and reset cart so the order panel is clean if user returns
-      btn.disabled  = false;
-      btn.innerHTML = 'Place Order';
+      btn.disabled  = false; btn.innerHTML = 'Place Order';
       setTimeout(() => { openPaymentPanel(orderId); }, 1200);
     } catch {
       showOrderAlert('Network error. Please check your connection.');
-      btn.disabled  = false;
-      btn.innerHTML = 'Place Order';
+      btn.disabled  = false; btn.innerHTML = 'Place Order';
     }
   }
 
-  /* ─────────────────────────────────────────────
-     PROFILE
-  ───────────────────────────────────────────── */
-  async function fetchProfile() {
-    try {
-      const res  = await Auth.fetch(`${API}/auth/profile/`);
-      const user = await res.json();
-      const init = user.username ? user.username.charAt(0).toUpperCase() : '?';
-      document.getElementById('usernameDisplay').textContent   = user.username;
-      document.getElementById('headerUsername').textContent    = user.username;
-      document.getElementById('avatarInitial').textContent     = init;
-      document.getElementById('profileAvatar').textContent     = init;
-      document.getElementById('profileNameHeader').textContent = user.username;
-      document.getElementById('profileIdDisplay').textContent  = `USER ID: ${user.user_id || '---'}`;
-      document.getElementById('inputUsername').value = user.username;
-      document.getElementById('inputEmail').value    = user.email;
-      document.getElementById('inputPhone').value    = user.phone_number || user.phone || '';
-    } catch { console.error('Profile load failed'); }
-  }
-
-  document.getElementById('profileUpdateForm').onsubmit = async (e) => {
-    e.preventDefault();
-    const btn = e.target.querySelector('button');
-    btn.disabled = true; btn.textContent = 'Updating…';
-    const payload = {
-      username:     document.getElementById('inputUsername').value,
-      phone_number: document.getElementById('inputPhone').value,
-    };
-    try {
-      const res = await Auth.fetch(`${API}/auth/profile/`, { method: 'PATCH', body: JSON.stringify(payload) });
-      if (!res.ok) throw new Error();
-      showAlert('Profile updated successfully!', 'ok');
-      fetchProfile();
-    } catch { showAlert('Failed to update profile'); }
-    finally { btn.disabled = false; btn.textContent = 'Update Profile Details'; }
-  };
-
-  /* ─────────────────────────────────────────────
-     TRANSACTIONS
-  ───────────────────────────────────────────── */
+  /* ── TRANSACTIONS ── */
   function switchTxTab(tab) {
-    const isPayments = tab === 'payments';
-    document.getElementById('txPanePayments').classList.toggle('hidden', !isPayments);
-    document.getElementById('txPaneOrders').classList.toggle('hidden',   isPayments);
+    const isP = tab === 'payments';
+    document.getElementById('txPanePayments').classList.toggle('hidden', !isP);
+    document.getElementById('txPaneOrders').classList.toggle('hidden',    isP);
     const on  = 'background:rgba(0,200,150,0.12);border:1px solid rgba(0,200,150,0.3);color:#00C896;';
     const off = 'background:transparent;border:1px solid rgba(122,154,176,0.2);color:#7A9AB0;';
-    document.getElementById('txTabPayments').style.cssText = isPayments ? on : off;
-    document.getElementById('txTabOrders').style.cssText   = isPayments ? off : on;
+    document.getElementById('txTabPayments').style.cssText = isP ? on : off;
+    document.getElementById('txTabOrders').style.cssText   = isP ? off : on;
   }
-
   function txStatusBadge(s) {
     const map = {
-      SUCCESS:   'background:rgba(0,200,150,0.15);color:#00C896;border:1px solid rgba(0,200,150,0.3);',
-      COMPLETED: 'background:rgba(0,200,150,0.15);color:#00C896;border:1px solid rgba(0,200,150,0.3);',
-      PENDING:   'background:rgba(245,158,11,0.15);color:#fbbf24;border:1px solid rgba(245,158,11,0.3);',
-      FAILED:    'background:rgba(255,107,107,0.15);color:#ff8080;border:1px solid rgba(255,107,107,0.3);',
-      CANCELLED: 'background:rgba(122,154,176,0.15);color:#A0C4D8;border:1px solid rgba(122,154,176,0.3);',
+      SUCCESS:'background:rgba(0,200,150,0.15);color:#00C896;border:1px solid rgba(0,200,150,0.3);',
+      COMPLETED:'background:rgba(0,200,150,0.15);color:#00C896;border:1px solid rgba(0,200,150,0.3);',
+      PENDING:'background:rgba(245,158,11,0.15);color:#fbbf24;border:1px solid rgba(245,158,11,0.3);',
+      FAILED:'background:rgba(255,107,107,0.15);color:#ff8080;border:1px solid rgba(255,107,107,0.3);',
+      CANCELLED:'background:rgba(122,154,176,0.15);color:#A0C4D8;border:1px solid rgba(122,154,176,0.3);',
     };
-    const st    = map[s] || map.CANCELLED;
-    const label = s ? (s.charAt(0) + s.slice(1).toLowerCase()) : '—';
-    return `<span style="display:inline-block;padding:3px 10px;border-radius:100px;font-size:11px;font-weight:600;white-space:nowrap;${st}">${label}</span>`;
+    const st = map[s] || map.CANCELLED;
+    return `<span style="display:inline-block;padding:3px 10px;border-radius:100px;font-size:11px;font-weight:600;white-space:nowrap;${st}">${s ? (s.charAt(0)+s.slice(1).toLowerCase()) : '—'}</span>`;
   }
-
   function fmtDateTime(iso) {
     if (!iso) return '—';
     const d = new Date(iso);
-    return d.toLocaleDateString('en-KE', { day:'2-digit', month:'short', year:'numeric' })
-      + ' ' + d.toLocaleTimeString('en-KE', { hour:'2-digit', minute:'2-digit' });
+    return d.toLocaleDateString('en-KE',{day:'2-digit',month:'short',year:'numeric'})+' '+d.toLocaleTimeString('en-KE',{hour:'2-digit',minute:'2-digit'});
   }
-
   function fmtDateOnly(iso) {
     if (!iso) return '—';
-    return new Date(iso).toLocaleDateString('en-KE', { day:'2-digit', month:'short', year:'numeric' });
+    return new Date(iso).toLocaleDateString('en-KE',{day:'2-digit',month:'short',year:'numeric'});
   }
-
-  function fmtKES(v) {
-    return 'KES ' + parseFloat(v).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-  }
+  function fmtKES(v) { return 'KES '+parseFloat(v).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,','); }
 
   async function loadTransactions() {
     switchTxTab('payments');
     loadPaymentsTable();
     loadOrdersTable();
   }
-
   async function loadPaymentsTable() {
     const tbody = document.getElementById('paymentsTableBody');
     try {
       const res  = await Auth.fetch(`${API}/payments/history/`);
       const raw  = await res.json();
       const list = Array.isArray(raw) ? raw : (raw.results || []);
-
-      if (list.length > 0) console.log('Payment record sample:', list[0]);
-
-      if (!list.length) {
-        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:2.5rem;color:#7A9AB0;font-size:13px;">No payment records found.</td></tr>`;
-        return;
-      }
-
-      tbody.innerHTML = list.map(p => {
-        return `
-          <tr style="border-top:1px solid rgba(0,200,150,0.07);transition:background 0.15s;"
-              onmouseover="this.style.background='rgba(0,200,150,0.04)'"
-              onmouseout="this.style.background=''">
-            <td style="padding:12px 16px;" class="td-id">${p.payment_id || '—'}</td>
-            <td style="padding:12px 16px;" class="td-id">${p.order_id   || '—'}</td>
-            <td style="padding:12px 16px;" class="td-amt">${fmtKES(p.amount)}</td>
-            <td style="padding:12px 16px;">${txStatusBadge(p.status)}</td>
-            <td style="padding:12px 16px;" class="td-receipt">${p.receipt_number || '—'}</td>
-            <td style="padding:12px 16px;" class="td-date">${fmtDateTime(p.created_at)}</td>
-          </tr>`;
-      }).join('');
-
-    } catch(err) {
-      console.error('Payments load error:', err);
-      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:2.5rem;color:#ff8080;font-size:13px;">Failed to load payments. Please try again.</td></tr>`;
-    }
+      if (!list.length) { tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:2.5rem;color:#7A9AB0;font-size:13px;">No payment records found.</td></tr>`; return; }
+      tbody.innerHTML = list.map(p => `
+        <tr style="border-top:1px solid rgba(0,200,150,0.07);" onmouseover="this.style.background='rgba(0,200,150,0.04)'" onmouseout="this.style.background=''">
+          <td style="padding:12px 16px;" class="td-id">${p.payment_id||'—'}</td>
+          <td style="padding:12px 16px;" class="td-id">${p.order_id||'—'}</td>
+          <td style="padding:12px 16px;" class="td-amt">${fmtKES(p.amount)}</td>
+          <td style="padding:12px 16px;">${txStatusBadge(p.status)}</td>
+          <td style="padding:12px 16px;" class="td-receipt">${p.receipt_number||'—'}</td>
+          <td style="padding:12px 16px;" class="td-date">${fmtDateTime(p.created_at)}</td>
+        </tr>`).join('');
+    } catch { tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:2.5rem;color:#ff8080;font-size:13px;">Failed to load payments.</td></tr>`; }
   }
-
   async function loadOrdersTable() {
     const tbody = document.getElementById('ordersTableBody');
     try {
       const res  = await Auth.fetch(`${API}/orders/history/`);
       const raw  = await res.json();
       const list = Array.isArray(raw) ? raw : (raw.results || []);
-
-      if (list.length > 0) console.log('Order record sample:', list[0]);
-
-      if (!list.length) {
-        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:2.5rem;color:#7A9AB0;font-size:13px;">No orders found.</td></tr>`;
-        return;
-      }
-
+      if (!list.length) { tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:2.5rem;color:#7A9AB0;font-size:13px;">No orders found.</td></tr>`; return; }
       tbody.innerHTML = list.map(o => {
-        const itemCount  = (o.items || []).length;
-        const canPay     = o.status === 'PENDING';
-        const actionCell = canPay
-          ? `<button
-               onclick="openPaymentPanel('${o.order_id}')"
-               style="padding:5px 14px;border-radius:10px;border:1px solid rgba(0,200,150,0.35);
-                      background:rgba(0,200,150,0.1);color:#00C896;font-size:12px;font-weight:600;
-                      cursor:pointer;transition:all 0.15s;white-space:nowrap;"
-               onmouseover="this.style.background='rgba(0,200,150,0.22)'"
-               onmouseout="this.style.background='rgba(0,200,150,0.1)'">
-               Pay now ↗
-             </button>`
+        const cnt = (o.items||[]).length;
+        const act = o.status==='PENDING'
+          ? `<button onclick="openPaymentPanel('${o.order_id}')" style="padding:5px 14px;border-radius:10px;border:1px solid rgba(0,200,150,0.35);background:rgba(0,200,150,0.1);color:#00C896;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.15s;white-space:nowrap;" onmouseover="this.style.background='rgba(0,200,150,0.22)'" onmouseout="this.style.background='rgba(0,200,150,0.1)'">Pay now ↗</button>`
           : `<span style="font-size:12px;color:rgba(160,196,216,0.35);">—</span>`;
-
-        return `
-          <tr style="border-top:1px solid rgba(0,200,150,0.07);transition:background 0.15s;"
-              onmouseover="this.style.background='rgba(0,200,150,0.04)'"
-              onmouseout="this.style.background=''">
-            <td style="padding:12px 16px;" class="td-id">${o.order_id || '—'}</td>
-            <td style="padding:12px 16px;" class="td-main">${o.branch?.name || '—'}</td>
-            <td style="padding:12px 16px;" class="td-sub">${itemCount} item${itemCount !== 1 ? 's' : ''}</td>
-            <td style="padding:12px 16px;" class="td-amt">${fmtKES(o.total_price)}</td>
-            <td style="padding:12px 16px;">${txStatusBadge(o.status)}</td>
-            <td style="padding:12px 16px;" class="td-date">${fmtDateOnly(o.created_at)}</td>
-            <td style="padding:12px 16px;">${actionCell}</td>
-          </tr>`;
+        return `<tr style="border-top:1px solid rgba(0,200,150,0.07);" onmouseover="this.style.background='rgba(0,200,150,0.04)'" onmouseout="this.style.background=''">
+          <td style="padding:12px 16px;" class="td-id">${o.order_id||'—'}</td>
+          <td style="padding:12px 16px;" class="td-main">${o.branch?.name||'—'}</td>
+          <td style="padding:12px 16px;" class="td-sub">${cnt} item${cnt!==1?'s':''}</td>
+          <td style="padding:12px 16px;" class="td-amt">${fmtKES(o.total_price)}</td>
+          <td style="padding:12px 16px;">${txStatusBadge(o.status)}</td>
+          <td style="padding:12px 16px;" class="td-date">${fmtDateOnly(o.created_at)}</td>
+          <td style="padding:12px 16px;">${act}</td>
+        </tr>`;
       }).join('');
-
-    } catch(err) {
-      console.error('Orders load error:', err);
-      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:2.5rem;color:#ff8080;font-size:13px;">Failed to load orders. Please try again.</td></tr>`;
-    }
+    } catch { tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:2.5rem;color:#ff8080;font-size:13px;">Failed to load orders.</td></tr>`; }
   }
 
-  /* ─────────────────────────────────────────────
-     URL ROUTING — pushState + deep-link support
-  ───────────────────────────────────────────── */
-
+  /* ── ROUTING ── */
   function routeToPath(path, pushState) {
-    if (path === '/profile/') {
-      showPanel('profile', document.getElementById('profileNav'), pushState);
-    } else if (path === '/transactions/') {
-      showPanel('transactions', document.querySelector('[onclick*="transactions"]'), pushState);
-    } else if (path === '/order/') {
-      openOrderPanel(pushState);
-    } else if (path === '/payment/' || path.startsWith('/payment/')) {
+    if (path === '/profile/')          showPanel('profile', document.getElementById('profileNav'), pushState);
+    else if (path === '/transactions/') showPanel('transactions', document.querySelector('[onclick*="transactions"]'), pushState);
+    else if (path === '/order/')        openOrderPanel(pushState);
+    else if (path.startsWith('/payment/')) {
       const orderId = new URLSearchParams(window.location.search).get('order_id');
       openPaymentPanel(orderId, pushState);
-    } else {
-      showCatalogue(document.getElementById('catalogueNav'), pushState);
-    }
+    } else showCatalogue(document.getElementById('catalogueNav'), pushState);
   }
-
-  /* Browser back / forward buttons */
-  window.addEventListener('popstate', function (e) {
+  window.addEventListener('popstate', function(e) {
     const panel = e.state && e.state.panel;
-    if (panel && panel !== 'catalogue') {
-      routeToPath(PANEL_URLS[panel] || '/dashboard/', false);
-    } else {
-      showCatalogue(document.getElementById('catalogueNav'), false);
-    }
+    if (panel && panel !== 'catalogue') routeToPath(PANEL_URLS[panel] || '/dashboard/', false);
+    else showCatalogue(document.getElementById('catalogueNav'), false);
   });
 
-  /* ─────────────────────────────────────────────
-     INIT — runs on page load
-  ───────────────────────────────────────────── */
+  /* ── INIT ── */
   (function init() {
     fetchProfile();
     loadCatalogueProducts();
-
-    // Route to the correct panel based on current URL
-    const path = window.location.pathname;
-    const panelKey = (path === '/dashboard/' || path === '/') ? 'catalogue'
-                   : path.startsWith('/payment/') ? 'payment'
-                   : path.replace(/^\/|\/$/g, '');
+    const path     = window.location.pathname;
+    const panelKey = (path === '/dashboard/' || path === '/') ? 'catalogue' : path.startsWith('/payment/') ? 'payment' : path.replace(/^\/|\/$/g,'');
     history.replaceState({ panel: panelKey }, '', path + window.location.search);
     routeToPath(path, false);
-  })();  /* ─────────────────────────────────────────────
-     PAYMENT PANEL
-  ───────────────────────────────────────────── */
-  let payOrderId   = null;
-  let payPaymentId = null;
-  let payPollTimer = null;
-  let payPollCount = 0;
-  const PAY_MAX_POLLS    = 60;
-  const PAY_POLL_INTERVAL = 5000;
+  })();
+
+  /* ── PAYMENT PANEL ── */
+  let payOrderId = null, payPaymentId = null, payPollTimer = null, payPollCount = 0;
+  const PAY_MAX_POLLS = 60, PAY_POLL_INTERVAL = 5000;
 
   function openPaymentPanel(orderId, pushState = true) {
     payOrderId = orderId || null;
-    // Reset state FIRST so the panel renders clean when it appears
     resetPaymentPanel();
-    // Show payment nav item and switch to the panel
     document.getElementById('paymentNav').classList.remove('hidden');
     showPanel('payment', document.getElementById('paymentNav'), pushState);
-    if (payOrderId) {
-      fetchPayOrder(payOrderId);
-    } else {
-      showPayAlert('No order ID provided. Please go back and place your order again.');
-    }
+    if (payOrderId) fetchPayOrder(payOrderId);
+    else showPayAlert('No order ID provided. Please go back and place your order again.');
   }
-
   function resetPaymentPanel() {
-    payPaymentId = null;
-    payPollCount = 0;
-    clearTimeout(payPollTimer);
-    // Reset all pay-views: show only payViewPayment
+    payPaymentId = null; payPollCount = 0; clearTimeout(payPollTimer);
     showPayView('payViewPayment');
-    // Reset order summary skeleton
     document.getElementById('payOrderSkeleton').classList.remove('hidden');
     document.getElementById('payOrderDetails').classList.add('hidden');
-    // Reset pay button
     const btn = document.getElementById('payBtn');
     if (btn) { btn.disabled = false; btn.innerHTML = 'Pay via M-Pesa'; }
     hidePayAlert();
   }
-
   function showPayView(id) {
     document.querySelectorAll('.pay-view').forEach(v => v.classList.remove('active'));
     document.getElementById(id).classList.add('active');
   }
-
-  /* Alerts for payment panel */
   function showPayAlert(msg, type = 'error') {
     const bar = document.getElementById('payAlertBar');
     document.getElementById('payAlertMsg').textContent = msg;
     bar.className = `alert-bar show ${type === 'ok' ? 'ok' : 'error'}`;
     if (type === 'ok') setTimeout(hidePayAlert, 5000);
   }
-  function hidePayAlert() {
-    const bar = document.getElementById('payAlertBar');
-    if (bar) bar.className = 'alert-bar';
-  }
+  function hidePayAlert() { const b = document.getElementById('payAlertBar'); if (b) b.className = 'alert-bar'; }
 
-  /* Load order for payment panel */
   async function fetchPayOrder(id) {
     try {
       const res = await Auth.fetch(`${API}/orders/${id}/`);
-      if (!res.ok) { showPayAlert('Order not found or you do not have permission to view it.'); return; }
+      if (!res.ok) { showPayAlert('Order not found or no permission.'); return; }
       const data = await res.json();
       renderPayOrderSummary(data);
-      /* Pre-fill phone from profile */
-      const ph = document.getElementById('inputPhone')?.value || '';
+      const ph = document.getElementById('editPhone')?.value || document.getElementById('viewPhone')?.value || '';
       if (ph) document.getElementById('payPhoneInput').value = ph;
-    } catch {
-      showPayAlert('Failed to load order details. Please try again.');
-    }
+    } catch { showPayAlert('Failed to load order details.'); }
   }
-
   function renderPayOrderSummary(order) {
     document.getElementById('payOrderSkeleton').classList.add('hidden');
     document.getElementById('payOrderDetails').classList.remove('hidden');
     document.getElementById('payOrderIdBadge').textContent = order.order_id || order.id || '—';
     document.getElementById('payOrderBranch').textContent  = order.branch?.name || order.branch_name || '—';
-    const items  = order.items || [];
-    const listEl = document.getElementById('payOrderItemsList');
-    if (items.length) {
-      listEl.innerHTML = items.map(item => {
-        const name  = item.product?.name || item.product_name || item.name || '—';
-        const qty   = item.quantity || 0;
-        const price = parseFloat(item.price_at_purchase || item.price || 0);
-        const sub   = (qty * price).toFixed(2);
-        return `<div class="order-item-row">
-          <div class="flex items-center gap-2">
-            <span class="text-sm text-wdtext">${name}</span>
-            <span class="text-xs px-1.5 py-0.5 rounded-md font-head font-bold" style="background:rgba(0,200,150,0.1);color:#00C896;">×${qty}</span>
-          </div>
-          <span class="text-sm font-head font-semibold text-wdtext">KES ${sub}</span>
-        </div>`;
-      }).join('');
-    } else {
-      listEl.innerHTML = '<p class="text-sm py-2" style="color:rgba(122,154,176,0.6);">No item details available.</p>';
-    }
+    const items = order.items || [];
+    document.getElementById('payOrderItemsList').innerHTML = items.length
+      ? items.map(item => {
+          const name = item.product?.name || item.product_name || item.name || '—';
+          const qty  = item.quantity || 0;
+          const sub  = (qty * parseFloat(item.price_at_purchase || item.price || 0)).toFixed(2);
+          return `<div class="order-item-row"><div class="flex items-center gap-2"><span class="text-sm text-wdtext">${name}</span><span class="text-xs px-1.5 py-0.5 rounded-md font-head font-bold" style="background:rgba(0,200,150,0.1);color:#00C896;">×${qty}</span></div><span class="text-sm font-head font-semibold text-wdtext">KES ${sub}</span></div>`;
+        }).join('')
+      : '<p class="text-sm py-2" style="color:rgba(122,154,176,0.6);">No item details available.</p>';
     document.getElementById('payOrderTotal').textContent = parseFloat(order.total_price || order.total || 0).toFixed(2);
   }
-
-  /* Initiate M-Pesa payment */
   async function initiatePayment() {
     const phone = document.getElementById('payPhoneInput').value.trim();
     if (!phone) { showPayAlert('Please enter your M-Pesa phone number.'); return; }
-    if (!/^(07|01)\d{8}$/.test(phone)) {
-      showPayAlert('Phone number must be 10 digits starting with 07 or 01.');
-      return;
-    }
+    if (!/^(07|01)\d{8}$/.test(phone)) { showPayAlert('Phone number must be 10 digits starting with 07 or 01.'); return; }
     if (!payOrderId) { showPayAlert('No order ID found. Please go back and place your order again.'); return; }
     const btn = document.getElementById('payBtn');
-    btn.disabled  = true;
-    btn.innerHTML = `<span class="spinner inline-block w-5 h-5 mr-2" style="vertical-align:middle;border-width:2px;"></span> Sending Prompt…`;
+    btn.disabled = true; btn.innerHTML = `<span class="spinner inline-block w-5 h-5 mr-2" style="vertical-align:middle;border-width:2px;"></span> Sending Prompt…`;
     try {
-      const res  = await Auth.fetch(`${API}/payments/initiate/`, {
-        method: 'POST',
-        body:   JSON.stringify({ order_id: payOrderId, phone_number: phone }),
-      });
+      const res  = await Auth.fetch(`${API}/payments/initiate/`, { method:'POST', body:JSON.stringify({order_id:payOrderId,phone_number:phone}) });
       const data = await res.json();
       if (!res.ok) {
-        const errRaw = data.order_id?.[0] || data.phone_number?.[0] || data.error || data.detail || 'Payment initiation failed.';
-        const errMsg = Array.isArray(errRaw) ? errRaw.join(' ') : String(errRaw);
-        showPayAlert(errMsg);
-        btn.disabled  = false;
-        btn.innerHTML = 'Pay via M-Pesa';
-        return;
+        const raw = data.order_id?.[0] || data.phone_number?.[0] || data.error || data.detail || 'Payment initiation failed.';
+        showPayAlert(Array.isArray(raw) ? raw.join(' ') : String(raw));
+        btn.disabled = false; btn.innerHTML = 'Pay via M-Pesa'; return;
       }
       payPaymentId = data.payment_id;
       document.getElementById('payPollPhone').textContent = phone;
       showPayView('payViewPolling');
       startPayPolling();
     } catch {
-      showPayAlert('Network error. Please check your connection and try again.');
-      btn.disabled  = false;
-      btn.innerHTML = 'Pay via M-Pesa';
+      showPayAlert('Network error. Please check your connection.');
+      btn.disabled = false; btn.innerHTML = 'Pay via M-Pesa';
     }
   }
-
-  /* Polling */
-  function startPayPolling() {
-    payPollCount = 0;
-    clearTimeout(payPollTimer);
-    scheduleNextPayPoll();
-  }
-
+  function startPayPolling() { payPollCount = 0; clearTimeout(payPollTimer); scheduleNextPayPoll(); }
   function scheduleNextPayPoll() {
     let countdown = Math.floor(PAY_POLL_INTERVAL / 1000);
-    const cdEl    = document.getElementById('payPollCountdown');
-    const tick    = setInterval(() => {
+    const cdEl = document.getElementById('payPollCountdown');
+    const tick = setInterval(() => {
       countdown -= 1;
       if (cdEl) cdEl.textContent = countdown > 0 ? `Checking in ${countdown}s` : 'Checking…';
       if (countdown <= 0) clearInterval(tick);
     }, 1000);
-    payPollTimer = setTimeout(async () => {
-      clearInterval(tick);
-      await doPayPoll();
-    }, PAY_POLL_INTERVAL);
+    payPollTimer = setTimeout(async () => { clearInterval(tick); await doPayPoll(); }, PAY_POLL_INTERVAL);
   }
-
   async function doPayPoll() {
     payPollCount++;
     try {
@@ -1734,8 +1941,7 @@
         document.getElementById('payReceiptNumber').textContent  = data.receipt_number || '—';
         document.getElementById('paySuccessAmount').textContent  = parseFloat(data.amount || 0).toFixed(2);
         document.getElementById('paySuccessOrderId').textContent = data.order_id || payOrderId || '—';
-        showPayView('payViewSuccess');
-        return;
+        showPayView('payViewSuccess'); return;
       }
       if (st === 'FAILED' || st === 'CANCELLED') { showPayFailure(data.status_message || 'Payment failed.', ''); return; }
       if (payPollCount >= PAY_MAX_POLLS) { await handlePayPollTimeout(); return; }
@@ -1745,69 +1951,55 @@
       scheduleNextPayPoll();
     }
   }
-
   function showPayFailure(reason, detail) {
     clearTimeout(payPollTimer);
     document.getElementById('payFailureReason').textContent = reason || 'Your payment could not be completed.';
-    document.getElementById('payFailureDetail').textContent = detail || 'The payment could not be processed. This may be due to insufficient funds, an incorrect PIN, or a cancelled request.';
+    document.getElementById('payFailureDetail').textContent = detail || 'The payment could not be processed.';
     showPayView('payViewFailure');
   }
-
   async function handlePayPollTimeout() {
     clearTimeout(payPollTimer);
     try {
-      const res  = await Auth.fetch(`${API}/payments/${payPaymentId}/timeout/`, { method: 'POST' });
+      const res  = await Auth.fetch(`${API}/payments/${payPaymentId}/timeout/`, { method:'POST' });
       const data = await res.json();
       if (res.ok && data.status === 'SUCCESS') {
-        const statusRes  = await Auth.fetch(`${API}/payments/${payPaymentId}/status/`);
-        const statusData = await statusRes.json();
-        document.getElementById('payReceiptNumber').textContent  = statusData.receipt_number || '—';
-        document.getElementById('paySuccessAmount').textContent  = parseFloat(statusData.amount || 0).toFixed(2);
-        document.getElementById('paySuccessOrderId').textContent = statusData.order_id || payOrderId || '—';
-        showPayView('payViewSuccess');
-        return;
+        const sr   = await Auth.fetch(`${API}/payments/${payPaymentId}/status/`);
+        const sd   = await sr.json();
+        document.getElementById('payReceiptNumber').textContent  = sd.receipt_number || '—';
+        document.getElementById('paySuccessAmount').textContent  = parseFloat(sd.amount || 0).toFixed(2);
+        document.getElementById('paySuccessOrderId').textContent = sd.order_id || payOrderId || '—';
+        showPayView('payViewSuccess'); return;
       }
-      showPayFailure('Payment timed out — no response received from Safaricom.', 'Your reserved stock has been released. Please place a new order to try again.');
-    } catch {
-      showPayFailure('Payment timed out and we could not reach the server.', 'Please contact support or check your order status in Past Transactions.');
-    }
+      showPayFailure('Payment timed out — no response from Safaricom.','Your reserved stock has been released.');
+    } catch { showPayFailure('Payment timed out and we could not reach the server.','Please contact support or check your order status.'); }
   }
-
-  /* Cancel order from payment panel */
   function payConfirmCancel() {
     if (!payOrderId) { showPayAlert('No order ID found.'); return; }
     document.getElementById('payCancelOrderRef').textContent    = payOrderId;
     document.getElementById('payCancelledOrderRef').textContent = payOrderId;
     showPayView('payViewCancelConfirm');
   }
-
   async function executePayCancelOrder() {
     const btn = document.getElementById('payConfirmCancelBtn');
-    btn.disabled  = true;
-    btn.innerHTML = `<span class="spinner inline-block w-4 h-4 mr-2" style="vertical-align:middle;border-width:2px;"></span> Cancelling…`;
+    btn.disabled = true; btn.innerHTML = `<span class="spinner inline-block w-4 h-4 mr-2" style="vertical-align:middle;border-width:2px;"></span> Cancelling…`;
     try {
-      const res  = await Auth.fetch(`${API}/orders/${payOrderId}/cancel/`, { method: 'POST' });
+      const res  = await Auth.fetch(`${API}/orders/${payOrderId}/cancel/`, { method:'POST' });
       const data = await res.json();
       if (!res.ok) {
-        const errRaw = data.error || data.detail || 'Failed to cancel order. Please try again.';
-        const errMsg = Array.isArray(errRaw) ? errRaw.join(' ') : String(errRaw);
+        const raw = data.error || data.detail || 'Failed to cancel order.';
         const bar = document.getElementById('payCancelAlertBar');
-        document.getElementById('payCancelAlertMsg').textContent = errMsg;
+        document.getElementById('payCancelAlertMsg').textContent = Array.isArray(raw) ? raw.join(' ') : String(raw);
         bar.className = 'alert-bar show error';
-        btn.disabled  = false;
-        btn.innerHTML = 'Yes, Cancel Order';
-        return;
+        btn.disabled = false; btn.innerHTML = 'Yes, Cancel Order'; return;
       }
       showPayView('payViewCancelled');
     } catch {
       const bar = document.getElementById('payCancelAlertBar');
       document.getElementById('payCancelAlertMsg').textContent = 'Network error. Please check your connection.';
       bar.className = 'alert-bar show error';
-      btn.disabled  = false;
-      btn.innerHTML = 'Yes, Cancel Order';
+      btn.disabled = false; btn.innerHTML = 'Yes, Cancel Order';
     }
   }
-
 </script>
 </body>
 </html>

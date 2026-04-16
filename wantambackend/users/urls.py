@@ -13,6 +13,11 @@ from .views import (
     PasswordChangeView,
 )
 
+from .phone_otp_views import (
+    PhoneChangeRequestOTPView,
+    PhoneChangeVerifyOTPView,
+)
+
 
 
 
@@ -28,5 +33,9 @@ urlpatterns = [
     path('auth/forgot-password/',                          PasswordResetRequestView.as_view(),  name='forgot-password'),
     path('auth/reset-password/<uidb64>/<token>/',          PasswordResetConfirmView.as_view(),  name='reset-password'),
     path('auth/change-password/',                          PasswordChangeView.as_view(),        name='change-password'),
+    
+    # ── Phone-number change (email OTP) ───────────────────────────────────────
+    path('auth/phone-change/request-otp/',                 PhoneChangeRequestOTPView.as_view(), name='phone-change-request-otp'),
+    path('auth/phone-change/verify-otp/',                  PhoneChangeVerifyOTPView.as_view(),  name='phone-change-verify-otp'),
     
 ]

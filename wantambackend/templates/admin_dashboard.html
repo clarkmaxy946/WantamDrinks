@@ -897,12 +897,20 @@ function getToken() {
 function authHeaders() {
   return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` };
 }
+let _redirectingToLogin = false;
+
 async function apiFetch(path, opts = {}) {
   const res = await fetch(API_BASE + path, { headers: authHeaders(), ...opts });
-  if (res.status === 401) {
+  if (res.status === 401 && !_redirectingToLogin) {
+    _redirectingToLogin = true;
+    sessionStorage.clear();
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
+    localStorage.removeItem('username');
+    localStorage.removeItem('user_id');
+    localStorage.removeItem('is_staff');
     showAlert('Session expired. Redirecting to login…', 'error');
     setTimeout(() => { window.location.href = '/login/'; }, 1800);
-    return res;
   }
   return res;
 }

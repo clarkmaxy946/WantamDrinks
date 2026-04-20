@@ -252,3 +252,55 @@ class TimeoutPaymentView(APIView):
             },
             status=status.HTTP_200_OK
         )
+class AdminCancelPaymentView(APIView):
+    """
+    POST /api/admin/payments/<payment_id>/cancel/
+    Admin-only. Cancels a PENDING payment and marks its order as FAILED,
+    restoring stock. Has no effect on SUCCESS/FAILED/CANCELLED payments.
+    """
+    permission_classes = [IsAuthenticated, IsAdminUser]
+
+    def post(self, request, payment_id):
+        try:
+            payment = Payment.objects.select_related(
+                'order', 'user'
+            ).get(payment_id=payment_id)
+        except Payment.DoesNotExist:
+            return Response(
+                {"error": f"Payment '{payment_id}' not found."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        if payment.status != Payment.Status.PENDING:
+            return Response(
+                {
+                    "error": f"Payment is already {payment.status}. "
+                             f"Only PENDING payments can be cancelled."
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        with transaction.atomic():
+            payment.status = Payment.Status.CANCELLED
+            payment.failure_reason = f"Cancelled by admin: {request.user.username}"
+            payment.save()
+
+            restore_order_stock(payment.order)
+
+            order = payment.order
+            order.status = Order.Status.FAILED
+            order.save()
+
+        return Response(
+            {
+                "message": f"Payment '{payment_id}' cancelled. "
+                           f"Order '{order.order_id}' marked as failed. "
+                           f"Stock restored.",
+                "payment_id": payment.payment_id,
+                "order_id": order.order_id,
+                "payment_status": payment.status,
+                "order_status": order.status,
+            },
+            status=status.HTTP_200_OK
+        )
+            

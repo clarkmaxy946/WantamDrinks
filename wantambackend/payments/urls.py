@@ -8,6 +8,7 @@ from .views import (
     AdminPaymentListView,
     AdminPaymentDetailView,
     TimeoutPaymentView,
+    AdminCancelPaymentView,
 )
 
 urlpatterns = [
@@ -21,4 +22,5 @@ urlpatterns = [
     # Admin endpoints
     path('admin/payments/', AdminPaymentListView.as_view(), name='admin-payments'),
     path('admin/payments/<str:payment_id>/', AdminPaymentDetailView.as_view(), name='admin-payment-detail'),
+    path('admin/payments/<str:payment_id>/cancel/', AdminCancelPaymentView.as_view(), name='admin-payment-cancel'),
 ]

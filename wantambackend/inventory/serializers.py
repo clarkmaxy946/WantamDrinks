@@ -31,10 +31,14 @@ class InventorySerializer(serializers.ModelSerializer):
 class RestockLogSerializer(serializers.ModelSerializer):
 
     restocked_by = serializers.StringRelatedField(read_only=True)
+    branch_name  = serializers.SerializerMethodField()
+    product_name = serializers.SerializerMethodField()
 
     class Meta:
         model = RestockLog
         fields = [
+            'branch_name',
+            'product_name',
             'restocked_by',
             'quantity_added',
             'stock_before',
@@ -42,6 +46,12 @@ class RestockLogSerializer(serializers.ModelSerializer):
             'restocked_at',
         ]
         read_only_fields = fields
+
+    def get_branch_name(self, obj):
+        return obj.inventory.branch.name if obj.inventory and obj.inventory.branch else '—'
+
+    def get_product_name(self, obj):
+        return obj.inventory.product.name if obj.inventory and obj.inventory.product else '—'
 
 
 class AdminInventorySerializer(serializers.ModelSerializer):

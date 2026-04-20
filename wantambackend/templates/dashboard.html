@@ -577,7 +577,7 @@
         <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
         <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
       </svg>
-      Catalogue
+      Dashboard
     </button>
     <button class="nav-item w-full text-left" onclick="showPanel('transactions', this)">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -1582,7 +1582,13 @@
     if (type === 'profile')      fetchProfile();
     if (type === 'transactions') loadTransactions();
     closeMobileSidebar();
-    if (pushState) history.pushState({ panel: type }, '', PANEL_URLS[type] || '/dashboard/');
+    // ── FIX 2: include order_id in URL when navigating to payment panel ──
+    if (pushState) {
+      const url = (type === 'payment' && payOrderId)
+        ? (PANEL_URLS[type] || '/payment/') + '?order_id=' + encodeURIComponent(payOrderId)
+        : (PANEL_URLS[type] || '/dashboard/');
+      history.pushState({ panel: type }, '', url);
+    }
   }
 
   function closePanel(pushState = true) {
@@ -1794,11 +1800,13 @@
       if (!list.length) { tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:2.5rem;color:#7A9AB0;font-size:13px;">No orders found.</td></tr>`; return; }
       tbody.innerHTML = list.map(o => {
         const cnt = (o.items||[]).length;
+        // ── FIX 1: defensive order ID resolution — try all possible field names ──
+        const oid = o.order_id || o.id || '';
         const act = o.status==='PENDING'
-          ? `<button onclick="openPaymentPanel('${o.order_id}')" style="padding:5px 14px;border-radius:10px;border:1px solid rgba(0,200,150,0.35);background:rgba(0,200,150,0.1);color:#00C896;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.15s;white-space:nowrap;" onmouseover="this.style.background='rgba(0,200,150,0.22)'" onmouseout="this.style.background='rgba(0,200,150,0.1)'">Pay now ↗</button>`
+          ? `<button onclick="openPaymentPanel('${oid}')" style="padding:5px 14px;border-radius:10px;border:1px solid rgba(0,200,150,0.35);background:rgba(0,200,150,0.1);color:#00C896;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.15s;white-space:nowrap;" onmouseover="this.style.background='rgba(0,200,150,0.22)'" onmouseout="this.style.background='rgba(0,200,150,0.1)'">Pay now ↗</button>`
           : `<span style="font-size:12px;color:rgba(160,196,216,0.35);">—</span>`;
         return `<tr style="border-top:1px solid rgba(0,200,150,0.07);" onmouseover="this.style.background='rgba(0,200,150,0.04)'" onmouseout="this.style.background=''">
-          <td style="padding:12px 16px;" class="td-id">${o.order_id||'—'}</td>
+          <td style="padding:12px 16px;" class="td-id">${oid||'—'}</td>
           <td style="padding:12px 16px;" class="td-main">${o.branch?.name||'—'}</td>
           <td style="padding:12px 16px;" class="td-sub">${cnt} item${cnt!==1?'s':''}</td>
           <td style="padding:12px 16px;" class="td-amt">${fmtKES(o.total_price)}</td>

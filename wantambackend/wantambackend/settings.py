@@ -26,7 +26,12 @@ SECRET_KEY = 'django-insecure-aosy8=1h61@t27s+(&9q2i!$#@$9fr(dsy%%8rffuzc3wo!y^a
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = [
+    'localhost',
+    '127.0.0.1',
+    '.ngrok-free.dev',
+    'wantamdrinks.onrender.com'
+]
 
 CSRF_TRUSTED_ORIGINS = [
     'https://*.ngrok-free.dev',
@@ -184,7 +189,7 @@ SIMPLE_JWT = {
     'USER_ID_CLAIM': 'user_id',
 }
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '.ngrok-free.dev']
+
 
 FRONTEND_URL = "http://127.0.0.1:8000"  # used to build the link in the email
 PASSWORD_RESET_TIMEOUT = 259200   

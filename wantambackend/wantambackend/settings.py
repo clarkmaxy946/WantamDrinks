@@ -208,3 +208,23 @@ CORS_ALLOWED_ORIGINS = ['http://localhost:8000', 'http://127.0.0.1:8000']  # whe
 CORS_ALLOW_CREDENTIALS = True
 
 FRONTEND_URL = 'http://127.0.0.1:8000'  # used in PasswordResetRequestView to build the reset link
+
+import os
+import dj_database_url
+
+# If DATABASE_URL is set (in Render), use it; 
+# otherwise, fallback to a local SQLite database for development
+DATABASE_URL = os.environ.get('DATABASE_URL')
+
+if DATABASE_URL:
+    DATABASES = {
+        'default': dj_database_url.config(default=DATABASE_URL, conn_max_age=600)
+    }
+else:
+    # Local fallback
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        }
+    }

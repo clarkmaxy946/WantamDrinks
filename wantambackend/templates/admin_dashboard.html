@@ -731,8 +731,17 @@
           </div>
           <div id="restockProductsSection" class="hidden">
             <div class="panel-card p-5">
-              <div class="flex items-center justify-between mb-4">
+              <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
                 <p class="font-head text-sm font-bold text-wdtext">Step 2 — Restock Products <span id="restockBranchLabel" class="ml-2 text-xs font-normal" style="color:#00C896;"></span></p>
+                <!-- ══ RESTOCK ALL BUTTON ══ -->
+                <button id="restockAllBtn" onclick="submitRestockAll(this)"
+                        class="action-btn action-btn-primary flex items-center gap-2"
+                        style="background:rgba(0,200,150,0.18);border-color:rgba(0,200,150,0.45);">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/>
+                  </svg>
+                  Restock All
+                </button>
               </div>
               <div id="restockProductsLoading" class="text-center py-8"><div class="spinner w-6 h-6 mx-auto mb-2"></div><p class="text-xs text-muted">Loading inventory…</p></div>
               <div id="restockProductsTable" class="hidden overflow-x-auto">
@@ -1840,6 +1849,76 @@ async function submitRestock(branchId, productId, productName, btn) {
       btn.disabled = false; btn.textContent = 'Restock';
     }
   } catch { showAlert('Network error during restock.', 'error'); btn.disabled = false; btn.textContent = 'Restock'; }
+}
+
+// ══════════════════════════════════════════════
+// RESTOCK ALL  ← new function
+// ══════════════════════════════════════════════
+async function submitRestockAll(btn) {
+  const branchId = document.getElementById('restockBranchSelect').value;
+  if (!branchId) { showAlert('Please select a branch first.', 'error'); return; }
+
+  // Collect all rows that have a quantity filled in
+  const tbody = document.getElementById('restockProductsBody');
+  const rows  = tbody ? tbody.querySelectorAll('tr') : [];
+
+  const items = [];
+  rows.forEach(row => {
+    // Each row has one qty input with id restockQty_<productId>
+    const input = row.querySelector('input[id^="restockQty_"]');
+    if (!input) return;
+    const productId = input.id.replace('restockQty_', '');
+    const qty       = parseInt(input.value, 10);
+    const nameTd    = row.querySelector('td:first-child');
+    const prodName  = nameTd ? nameTd.textContent.trim() : productId;
+    if (qty && qty >= 1) items.push({ productId, qty, prodName, input });
+  });
+
+  if (!items.length) {
+    showAlert('Please enter a quantity for at least one product.', 'error');
+    return;
+  }
+
+  const branchLabel = document.getElementById('restockBranchLabel').textContent.replace('— ', '').trim();
+  if (!confirm(`Restock ${items.length} product${items.length !== 1 ? 's' : ''} in ${branchLabel || 'this branch'}?\n\n` +
+    items.map(i => `• ${i.prodName}: +${i.qty}`).join('\n'))) return;
+
+  btn.disabled = true; btn.textContent = 'Restocking…';
+
+  let successCount = 0, failCount = 0, failMessages = [];
+
+  for (const item of items) {
+    try {
+      const res  = await apiFetch(`/admin/inventory/${branchId}/${item.productId}/restock/`, {
+        method: 'POST', body: JSON.stringify({ quantity: item.qty })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        successCount++;
+        item.input.value = ''; // clear the field on success
+      } else {
+        failCount++;
+        failMessages.push(`${item.prodName}: ${data.error || data.detail || 'failed'}`);
+      }
+    } catch {
+      failCount++;
+      failMessages.push(`${item.prodName}: network error`);
+    }
+  }
+
+  btn.disabled = false; btn.textContent = 'Restock All';
+
+  if (successCount > 0 && failCount === 0) {
+    showAlert(`✓ All ${successCount} product${successCount !== 1 ? 's' : ''} restocked successfully.`, 'ok');
+  } else if (successCount > 0 && failCount > 0) {
+    showAlert(`${successCount} restocked, ${failCount} failed: ${failMessages.join(' | ')}`, 'error');
+  } else {
+    showAlert(`Restock failed for all products: ${failMessages.join(' | ')}`, 'error');
+  }
+
+  // Refresh inventory view and alert badge
+  onRestockBranchChange();
+  loadAlertsCard();
 }
 
 async function loadRestockLog() {

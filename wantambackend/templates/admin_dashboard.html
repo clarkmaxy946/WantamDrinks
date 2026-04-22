@@ -598,13 +598,17 @@
       <div id="productsContent" class="hidden">
         <div class="flex items-center justify-between mb-5">
           <div><h2 class="font-head font-bold text-xl text-wdtext">Products</h2><p class="text-xs text-muted mt-0.5">Full product catalogue</p></div>
+          <button class="action-btn action-btn-primary" onclick="openAddProductModal()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="inline mr-1"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add Product
+          </button>
         </div>
         <div class="panel-card p-5">
           <div id="productsLoading" class="text-center py-10"><div class="spinner w-8 h-8 mx-auto mb-3"></div><p class="text-sm text-muted">Loading products…</p></div>
           <div id="productsTable" class="hidden overflow-x-auto">
             <table class="w-full border-collapse">
               <thead><tr style="border-bottom:1px solid rgba(0,200,150,0.1);">
-                <th class="th-cell">Product ID</th><th class="th-cell">Name</th><th class="th-cell">Price (KES)</th><th class="th-cell">Status</th><th class="th-cell">Action</th>
+                <th class="th-cell">Product ID</th><th class="th-cell">Name</th><th class="th-cell">Price (KES)</th><th class="th-cell">Image File</th><th class="th-cell">Actions</th>
               </tr></thead>
               <tbody id="productsBody"></tbody>
             </table>
@@ -617,17 +621,68 @@
       <div id="editProductModal" class="hidden fixed inset-0 z-50 flex items-center justify-center" style="background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);">
         <div class="panel-card p-7 w-full max-w-sm mx-4 animate-fadeUp">
           <div class="flex items-center justify-between mb-6">
-            <div><h3 class="font-head font-bold text-lg text-wdtext">Edit Product Price</h3><p id="editProductNameLabel" class="text-xs mt-0.5 font-head font-semibold" style="color:#00C896;"></p></div>
+            <div>
+              <h3 class="font-head font-bold text-lg text-wdtext">Edit Product</h3>
+              <p id="editProductIdLabel" class="text-xs mt-0.5 font-mono" style="color:#7A9AB0;"></p>
+            </div>
             <button onclick="closeEditProductModal()" class="text-muted hover:text-wdtext transition-colors text-xl leading-none">✕</button>
           </div>
           <div class="space-y-4">
-            <div><label class="block text-xs font-bold text-muted uppercase tracking-wider mb-1">New Price (KES)</label><input id="editProductPrice" type="number" min="1" step="0.01" class="input-field w-full" placeholder="e.g. 50.00"/><p class="text-xs mt-1" style="color:#7A9AB0;">Must be between KES 1 and KES 100,000</p></div>
+            <div>
+              <label class="block text-xs font-bold text-muted uppercase tracking-wider mb-1">Product Name</label>
+              <input id="editProductName" type="text" maxlength="20" class="input-field w-full" placeholder="e.g. Coke 500ml"/>
+              <p class="text-xs mt-1" style="color:#7A9AB0;">Max 20 characters · must be unique</p>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-muted uppercase tracking-wider mb-1">Price (KES)</label>
+              <input id="editProductPrice" type="number" min="1" step="0.01" class="input-field w-full" placeholder="e.g. 50.00"/>
+              <p class="text-xs mt-1" style="color:#7A9AB0;">Between KES 1 and KES 100,000</p>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-muted uppercase tracking-wider mb-1">Image Filename</label>
+              <input id="editProductImage" type="text" maxlength="100" class="input-field w-full" placeholder="e.g. coke.png"/>
+              <p class="text-xs mt-1" style="color:#7A9AB0;">Filename only — file must exist in <code style="color:#00C896;">static/images/</code></p>
+            </div>
           </div>
           <div class="flex gap-3 mt-6">
-            <button id="editProductSubmitBtn" onclick="submitEditProduct(this)" class="action-btn action-btn-edit flex-1">Update Price</button>
+            <button id="editProductSubmitBtn" onclick="submitEditProduct(this)" class="action-btn action-btn-edit flex-1">Save Changes</button>
             <button onclick="closeEditProductModal()" class="action-btn action-btn-muted flex-1">Cancel</button>
           </div>
           <p id="editProductError" class="hidden mt-3 text-xs text-center" style="color:#ff9b9b;"></p>
+        </div>
+      </div>
+
+      <!-- ADD PRODUCT MODAL -->
+      <div id="addProductModal" class="hidden fixed inset-0 z-50 flex items-center justify-center" style="background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);">
+        <div class="panel-card p-7 w-full max-w-sm mx-4 animate-fadeUp">
+          <div class="flex items-center justify-between mb-6">
+            <div>
+              <h3 class="font-head font-bold text-lg text-wdtext">Add New Product</h3>
+              <p class="text-xs mt-0.5" style="color:#7A9AB0;">Product ID is auto-generated from the name</p>
+            </div>
+            <button onclick="closeAddProductModal()" class="text-muted hover:text-wdtext transition-colors text-xl leading-none">✕</button>
+          </div>
+          <div class="space-y-4">
+            <div>
+              <label class="block text-xs font-bold text-muted uppercase tracking-wider mb-1">Product Name</label>
+              <input id="newProductName" type="text" maxlength="20" class="input-field w-full" placeholder="e.g. Sprite 500ml"/>
+              <p class="text-xs mt-1" style="color:#7A9AB0;">Max 20 characters · must be unique</p>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-muted uppercase tracking-wider mb-1">Price (KES)</label>
+              <input id="newProductPrice" type="number" min="1" step="0.01" class="input-field w-full" placeholder="e.g. 60.00"/>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-muted uppercase tracking-wider mb-1">Image Filename <span style="color:#7A9AB0;font-weight:400;">(optional)</span></label>
+              <input id="newProductImage" type="text" maxlength="100" class="input-field w-full" placeholder="e.g. sprite.png"/>
+              <p class="text-xs mt-1" style="color:#7A9AB0;">Filename only — file must exist in <code style="color:#00C896;">static/images/</code></p>
+            </div>
+          </div>
+          <div class="flex gap-3 mt-6">
+            <button id="addProductSubmitBtn" onclick="submitAddProduct(this)" class="action-btn action-btn-primary flex-1">Create Product</button>
+            <button onclick="closeAddProductModal()" class="action-btn action-btn-muted flex-1">Cancel</button>
+          </div>
+          <p id="addProductError" class="hidden mt-3 text-xs text-center" style="color:#ff9b9b;"></p>
         </div>
       </div>
 
@@ -1507,53 +1562,143 @@ async function deleteBranch(branchId, branchName, btn) {
   } catch { showAlert('Network error.', 'error'); btn.disabled = false; btn.textContent = 'Delete'; }
 }
 
+
 // ══════════════════════════════════════════════
 // PRODUCTS
 // ══════════════════════════════════════════════
 async function loadProducts() {
   showLoading('products');
   try {
-    const res      = await apiFetch('/products/');
+    const res      = await apiFetch('/admin/products/');
     const data     = await res.json();
     const products = Array.isArray(data) ? data : (data.products || data.results || []);
     if (!products.length) { showEmpty('products'); return; }
-    document.getElementById('productsBody').innerHTML = products.map(p => `
-      <tr style="border-bottom:1px solid rgba(0,200,150,0.06);" class="hover:bg-white/[0.02] transition-colors">
-        <td class="td-id px-4 py-3">${p.product_id}</td>
-        <td class="td-main px-4 py-3">${p.name}</td>
-        <td class="td-amt px-4 py-3">${Number(p.price || 0).toLocaleString('en-KE', {minimumFractionDigits:2})}</td>
-        <td class="px-4 py-3"><span class="badge ${p.is_available !== false ? 'badge-active' : 'badge-inactive'}">${p.is_available !== false ? 'Available' : 'Unavailable'}</span></td>
-        <td class="px-4 py-3"><button class="action-btn action-btn-edit text-xs" onclick="openEditProductModal('${p.product_id}','${p.name}',${p.price})">Edit Price</button></td>
-      </tr>`).join('');
+    document.getElementById('productsBody').innerHTML = products.map(p => {
+      const safeName  = (p.name  || '').replace(/'/g, "\\'").replace(/\\/g, '\\\\');
+      const safeImage = (p.image || '').replace(/'/g, "\\'").replace(/\\/g, '\\\\');
+      return `
+        <tr style="border-bottom:1px solid rgba(0,200,150,0.06);" class="hover:bg-white/[0.02] transition-colors">
+          <td class="td-id px-4 py-3">${p.product_id}</td>
+          <td class="td-main px-4 py-3">${p.name}</td>
+          <td class="td-amt px-4 py-3">KES ${Number(p.price || 0).toLocaleString('en-KE', {minimumFractionDigits:2})}</td>
+          <td class="td-sub px-4 py-3">${p.image
+            ? `<span class="font-mono text-xs" style="color:#00C896;">${p.image}</span>`
+            : `<span class="text-xs text-muted">—</span>`}</td>
+          <td class="px-4 py-3">
+            <div class="flex gap-2 flex-wrap">
+              <button class="action-btn action-btn-edit text-xs"
+                onclick="openEditProductModal('${p.product_id}','${safeName}',${p.price},'${safeImage}')">Edit</button>
+              <button class="action-btn action-btn-danger text-xs"
+                onclick="deleteProduct('${p.product_id}','${safeName}',this)">Delete</button>
+            </div>
+          </td>
+        </tr>`;
+    }).join('');
     showTable('products');
   } catch { showEmpty('products'); }
 }
 
 let _editProductId = null;
-function openEditProductModal(productId, productName, currentPrice) {
+
+function openEditProductModal(productId, productName, currentPrice, currentImage) {
   _editProductId = productId;
-  document.getElementById('editProductNameLabel').textContent = productName;
+  document.getElementById('editProductIdLabel').textContent  = 'ID: ' + productId;
+  document.getElementById('editProductName').value           = productName;
   document.getElementById('editProductPrice').value          = currentPrice;
+  document.getElementById('editProductImage').value          = currentImage || '';
   document.getElementById('editProductError').classList.add('hidden');
   document.getElementById('editProductModal').classList.remove('hidden');
 }
-function closeEditProductModal() { document.getElementById('editProductModal').classList.add('hidden'); _editProductId = null; }
+function closeEditProductModal() {
+  document.getElementById('editProductModal').classList.add('hidden');
+  _editProductId = null;
+}
 
 async function submitEditProduct(btn) {
   if (!_editProductId) return;
+  const name  = document.getElementById('editProductName').value.trim();
   const price = parseFloat(document.getElementById('editProductPrice').value);
+  const image = document.getElementById('editProductImage').value.trim();
   const errEl = document.getElementById('editProductError');
   errEl.classList.add('hidden');
-  if (isNaN(price) || price <= 0) { errEl.textContent = 'Please enter a valid price greater than KES 0.'; errEl.classList.remove('hidden'); return; }
-  if (price > 100000)              { errEl.textContent = 'Price cannot exceed KES 100,000.'; errEl.classList.remove('hidden'); return; }
+
+  if (!name)               { errEl.textContent = 'Product name is required.';                    errEl.classList.remove('hidden'); return; }
+  if (name.length > 20)    { errEl.textContent = 'Name cannot exceed 20 characters.';            errEl.classList.remove('hidden'); return; }
+  if (isNaN(price) || price <= 0) { errEl.textContent = 'Enter a valid price greater than KES 0.'; errEl.classList.remove('hidden'); return; }
+  if (price > 100000)      { errEl.textContent = 'Price cannot exceed KES 100,000.';              errEl.classList.remove('hidden'); return; }
+
   btn.disabled = true; btn.textContent = 'Saving…';
   try {
-    const res  = await apiFetch(`/admin/products/${_editProductId}/`, { method:'PATCH', body: JSON.stringify({ price: price.toFixed(2) }) });
+    const payload = { name, price: price.toFixed(2), image };
+    const res  = await apiFetch(`/admin/products/${_editProductId}/`, { method:'PATCH', body: JSON.stringify(payload) });
     const data = await res.json();
-    if (res.ok) { closeEditProductModal(); showAlert(data.message || `Price updated to KES ${price.toLocaleString('en-KE', {minimumFractionDigits:2})}.`, 'ok'); loadProducts(); }
-    else { errEl.textContent = typeof data === 'object' ? Object.entries(data).map(([k,v]) => `${k}: ${Array.isArray(v) ? v.join(' ') : v}`).join(' | ') : 'Failed to update price.'; errEl.classList.remove('hidden'); }
+    if (res.ok) {
+      closeEditProductModal();
+      showAlert(data.message || `Product '${name}' updated successfully.`, 'ok');
+      loadProducts();
+    } else {
+      errEl.textContent = typeof data === 'object'
+        ? Object.entries(data).map(([k,v]) => `${k}: ${Array.isArray(v) ? v.join(' ') : v}`).join(' | ')
+        : 'Failed to update product.';
+      errEl.classList.remove('hidden');
+    }
   } catch { errEl.textContent = 'Network error. Please try again.'; errEl.classList.remove('hidden'); }
-  btn.disabled = false; btn.textContent = 'Update Price';
+  btn.disabled = false; btn.textContent = 'Save Changes';
+}
+
+function openAddProductModal() {
+  ['newProductName','newProductPrice','newProductImage'].forEach(id => { document.getElementById(id).value = ''; });
+  document.getElementById('addProductError').classList.add('hidden');
+  document.getElementById('addProductModal').classList.remove('hidden');
+}
+function closeAddProductModal() { document.getElementById('addProductModal').classList.add('hidden'); }
+
+async function submitAddProduct(btn) {
+  const name  = document.getElementById('newProductName').value.trim();
+  const price = parseFloat(document.getElementById('newProductPrice').value);
+  const image = document.getElementById('newProductImage').value.trim();
+  const errEl = document.getElementById('addProductError');
+  errEl.classList.add('hidden');
+
+  if (!name)               { errEl.textContent = 'Product name is required.';                    errEl.classList.remove('hidden'); return; }
+  if (name.length > 20)    { errEl.textContent = 'Name cannot exceed 20 characters.';            errEl.classList.remove('hidden'); return; }
+  if (isNaN(price) || price <= 0) { errEl.textContent = 'Enter a valid price greater than KES 0.'; errEl.classList.remove('hidden'); return; }
+  if (price > 100000)      { errEl.textContent = 'Price cannot exceed KES 100,000.';              errEl.classList.remove('hidden'); return; }
+
+  btn.disabled = true; btn.textContent = 'Creating…';
+  try {
+    const payload = { name, price: price.toFixed(2), image };
+    const res  = await apiFetch('/admin/products/', { method:'POST', body: JSON.stringify(payload) });
+    const data = await res.json();
+    if (res.ok) {
+      closeAddProductModal();
+      const created = data.data || {};
+      showAlert(data.message || `Product '${name}' created. ID: ${created.product_id || '—'}`, 'ok');
+      loadProducts();
+    } else {
+      errEl.textContent = typeof data === 'object'
+        ? Object.entries(data).map(([k,v]) => `${k}: ${Array.isArray(v) ? v.join(' ') : v}`).join(' | ')
+        : 'Failed to create product.';
+      errEl.classList.remove('hidden');
+    }
+  } catch { errEl.textContent = 'Network error. Please try again.'; errEl.classList.remove('hidden'); }
+  btn.disabled = false; btn.textContent = 'Create Product';
+}
+
+async function deleteProduct(productId, productName, btn) {
+  if (!confirm(`Delete product '${productName}'?\n\nThis cannot be undone. Products with existing orders cannot be deleted.`)) return;
+  btn.disabled = true; btn.textContent = 'Deleting…';
+  try {
+    const res  = await apiFetch(`/admin/products/${productId}/`, { method:'DELETE' });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok) {
+      showAlert(data.message || `Product '${productName}' deleted.`, 'ok');
+      loadProducts();
+    } else {
+      showAlert(data.error || 'Failed to delete product.', 'error');
+      btn.disabled = false; btn.textContent = 'Delete';
+    }
+  } catch { showAlert('Network error.', 'error'); btn.disabled = false; btn.textContent = 'Delete'; }
 }
 
 // ══════════════════════════════════════════════

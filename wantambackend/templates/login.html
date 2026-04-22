@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -31,7 +32,7 @@
     body {
       font-family:'DM Sans',sans-serif;
       min-height:100vh;
-      background: #08040e url('/static/images/WantamDrinks background.png') center center / cover no-repeat;
+      background: #08040e url("{% static 'images/WantamDrinksbackground.png' %}") center center / cover no-repeat;
       display:flex; align-items:center; justify-content:center;
       overflow:hidden; position:relative;
     }

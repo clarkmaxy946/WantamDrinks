@@ -94,7 +94,7 @@ class AdminProductListView(APIView):
 class AdminProductDetailView(APIView):
     """
     GET    /api/admin/products/<product_id>/ → single product detail
-    PATCH  /api/admin/products/<product_id>/ → update product price
+    PATCH  /api/admin/products/<product_id>/ → update product (name, price, image)
     DELETE /api/admin/products/<product_id>/ → delete product
     Admin only — requires is_staff=True.
     """
@@ -132,7 +132,7 @@ class AdminProductDetailView(APIView):
             partial=True,
             context={'request': request}
         )
-        if serializer.is_valid(): 
+        if serializer.is_valid():
             serializer.save()
             return Response(
                 {
@@ -154,13 +154,15 @@ class AdminProductDetailView(APIView):
                 status=status.HTTP_404_NOT_FOUND
             )
 
-        # Prevent deletion if product has order history
-        # Deleting would break order records and analytics
+        # Prevent deletion if product has order history —
+        # deleting would break order records and analytics.
         if product.order_items.exists():
             return Response(
                 {
-                    "error": f"Product '{product.name}' has existing orders. "
-                             f"Cannot delete a product with order history."
+                    "error": (
+                        f"'{product.name}' has existing orders and cannot be deleted. "
+                        "Deleting it would break order history and analytics."
+                    )
                 },
                 status=status.HTTP_400_BAD_REQUEST
             )

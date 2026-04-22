@@ -85,3 +85,32 @@ def trigger_low_stock_alert(inventory):
         threshold=inventory.low_stock_threshold,
         severity=severity
     )
+
+def initialize_product_inventory(product):
+    """
+    Called when a new Product is created.
+    Creates a zero-stock Inventory record for this product
+    in every existing branch, mirroring what initialize_branch_inventory
+    does when a new Branch is created.
+ 
+    Uses get_or_create so it is safe to call more than once
+    (idempotent — will never create duplicates).
+    """
+    from branches.models import Branch
+    from .models import Inventory
+ 
+    branches = Branch.objects.all()
+    created_records = []
+ 
+    with transaction.atomic():
+        for branch in branches:
+            inventory, created = Inventory.objects.get_or_create(
+                branch=branch,
+                product=product,
+                defaults={'stock': 0}  # low_stock_threshold defaults to 10 from model
+            )
+            if created:
+                created_records.append(inventory)
+ 
+    return created_records
+     

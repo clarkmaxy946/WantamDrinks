@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -56,7 +57,7 @@
     /* Fixed blurred background */
     .page-bg {
       position: fixed; inset: 0; z-index: 0;
-      background: url('/static/images/WantamDrinks background.png') center center / cover no-repeat;
+      background: url("{% static 'images/WantamDrinksbackground.png' %}") center center / cover no-repeat;
       filter: blur(1px) brightness(1) saturate(1.2);
       transform: scale(1.06);
     }
@@ -207,7 +208,7 @@
         <!-- Stats -->
         <div class="animate-fadeUpD3 flex gap-7 flex-wrap">
           <div class="flex flex-col pl-3" style="border-left:2px solid rgba(180,79,255,0.45)">
-            <span class="font-head font-extrabold text-np leading-none" style="font-size:1.5rem">5</span>
+            <span class="font-head font-extrabold text-np leading-none" style="font-size:1.5rem">6</span>
             <span class="text-xs text-wdmuted mt-0.5">Hubs Nationwide</span>
           </div>
           <div class="flex flex-col pl-3" style="border-left:2px solid rgba(0,229,255,0.45)">
@@ -224,7 +225,7 @@
       <!-- Right: 3drinks image -->
       <div class="flex-1 max-w-[480px] w-full hidden md:block animate-fadeUpD2">
         <div class="drinks-frame relative">
-          <img src="/static/images/3drinks.png" alt="Fanta, Coca-Cola and Sprite"/>
+          <img src="{% static 'images/3drinks.png' %}" alt="Fanta, Coca-Cola and Sprite"/>
           <div class="chip chip-cyan">
             <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
             Live Stock
@@ -438,4 +439,4 @@
   </script>
 
 </body>
-</html> 
+</html>

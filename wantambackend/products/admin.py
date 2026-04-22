@@ -5,6 +5,6 @@ from .models import Product
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ('name', 'product_id', 'price')
-    search_fields = ('name', 'product_id')
-    readonly_fields = ()
+    list_display   = ('name', 'product_id', 'price')
+    search_fields  = ('name', 'product_id')
+    readonly_fields = ('product_id',)  # auto-generated, should not be edited manually

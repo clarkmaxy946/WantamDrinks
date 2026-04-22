@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -45,7 +46,7 @@
 
     .bg-scene {
       position: absolute; inset: 0; z-index: 0;
-      background: url('/static/images/WantamDrinks background.png') center/cover no-repeat;
+      background: url("{% static 'images/WantamDrinksbackground.png' %}") center/cover no-repeat;
       filter: blur(1px) brightness(2) saturate(1.3);
       transform: scale(1.05);
     }
@@ -663,7 +664,7 @@
         <p class="font-head text-lg text-muted/50">No products found</p>
         <button onclick="resetSearch()" class="mt-3 text-sm text-accent hover:underline">Clear search</button>
       </div>
-      <div class="mt-2">
+      <div class="mt-3">
         <button class="make-order-btn" id="makeOrderBtn" onclick="openOrderPanel()">Make Order</button>
       </div>
       <div class="flex items-center justify-between mt-10 pt-3 border-t border-white/5">
@@ -1146,6 +1147,7 @@
      SCRIPTS
 ══════════════════════════════════════════════ -->
 <script>
+  const PLACEHOLDER_IMG = "{% static 'images/placeholder.png' %}";
   const API = '/api';
 
   /* ── AUTH ── */
@@ -1521,7 +1523,7 @@
       product_id: p.product_id || p.id || raw.product_id || raw.id,
       name:       p.name || p.title || raw.name || raw.title || '—',
       price:      parseFloat(p.price || p.unit_price || raw.price || raw.unit_price || 0),
-      image:      p.image_url || p.image || raw.image_url || raw.image || '/static/images/placeholder.png',
+      image:      p.image_url || p.image || raw.image_url || raw.image || PLACEHOLDER_IMG,
       stock:      raw.stock !== undefined ? parseInt(raw.stock) : raw.quantity !== undefined ? parseInt(raw.quantity) : p.stock !== undefined ? parseInt(p.stock) : 99,
     };
   }
@@ -1546,7 +1548,7 @@
     grid.innerHTML = arr.map((p, i) => `
       <div class="product-card" style="animation-delay:${i * 0.05}s">
         <div class="h-40 flex items-center justify-center mb-4">
-          <img src="${p.image}" class="max-h-full max-w-[130px] drop-shadow-2xl object-contain transition-transform hover:scale-110 duration-300" onerror="this.src='/static/images/placeholder.png'">
+          <img src="${p.image}" class="max-h-full max-w-[130px] drop-shadow-2xl object-contain transition-transform hover:scale-110 duration-300" onerror="this.src=PLACEHOLDER_IMG">
         </div>
         <p class="font-body text-wdtext mb-2 text-center font-medium">${p.name}</p>
         <div class="price-badge">KES ${p.price.toFixed(2)}</div>
@@ -1652,7 +1654,7 @@
         <div class="product-card" style="animation-delay:${i * 0.05}s;">
           ${oos ? `<div style="position:absolute;inset:0;background:rgba(10,37,64,0.78);border-radius:20px;display:flex;align-items:center;justify-content:center;z-index:5;"><span class="font-head text-sm font-bold" style="color:rgba(255,107,107,0.85);">Out of Stock</span></div>` : ''}
           <div class="h-36 flex items-center justify-center mb-3">
-            <img src="${p.image}" alt="${p.name}" class="max-h-full max-w-[120px] drop-shadow-2xl object-contain transition-transform hover:scale-110 duration-300" onerror="this.src='/static/images/placeholder.png'"/>
+            <img src="${p.image}" alt="${p.name}" class="max-h-full max-w-[120px] drop-shadow-2xl object-contain transition-transform hover:scale-110 duration-300" onerror="this.src=PLACEHOLDER_IMG"/>
           </div>
           <p class="font-body text-wdtext text-center font-medium text-sm mb-1 px-1 leading-snug">${p.name}</p>
           <div class="price-badge mb-3">KES ${p.price.toFixed(2)}</div>

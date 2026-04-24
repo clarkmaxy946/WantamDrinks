@@ -47,12 +47,13 @@ class AdminAlertListView(APIView):
         if severity:
             alerts = alerts.filter(severity=severity.upper())
 
+        # COUNT(*) in SQL — runs before serialization, no rows pulled into memory
+        total_alerts = alerts.count()
         serializer = StockAlertSerializer(alerts, many=True)
-        data = serializer.data
         return Response(
             {
-                "total_alerts": len(data),
-                "alerts": data
+                "total_alerts": total_alerts,
+                "alerts": serializer.data
             },
             status=status.HTTP_200_OK
         )

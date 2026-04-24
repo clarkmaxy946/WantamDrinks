@@ -40,12 +40,13 @@ class AdminBranchListView(APIView):
             'inventory_records'
         ).all()
 
+        # COUNT(*) in SQL — runs before serialization, no rows pulled into memory
+        total_branches = branches.count()
         serializer = AdminBranchSerializer(branches, many=True)
-        data = serializer.data
         return Response(
             {
-                "total_branches": len(data),
-                "branches": data
+                "total_branches": total_branches,
+                "branches": serializer.data
             },
             status=status.HTTP_200_OK
         )
@@ -165,4 +166,3 @@ class AdminBranchDetailView(APIView):
             {"message": f"Branch '{branch_name}' and all its data deleted successfully."},
             status=status.HTTP_200_OK
         )
-

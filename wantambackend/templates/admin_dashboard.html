@@ -6,6 +6,8 @@
   <title>WantamDrinks — Admin Dashboard</title>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js for the revenue graph -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
   <script>
     tailwind.config = {
       theme: {
@@ -195,6 +197,66 @@
 
     #scanResultsSection { max-height: 0; overflow: hidden; transition: max-height 0.4s ease, opacity 0.3s ease; opacity: 0; }
     #scanResultsSection.open { max-height: 2000px; opacity: 1; }
+
+    /* ── ANALYTICS SPECIFIC STYLES ── */
+    .analytics-kpi-card {
+      background: rgba(15,52,96,0.45);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(0,200,150,0.12);
+      border-radius: 16px;
+      padding: 1.25rem 1.4rem;
+      animation: fadeUp 0.5s ease both;
+      transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+      position: relative; overflow: hidden;
+    }
+    .analytics-kpi-card:hover {
+      border-color: rgba(0,200,150,0.3);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.25), 0 0 16px rgba(0,200,150,0.06);
+      transform: translateY(-2px);
+    }
+    .analytics-kpi-card::after {
+      content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px;
+      border-radius: 0 0 16px 16px;
+    }
+    .analytics-kpi-card.kpi-green::after  { background: linear-gradient(90deg,#00C896,transparent); }
+    .analytics-kpi-card.kpi-blue::after   { background: linear-gradient(90deg,#00A3FF,transparent); }
+    .analytics-kpi-card.kpi-purple::after { background: linear-gradient(90deg,#b44fff,transparent); }
+    .analytics-kpi-card.kpi-yellow::after { background: linear-gradient(90deg,#ffc107,transparent); }
+
+    .chart-container {
+      background: rgba(15,52,96,0.45);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(0,200,150,0.12);
+      border-radius: 20px;
+      padding: 1.5rem;
+      animation: fadeUp 0.6s ease both;
+    }
+
+    .product-sales-row {
+      display: flex; align-items: center; gap: 12px;
+      padding: 0.65rem 0;
+      border-bottom: 1px solid rgba(0,200,150,0.06);
+      transition: background 0.15s;
+    }
+    .product-sales-row:last-child { border-bottom: none; }
+    .product-bar-track {
+      flex: 1; height: 5px; border-radius: 3px;
+      background: rgba(255,255,255,0.06); overflow: hidden;
+    }
+    .product-bar-fill {
+      height: 100%; border-radius: 3px;
+      background: linear-gradient(90deg, #00C896, #00A3FF);
+      transition: width 0.8s cubic-bezier(0.4,0,0.2,1);
+    }
+
+    .monthly-branch-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0.7rem 1rem; border-radius: 12px;
+      background: rgba(10,37,64,0.4); margin-bottom: 0.5rem;
+      border: 1px solid rgba(0,200,150,0.08);
+      transition: border-color 0.2s;
+    }
+    .monthly-branch-row:hover { border-color: rgba(0,200,150,0.2); }
   </style>
 </head>
 
@@ -733,7 +795,6 @@
             <div class="panel-card p-5">
               <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
                 <p class="font-head text-sm font-bold text-wdtext">Step 2 — Restock Products <span id="restockBranchLabel" class="ml-2 text-xs font-normal" style="color:#00C896;"></span></p>
-                <!-- ══ RESTOCK ALL BUTTON ══ -->
                 <button id="restockAllBtn" onclick="submitRestockAll(this)"
                         class="action-btn action-btn-primary flex items-center gap-2"
                         style="background:rgba(0,200,150,0.18);border-color:rgba(0,200,150,0.45);">
@@ -835,22 +896,156 @@
         </div>
       </div>
 
-      <!-- ANALYTICS -->
+      <!-- ══════════════════════════════════════════ -->
+      <!-- ANALYTICS — FULLY REPLACED SECTION        -->
+      <!-- ══════════════════════════════════════════ -->
       <div id="analyticsContent" class="hidden">
-        <div class="flex items-center justify-between mb-5">
-          <div><h2 class="font-head font-bold text-xl text-wdtext">Analytics</h2><p class="text-xs text-muted mt-0.5">Sales performance by branch</p></div>
+
+        <!-- Header + sub-tab switcher (unchanged position) -->
+        <div class="flex items-center justify-between mb-5 flex-wrap gap-3">
+          <div>
+            <h2 class="font-head font-bold text-xl text-wdtext">Analytics</h2>
+            <p class="text-xs text-muted mt-0.5">Sales performance, stock value &amp; revenue trends</p>
+          </div>
           <div class="flex gap-2">
             <button id="tabAnalyticsDaily" class="tab-btn active" onclick="switchAnalyticsTab('daily')">Daily</button>
             <button id="tabAnalyticsMonthly" class="tab-btn" onclick="switchAnalyticsTab('monthly')">Monthly</button>
           </div>
         </div>
-        <div id="analyticsDaily">
-          <div class="flex gap-2 mb-4 flex-wrap items-center">
-            <input type="date" id="analyticsDate" class="input-field text-xs" onchange="loadDailySummary()"/>
-            <span class="text-xs text-muted">Leave blank for today</span>
+
+        <!-- ── KPI CARDS (always visible, above tabs) ── -->
+        <div class="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+          <!-- Total Products -->
+          <div class="analytics-kpi-card kpi-blue" style="animation-delay:0s">
+            <div class="flex items-center gap-2 mb-3">
+              <div style="width:34px;height:34px;border-radius:10px;background:rgba(0,163,255,0.12);border:1px solid rgba(0,163,255,0.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00A3FF" stroke-width="2">
+                  <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+                  <line x1="3" y1="6" x2="21" y2="6"/>
+                </svg>
+              </div>
+              <p class="text-xs font-head font-bold uppercase tracking-wider" style="color:#7A9AB0;">Total Products</p>
+            </div>
+            <p id="kpiTotalProducts" class="font-head font-black text-2xl text-wdtext">
+              <span class="skeleton inline-block w-10 h-6 rounded"></span>
+            </p>
+            <p class="text-xs mt-1" style="color:#7A9AB0;" id="kpiTotalProductsNote">in catalogue</p>
           </div>
-          <div class="panel-card p-5 mb-4">
-            <p class="font-head text-sm font-bold mb-3 text-wdtext">Branch Daily Summary</p>
+
+          <!-- Total Stock Value -->
+          <div class="analytics-kpi-card kpi-green" style="animation-delay:0.1s">
+            <div class="flex items-center gap-2 mb-3">
+              <div style="width:34px;height:34px;border-radius:10px;background:rgba(0,200,150,0.12);border:1px solid rgba(0,200,150,0.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00C896" stroke-width="2">
+                  <polyline points="21 8 21 21 3 21 3 8"/>
+                  <rect x="1" y="3" width="22" height="5" rx="1"/>
+                  <line x1="10" y1="12" x2="14" y2="12"/>
+                </svg>
+              </div>
+              <p class="text-xs font-head font-bold uppercase tracking-wider" style="color:#7A9AB0;">Stock Value</p>
+            </div>
+            <p id="kpiStockValue" class="font-head font-black text-xl text-wdtext leading-tight">
+              <span class="skeleton inline-block w-24 h-6 rounded"></span>
+            </p>
+            <p class="text-xs mt-1" style="color:#7A9AB0;" id="kpiStockValueNote">across all branches</p>
+          </div>
+
+          <!-- Today's Revenue -->
+          <div class="analytics-kpi-card kpi-purple" style="animation-delay:0.2s">
+            <div class="flex items-center gap-2 mb-3">
+              <div style="width:34px;height:34px;border-radius:10px;background:rgba(180,79,255,0.12);border:1px solid rgba(180,79,255,0.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#b44fff" stroke-width="2">
+                  <line x1="12" y1="1" x2="12" y2="23"/>
+                  <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                </svg>
+              </div>
+              <p class="text-xs font-head font-bold uppercase tracking-wider" style="color:#7A9AB0;">Today's Revenue</p>
+            </div>
+            <p id="kpiTodayRevenue" class="font-head font-black text-xl text-wdtext leading-tight">
+              <span class="skeleton inline-block w-24 h-6 rounded"></span>
+            </p>
+            <p class="text-xs mt-1" style="color:#7A9AB0;" id="kpiTodayRevenueNote">all branches</p>
+          </div>
+
+          <!-- This Month's Revenue -->
+          <div class="analytics-kpi-card kpi-yellow" style="animation-delay:0.3s">
+            <div class="flex items-center gap-2 mb-3">
+              <div style="width:34px;height:34px;border-radius:10px;background:rgba(255,193,7,0.1);border:1px solid rgba(255,193,7,0.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffc107" stroke-width="2">
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                  <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
+                  <line x1="3" y1="10" x2="21" y2="10"/>
+                </svg>
+              </div>
+              <p class="text-xs font-head font-bold uppercase tracking-wider" style="color:#7A9AB0;">This Month</p>
+            </div>
+            <p id="kpiMonthRevenue" class="font-head font-black text-xl text-wdtext leading-tight">
+              <span class="skeleton inline-block w-24 h-6 rounded"></span>
+            </p>
+            <p class="text-xs mt-1" style="color:#7A9AB0;" id="kpiMonthRevenueNote">all branches</p>
+          </div>
+        </div>
+
+        <!-- ── REVENUE TREND GRAPH — past 7 days ── -->
+        <div class="chart-container mb-6">
+          <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
+            <div>
+              <h3 class="font-head font-bold text-base text-wdtext">Revenue Trend — Last 7 Days</h3>
+              <p class="text-xs text-muted mt-0.5">Daily revenue across selected scope</p>
+            </div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <select id="chartBranchFilter" class="input-field text-xs" onchange="refreshRevenueChart()" style="min-width:140px;">
+                <option value="">All Branches</option>
+              </select>
+              <button onclick="refreshRevenueChart()" class="action-btn action-btn-muted text-xs flex items-center gap-1">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/></svg>
+                Refresh
+              </button>
+            </div>
+          </div>
+          <div id="chartLoading" class="flex items-center justify-center py-12">
+            <div class="spinner w-6 h-6 mr-3"></div>
+            <p class="text-sm text-muted">Loading revenue data…</p>
+          </div>
+          <div id="chartWrapper" class="hidden" style="position:relative;height:260px;">
+            <canvas id="revenueChart"></canvas>
+          </div>
+          <p id="chartEmpty" class="hidden text-center py-10 text-muted text-sm">No revenue data available for the last 7 days.</p>
+        </div>
+
+        <!-- ── DAILY TAB ── -->
+        <div id="analyticsDaily">
+          <!-- Today's Sales per Product -->
+          <div class="panel-card p-5 mb-5">
+            <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
+              <div>
+                <p class="font-head text-sm font-bold text-wdtext">Today's Sales by Product</p>
+                <p class="text-xs text-muted mt-0.5">Units sold &amp; revenue per product</p>
+              </div>
+              <div class="flex items-center gap-2 flex-wrap">
+                <select id="todayBranchFilter" class="input-field text-xs" onchange="loadTodayProductSales()" style="min-width:140px;">
+                  <option value="">All Branches</option>
+                </select>
+                <button onclick="loadTodayProductSales()" class="action-btn action-btn-muted text-xs flex items-center gap-1">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/></svg>
+                  Refresh
+                </button>
+              </div>
+            </div>
+            <div id="todayProductLoading" class="text-center py-8"><div class="spinner w-6 h-6 mx-auto mb-2"></div><p class="text-xs text-muted">Loading…</p></div>
+            <div id="todayProductList" class="hidden"></div>
+            <p id="todayProductEmpty" class="hidden text-center py-8 text-muted text-sm">No sales data for today.</p>
+          </div>
+
+          <!-- Branch Daily Summary (existing, kept) -->
+          <div class="panel-card p-5 mb-5">
+            <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
+              <p class="font-head text-sm font-bold text-wdtext">Branch Daily Summary</p>
+              <div class="flex items-center gap-2">
+                <input type="date" id="analyticsDate" class="input-field text-xs" onchange="loadDailySummary()"/>
+                <span class="text-xs text-muted hidden md:inline">blank = today</span>
+              </div>
+            </div>
             <div id="dailySummaryLoading" class="text-center py-8"><div class="spinner w-6 h-6 mx-auto mb-2"></div><p class="text-xs text-muted">Loading…</p></div>
             <div id="dailySummaryTable" class="hidden overflow-x-auto">
               <table class="w-full border-collapse">
@@ -862,19 +1057,39 @@
             </div>
           </div>
         </div>
+
+        <!-- ── MONTHLY TAB ── -->
         <div id="analyticsMonthly" class="hidden">
-          <div class="flex gap-2 mb-4 flex-wrap items-center">
-            <select id="analyticsMonth" class="input-field text-xs" onchange="loadMonthlySummary()">
-              <option value="1">January</option><option value="2">February</option><option value="3">March</option>
-              <option value="4">April</option><option value="5">May</option><option value="6">June</option>
-              <option value="7">July</option><option value="8">August</option><option value="9">September</option>
-              <option value="10">October</option><option value="11">November</option><option value="12">December</option>
-            </select>
-            <input type="number" id="analyticsYear" class="input-field text-xs w-24" placeholder="Year" onchange="loadMonthlySummary()"/>
-          </div>
-          <div class="panel-card p-5 mb-4">
-            <p class="font-head text-sm font-bold mb-3 text-wdtext">Branch Monthly Summary</p>
+
+          <!-- This Month's Revenue per Branch -->
+          <div class="panel-card p-5 mb-5">
+            <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
+              <div>
+                <p class="font-head text-sm font-bold text-wdtext">Revenue by Branch</p>
+                <p class="text-xs text-muted mt-0.5">Monthly breakdown per branch</p>
+              </div>
+              <div class="flex items-center gap-2 flex-wrap">
+                <select id="analyticsMonth" class="input-field text-xs" onchange="loadMonthlySummary()">
+                  <option value="1">January</option><option value="2">February</option><option value="3">March</option>
+                  <option value="4">April</option><option value="5">May</option><option value="6">June</option>
+                  <option value="7">July</option><option value="8">August</option><option value="9">September</option>
+                  <option value="10">October</option><option value="11">November</option><option value="12">December</option>
+                </select>
+                <input type="number" id="analyticsYear" class="input-field text-xs w-24" placeholder="Year" onchange="loadMonthlySummary()"/>
+              </div>
+            </div>
+
+            <!-- Total month revenue banner -->
+            <div class="rounded-xl px-4 py-3 mb-4 flex items-center justify-between flex-wrap gap-3"
+                 style="background:rgba(0,200,150,0.06);border:1px solid rgba(0,200,150,0.15);">
+              <p class="text-xs text-muted">Total Revenue Selected Period</p>
+              <p id="monthTotalRevenueBanner" class="font-head font-black text-xl" style="color:#00C896;">
+                <span class="skeleton inline-block w-28 h-6 rounded"></span>
+              </p>
+            </div>
+
             <div id="monthlySummaryLoading" class="text-center py-8"><div class="spinner w-6 h-6 mx-auto mb-2"></div><p class="text-xs text-muted">Loading…</p></div>
+            <div id="monthlyBranchList" class="hidden"></div>
             <div id="monthlySummaryTable" class="hidden overflow-x-auto">
               <table class="w-full border-collapse">
                 <thead><tr style="border-bottom:1px solid rgba(0,200,150,0.1);">
@@ -885,7 +1100,9 @@
             </div>
           </div>
         </div>
+
       </div>
+      <!-- ══ END ANALYTICS ══ -->
 
       <!-- ALERTS -->
       <div id="alertsContent" class="hidden">
@@ -953,7 +1170,7 @@
 // ══════════════════════════════════════════════
 // CONFIG
 // ══════════════════════════════════════════════
-const API_BASE = '/api';  // use relative path
+const API_BASE = '/api';
 
 function getToken() {
   return sessionStorage.getItem('access_token') || localStorage.getItem('access_token') || '';
@@ -980,7 +1197,7 @@ async function apiFetch(path, opts = {}) {
 }
 
 // ══════════════════════════════════════════════
-// URL ROUTING — panel & sub-tab URL map
+// URL ROUTING
 // ══════════════════════════════════════════════
 const PANEL_URLS = {
   dashboard:    '/admin_dashboard/',
@@ -995,7 +1212,6 @@ const PANEL_URLS = {
 };
 
 const SUBTAB_URLS = {
-  // restock
   'restock:action':        '/admin_dashboard/restock/action/',
   'restock:log':           '/admin_dashboard/restock/log/',
   'transactions:orders':   '/admin_dashboard/transactions/orders/',
@@ -1004,7 +1220,6 @@ const SUBTAB_URLS = {
   'analytics:monthly':     '/admin_dashboard/analytics/monthly/',
 };
 
-// Resolve a URL path → { panel, subtab }
 function resolveUrl(path) {
   if (path === '/admin_dashboard/restock/action/')        return { panel: 'restock',       subtab: 'action'   };
   if (path === '/admin_dashboard/restock/log/')           return { panel: 'restock',       subtab: 'log'      };
@@ -1047,41 +1262,26 @@ document.addEventListener('DOMContentLoaded', () => {
   loadOverviewData();
   startAutoRefresh();
 
-  // Seed history state for current URL then route to it
   const path = window.location.pathname;
   history.replaceState({ path }, '', path);
   routeToPath(path, false);
 });
 
-// ══════════════════════════════════════════════
-// BROWSER BACK / FORWARD
-// ══════════════════════════════════════════════
 window.addEventListener('popstate', function(e) {
   const path = (e.state && e.state.path) || window.location.pathname;
   routeToPath(path, false);
 });
 
-// ══════════════════════════════════════════════
-// ROUTE TO PATH  (the single source of truth)
-// ══════════════════════════════════════════════
 function routeToPath(path, pushState) {
   const { panel, subtab } = resolveUrl(path);
-
-  if (panel === 'dashboard') {
-    _activateOverview(pushState ? path : null);
-    return;
-  }
-
+  if (panel === 'dashboard') { _activateOverview(pushState ? path : null); return; }
   const navMap = {
     users: 'navUsers', branches: 'navBranches', products: 'navProducts',
     inventory: 'navInventory', restock: 'navRestock', transactions: 'navTransactions',
     analytics: 'navAnalytics', alerts: 'navAlerts',
   };
   const navBtn = document.getElementById(navMap[panel]);
-
   _activatePanel(panel, navBtn, pushState ? path : null);
-
-  // Activate sub-tab without pushing another history entry (routing already handles URL)
   if (subtab) {
     if (panel === 'restock')      _switchRestockTabUI(subtab);
     if (panel === 'transactions') _switchTxTabUI(subtab);
@@ -1261,22 +1461,16 @@ function setNavActive(btn) {
   btn?.classList.add('active');
 }
 
-// Public: called by nav buttons and internal links — always pushes state
-function showOverview(btn) {
-  _activateOverview('/admin_dashboard/');
-}
+function showOverview(btn) { _activateOverview('/admin_dashboard/'); }
 
 function showPanel(section, btn) {
   const url = PANEL_URLS[section] || '/admin_dashboard/';
   _activatePanel(section, btn, url);
-
-  // Default sub-tab URL push for panels that have sub-tabs
   if (section === 'restock')      history.replaceState({ path: SUBTAB_URLS['restock:action']        }, '', SUBTAB_URLS['restock:action']);
   if (section === 'transactions') history.replaceState({ path: SUBTAB_URLS['transactions:orders']   }, '', SUBTAB_URLS['transactions:orders']);
   if (section === 'analytics')    history.replaceState({ path: SUBTAB_URLS['analytics:daily']       }, '', SUBTAB_URLS['analytics:daily']);
 }
 
-// Internal: render the panel, optionally push a URL
 function _activateOverview(pushUrl) {
   setNavActive(document.getElementById('navDashboard'));
   document.getElementById('overviewPanel').classList.remove('hide');
@@ -1300,7 +1494,7 @@ function _activatePanel(section, btn, pushUrl) {
     case 'products':     loadProducts();     break;
     case 'inventory':    loadInventory();    break;
     case 'transactions': _initTransactions(); break;
-    case 'analytics':    loadDailySummary(); break;
+    case 'analytics':    initAnalytics();    break;
     case 'alerts':       loadAlerts();       break;
     case 'restock':      loadRestockPanel(); break;
   }
@@ -1309,19 +1503,14 @@ function _activatePanel(section, btn, pushUrl) {
   if (pushUrl) history.pushState({ path: pushUrl }, '', pushUrl);
 }
 
-function closePanel() {
-  _activateOverview('/admin_dashboard/');
-}
+function closePanel() { _activateOverview('/admin_dashboard/'); }
 
 // ══════════════════════════════════════════════
 // SUB-TAB SWITCHERS
 // ══════════════════════════════════════════════
-
-// ── RESTOCK ──
 function switchRestockTab(tab) {
   _switchRestockTabUI(tab);
-  const url = SUBTAB_URLS[`restock:${tab}`];
-  history.pushState({ path: url }, '', url);
+  history.pushState({ path: SUBTAB_URLS[`restock:${tab}`] }, '', SUBTAB_URLS[`restock:${tab}`]);
 }
 function _switchRestockTabUI(tab) {
   const isAction = tab === 'action';
@@ -1332,14 +1521,10 @@ function _switchRestockTabUI(tab) {
   if (!isAction) loadRestockLog();
 }
 
-// ── TRANSACTIONS ──
-function _initTransactions() {
-  _switchTxTabUI('orders');
-}
+function _initTransactions() { _switchTxTabUI('orders'); }
 function switchTxTab(tab) {
   _switchTxTabUI(tab);
-  const url = SUBTAB_URLS[`transactions:${tab}`];
-  history.pushState({ path: url }, '', url);
+  history.pushState({ path: SUBTAB_URLS[`transactions:${tab}`] }, '', SUBTAB_URLS[`transactions:${tab}`]);
 }
 function _switchTxTabUI(tab) {
   const isOrders = tab === 'orders';
@@ -1350,11 +1535,9 @@ function _switchTxTabUI(tab) {
   if (isOrders) loadTransactions(); else loadPayments();
 }
 
-// ── ANALYTICS ──
 function switchAnalyticsTab(tab) {
   _switchAnalyticsTabUI(tab);
-  const url = SUBTAB_URLS[`analytics:${tab}`];
-  history.pushState({ path: url }, '', url);
+  history.pushState({ path: SUBTAB_URLS[`analytics:${tab}`] }, '', SUBTAB_URLS[`analytics:${tab}`]);
 }
 function _switchAnalyticsTabUI(tab) {
   const isDaily = tab === 'daily';
@@ -1571,7 +1754,6 @@ async function deleteBranch(branchId, branchName, btn) {
   } catch { showAlert('Network error.', 'error'); btn.disabled = false; btn.textContent = 'Delete'; }
 }
 
-
 // ══════════════════════════════════════════════
 // PRODUCTS
 // ══════════════════════════════════════════════
@@ -1618,10 +1800,7 @@ function openEditProductModal(productId, productName, currentPrice, currentImage
   document.getElementById('editProductError').classList.add('hidden');
   document.getElementById('editProductModal').classList.remove('hidden');
 }
-function closeEditProductModal() {
-  document.getElementById('editProductModal').classList.add('hidden');
-  _editProductId = null;
-}
+function closeEditProductModal() { document.getElementById('editProductModal').classList.add('hidden'); _editProductId = null; }
 
 async function submitEditProduct(btn) {
   if (!_editProductId) return;
@@ -1630,27 +1809,16 @@ async function submitEditProduct(btn) {
   const image = document.getElementById('editProductImage').value.trim();
   const errEl = document.getElementById('editProductError');
   errEl.classList.add('hidden');
-
-  if (!name)               { errEl.textContent = 'Product name is required.';                    errEl.classList.remove('hidden'); return; }
-  if (name.length > 20)    { errEl.textContent = 'Name cannot exceed 20 characters.';            errEl.classList.remove('hidden'); return; }
+  if (!name)               { errEl.textContent = 'Product name is required.'; errEl.classList.remove('hidden'); return; }
+  if (name.length > 20)    { errEl.textContent = 'Name cannot exceed 20 characters.'; errEl.classList.remove('hidden'); return; }
   if (isNaN(price) || price <= 0) { errEl.textContent = 'Enter a valid price greater than KES 0.'; errEl.classList.remove('hidden'); return; }
-  if (price > 100000)      { errEl.textContent = 'Price cannot exceed KES 100,000.';              errEl.classList.remove('hidden'); return; }
-
+  if (price > 100000)      { errEl.textContent = 'Price cannot exceed KES 100,000.'; errEl.classList.remove('hidden'); return; }
   btn.disabled = true; btn.textContent = 'Saving…';
   try {
-    const payload = { name, price: price.toFixed(2), image };
-    const res  = await apiFetch(`/admin/products/${_editProductId}/`, { method:'PATCH', body: JSON.stringify(payload) });
+    const res  = await apiFetch(`/admin/products/${_editProductId}/`, { method:'PATCH', body: JSON.stringify({ name, price: price.toFixed(2), image }) });
     const data = await res.json();
-    if (res.ok) {
-      closeEditProductModal();
-      showAlert(data.message || `Product '${name}' updated successfully.`, 'ok');
-      loadProducts();
-    } else {
-      errEl.textContent = typeof data === 'object'
-        ? Object.entries(data).map(([k,v]) => `${k}: ${Array.isArray(v) ? v.join(' ') : v}`).join(' | ')
-        : 'Failed to update product.';
-      errEl.classList.remove('hidden');
-    }
+    if (res.ok) { closeEditProductModal(); showAlert(data.message || `Product '${name}' updated successfully.`, 'ok'); loadProducts(); }
+    else { errEl.textContent = typeof data === 'object' ? Object.entries(data).map(([k,v]) => `${k}: ${Array.isArray(v) ? v.join(' ') : v}`).join(' | ') : 'Failed to update product.'; errEl.classList.remove('hidden'); }
   } catch { errEl.textContent = 'Network error. Please try again.'; errEl.classList.remove('hidden'); }
   btn.disabled = false; btn.textContent = 'Save Changes';
 }
@@ -1668,28 +1836,16 @@ async function submitAddProduct(btn) {
   const image = document.getElementById('newProductImage').value.trim();
   const errEl = document.getElementById('addProductError');
   errEl.classList.add('hidden');
-
-  if (!name)               { errEl.textContent = 'Product name is required.';                    errEl.classList.remove('hidden'); return; }
-  if (name.length > 20)    { errEl.textContent = 'Name cannot exceed 20 characters.';            errEl.classList.remove('hidden'); return; }
+  if (!name)               { errEl.textContent = 'Product name is required.'; errEl.classList.remove('hidden'); return; }
+  if (name.length > 20)    { errEl.textContent = 'Name cannot exceed 20 characters.'; errEl.classList.remove('hidden'); return; }
   if (isNaN(price) || price <= 0) { errEl.textContent = 'Enter a valid price greater than KES 0.'; errEl.classList.remove('hidden'); return; }
-  if (price > 100000)      { errEl.textContent = 'Price cannot exceed KES 100,000.';              errEl.classList.remove('hidden'); return; }
-
+  if (price > 100000)      { errEl.textContent = 'Price cannot exceed KES 100,000.'; errEl.classList.remove('hidden'); return; }
   btn.disabled = true; btn.textContent = 'Creating…';
   try {
-    const payload = { name, price: price.toFixed(2), image };
-    const res  = await apiFetch('/admin/products/', { method:'POST', body: JSON.stringify(payload) });
+    const res  = await apiFetch('/admin/products/', { method:'POST', body: JSON.stringify({ name, price: price.toFixed(2), image }) });
     const data = await res.json();
-    if (res.ok) {
-      closeAddProductModal();
-      const created = data.data || {};
-      showAlert(data.message || `Product '${name}' created. ID: ${created.product_id || '—'}`, 'ok');
-      loadProducts();
-    } else {
-      errEl.textContent = typeof data === 'object'
-        ? Object.entries(data).map(([k,v]) => `${k}: ${Array.isArray(v) ? v.join(' ') : v}`).join(' | ')
-        : 'Failed to create product.';
-      errEl.classList.remove('hidden');
-    }
+    if (res.ok) { closeAddProductModal(); const created = data.data || {}; showAlert(data.message || `Product '${name}' created. ID: ${created.product_id || '—'}`, 'ok'); loadProducts(); }
+    else { errEl.textContent = typeof data === 'object' ? Object.entries(data).map(([k,v]) => `${k}: ${Array.isArray(v) ? v.join(' ') : v}`).join(' | ') : 'Failed to create product.'; errEl.classList.remove('hidden'); }
   } catch { errEl.textContent = 'Network error. Please try again.'; errEl.classList.remove('hidden'); }
   btn.disabled = false; btn.textContent = 'Create Product';
 }
@@ -1700,13 +1856,8 @@ async function deleteProduct(productId, productName, btn) {
   try {
     const res  = await apiFetch(`/admin/products/${productId}/`, { method:'DELETE' });
     const data = await res.json().catch(() => ({}));
-    if (res.ok) {
-      showAlert(data.message || `Product '${productName}' deleted.`, 'ok');
-      loadProducts();
-    } else {
-      showAlert(data.error || 'Failed to delete product.', 'error');
-      btn.disabled = false; btn.textContent = 'Delete';
-    }
+    if (res.ok) { showAlert(data.message || `Product '${productName}' deleted.`, 'ok'); loadProducts(); }
+    else { showAlert(data.error || 'Failed to delete product.', 'error'); btn.disabled = false; btn.textContent = 'Delete'; }
   } catch { showAlert('Network error.', 'error'); btn.disabled = false; btn.textContent = 'Delete'; }
 }
 
@@ -1742,15 +1893,12 @@ async function loadInventory() {
 // RESTOCK
 // ══════════════════════════════════════════════
 async function loadRestockPanel() {
-  // Reset UI to action tab (routeToPath will set the correct sub-tab afterward)
   _switchRestockTabUI('action');
-
   const select    = document.getElementById('restockBranchSelect');
   const loadingEl = document.getElementById('restockBranchLoading');
   select.innerHTML = '<option value="">— Choose a branch —</option>';
   document.getElementById('restockProductsSection').classList.add('hidden');
   loadingEl.classList.remove('hidden');
-
   try {
     const res      = await apiFetch('/admin/branches/');
     const data     = await res.json();
@@ -1769,7 +1917,6 @@ async function loadRestockPanel() {
     });
   } catch { showAlert('Failed to load branches for restock.', 'error'); }
   loadingEl.classList.add('hidden');
-
   try {
     const res      = await apiFetch('/products/');
     const data     = await res.json();
@@ -1851,20 +1998,13 @@ async function submitRestock(branchId, productId, productName, btn) {
   } catch { showAlert('Network error during restock.', 'error'); btn.disabled = false; btn.textContent = 'Restock'; }
 }
 
-// ══════════════════════════════════════════════
-// RESTOCK ALL  ← new function
-// ══════════════════════════════════════════════
 async function submitRestockAll(btn) {
   const branchId = document.getElementById('restockBranchSelect').value;
   if (!branchId) { showAlert('Please select a branch first.', 'error'); return; }
-
-  // Collect all rows that have a quantity filled in
   const tbody = document.getElementById('restockProductsBody');
   const rows  = tbody ? tbody.querySelectorAll('tr') : [];
-
   const items = [];
   rows.forEach(row => {
-    // Each row has one qty input with id restockQty_<productId>
     const input = row.querySelector('input[id^="restockQty_"]');
     if (!input) return;
     const productId = input.id.replace('restockQty_', '');
@@ -1873,41 +2013,21 @@ async function submitRestockAll(btn) {
     const prodName  = nameTd ? nameTd.textContent.trim() : productId;
     if (qty && qty >= 1) items.push({ productId, qty, prodName, input });
   });
-
-  if (!items.length) {
-    showAlert('Please enter a quantity for at least one product.', 'error');
-    return;
-  }
-
+  if (!items.length) { showAlert('Please enter a quantity for at least one product.', 'error'); return; }
   const branchLabel = document.getElementById('restockBranchLabel').textContent.replace('— ', '').trim();
   if (!confirm(`Restock ${items.length} product${items.length !== 1 ? 's' : ''} in ${branchLabel || 'this branch'}?\n\n` +
     items.map(i => `• ${i.prodName}: +${i.qty}`).join('\n'))) return;
-
   btn.disabled = true; btn.textContent = 'Restocking…';
-
   let successCount = 0, failCount = 0, failMessages = [];
-
   for (const item of items) {
     try {
-      const res  = await apiFetch(`/admin/inventory/${branchId}/${item.productId}/restock/`, {
-        method: 'POST', body: JSON.stringify({ quantity: item.qty })
-      });
+      const res  = await apiFetch(`/admin/inventory/${branchId}/${item.productId}/restock/`, { method: 'POST', body: JSON.stringify({ quantity: item.qty }) });
       const data = await res.json();
-      if (res.ok) {
-        successCount++;
-        item.input.value = ''; // clear the field on success
-      } else {
-        failCount++;
-        failMessages.push(`${item.prodName}: ${data.error || data.detail || 'failed'}`);
-      }
-    } catch {
-      failCount++;
-      failMessages.push(`${item.prodName}: network error`);
-    }
+      if (res.ok) { successCount++; item.input.value = ''; }
+      else { failCount++; failMessages.push(`${item.prodName}: ${data.error || data.detail || 'failed'}`); }
+    } catch { failCount++; failMessages.push(`${item.prodName}: network error`); }
   }
-
   btn.disabled = false; btn.textContent = 'Restock All';
-
   if (successCount > 0 && failCount === 0) {
     showAlert(`✓ All ${successCount} product${successCount !== 1 ? 's' : ''} restocked successfully.`, 'ok');
   } else if (successCount > 0 && failCount > 0) {
@@ -1915,8 +2035,6 @@ async function submitRestockAll(btn) {
   } else {
     showAlert(`Restock failed for all products: ${failMessages.join(' | ')}`, 'error');
   }
-
-  // Refresh inventory view and alert badge
   onRestockBranchChange();
   loadAlertsCard();
 }
@@ -1984,7 +2102,6 @@ async function loadTransactions() {
             : `<span class="text-xs text-muted">—</span>`}
         </td>
       </tr>`).join('');
-    // Update table header to include Action column
     document.querySelector('#transactionsTable thead tr').innerHTML = `
       <th class="th-cell">Order ID</th><th class="th-cell">Customer</th><th class="th-cell">Branch</th>
       <th class="th-cell">Total</th><th class="th-cell">Status</th><th class="th-cell">Transaction ID</th>
@@ -1999,18 +2116,9 @@ async function adminCancelOrder(orderId, btn) {
   try {
     const res  = await apiFetch(`/orders/${orderId}/cancel/`, { method: 'POST' });
     const data = await res.json();
-    if (res.ok) {
-      showAlert(data.message || `Order '${orderId}' cancelled. Stock restored.`, 'ok');
-      loadTransactions();
-      loadOrdersCard();
-    } else {
-      showAlert(data.error || 'Failed to cancel order.', 'error');
-      btn.disabled = false; btn.textContent = 'Cancel';
-    }
-  } catch {
-    showAlert('Network error while cancelling order.', 'error');
-    btn.disabled = false; btn.textContent = 'Cancel';
-  }
+    if (res.ok) { showAlert(data.message || `Order '${orderId}' cancelled. Stock restored.`, 'ok'); loadTransactions(); loadOrdersCard(); }
+    else { showAlert(data.error || 'Failed to cancel order.', 'error'); btn.disabled = false; btn.textContent = 'Cancel'; }
+  } catch { showAlert('Network error while cancelling order.', 'error'); btn.disabled = false; btn.textContent = 'Cancel'; }
 }
 
 async function loadPayments() {
@@ -2046,7 +2154,6 @@ async function loadPayments() {
           </td>
         </tr>`;
     }).join('');
-    // Update header to include Action column
     document.querySelector('#paymentsTable thead tr').innerHTML = `
       <th class="th-cell">Payment ID</th><th class="th-cell">Order ID</th><th class="th-cell">Branch</th>
       <th class="th-cell">Customer</th><th class="th-cell">Phone</th><th class="th-cell">Amount</th>
@@ -2062,23 +2169,342 @@ async function adminCancelPayment(paymentId, btn) {
   try {
     const res  = await apiFetch(`/admin/payments/${paymentId}/cancel/`, { method: 'POST' });
     const data = await res.json();
-    if (res.ok) {
-      showAlert(data.message || `Payment '${paymentId}' cancelled.`, 'ok');
-      loadPayments();
-      loadOrdersCard();
-    } else {
-      showAlert(data.error || 'Failed to cancel payment.', 'error');
-      btn.disabled = false; btn.textContent = 'Cancel';
-    }
-  } catch {
-    showAlert('Network error while cancelling payment.', 'error');
-    btn.disabled = false; btn.textContent = 'Cancel';
-  }
+    if (res.ok) { showAlert(data.message || `Payment '${paymentId}' cancelled.`, 'ok'); loadPayments(); loadOrdersCard(); }
+    else { showAlert(data.error || 'Failed to cancel payment.', 'error'); btn.disabled = false; btn.textContent = 'Cancel'; }
+  } catch { showAlert('Network error while cancelling payment.', 'error'); btn.disabled = false; btn.textContent = 'Cancel'; }
 }
 
 // ══════════════════════════════════════════════
-// ANALYTICS
+// ANALYTICS — ENHANCED
 // ══════════════════════════════════════════════
+
+let _revenueChart = null;        // Chart.js instance
+let _analyticsBranches = [];     // Cached branch list for filter dropdowns
+
+// ── Entry point: called by _activatePanel ──
+async function initAnalytics() {
+  // Load branches into filter dropdowns (chart + today's sales)
+  await _populateAnalyticsBranchFilters();
+
+  // Load all KPI cards in parallel
+  await Promise.allSettled([
+    loadAnalyticsKpiCards(),
+    buildRevenueChart(),
+    loadTodayProductSales(),
+    loadDailySummary(),
+  ]);
+}
+
+// Populate the branch dropdowns in analytics once
+async function _populateAnalyticsBranchFilters() {
+  if (_analyticsBranches.length) return; // already cached
+  try {
+    const res  = await apiFetch('/admin/branches/');
+    const data = await res.json();
+    _analyticsBranches = data.branches || [];
+  } catch { _analyticsBranches = []; }
+
+  ['chartBranchFilter', 'todayBranchFilter'].forEach(id => {
+    const sel = document.getElementById(id);
+    if (!sel) return;
+    // keep first "All Branches" option
+    sel.innerHTML = '<option value="">All Branches</option>';
+    _analyticsBranches.forEach(b => {
+      const opt = document.createElement('option');
+      opt.value = b.branch_id;
+      opt.textContent = b.name;
+      sel.appendChild(opt);
+    });
+  });
+}
+
+// ── KPI CARDS ──────────────────────────────────
+async function loadAnalyticsKpiCards() {
+  await Promise.allSettled([
+    _loadKpiTotalProducts(),
+    _loadKpiStockValue(),
+    _loadKpiTodayRevenue(),
+    _loadKpiMonthRevenue(),
+  ]);
+}
+
+async function _loadKpiTotalProducts() {
+  try {
+    const res  = await apiFetch('/admin/products/');
+    const data = await res.json();
+    const list = Array.isArray(data) ? data : (data.products || data.results || []);
+    document.getElementById('kpiTotalProducts').textContent = list.length;
+    document.getElementById('kpiTotalProductsNote').textContent = `${list.length} product${list.length !== 1 ? 's' : ''} in catalogue`;
+  } catch {
+    document.getElementById('kpiTotalProducts').innerHTML = '<span style="color:#ff9b9b;font-size:0.85rem;">Error</span>';
+  }
+}
+
+async function _loadKpiStockValue() {
+  try {
+    // Fetch inventory (stock quantities) and products (prices) in parallel
+    const [invRes, prodRes] = await Promise.all([
+      apiFetch('/admin/inventory/'),
+      apiFetch('/admin/products/'),
+    ]);
+    const invData  = await invRes.json();
+    const prodData = await prodRes.json();
+
+    const inventory = Array.isArray(invData) ? invData : (invData.inventory || invData.results || []);
+    const products  = Array.isArray(prodData) ? prodData : (prodData.products || prodData.results || []);
+
+    // Build price lookup: product_id → price
+    const priceMap = {};
+    products.forEach(p => { priceMap[p.product_id] = parseFloat(p.price || 0); });
+
+    // Sum: stock × price for every inventory row
+    let totalValue = 0;
+    inventory.forEach(r => {
+      const stock     = r.stock ?? 0;
+      const prodId    = r.product?.product_id ?? r.product_id ?? '';
+      const unitPrice = priceMap[prodId] || parseFloat(r.product?.price || 0);
+      totalValue += stock * unitPrice;
+    });
+
+    document.getElementById('kpiStockValue').textContent =
+      `KES ${totalValue.toLocaleString('en-KE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    document.getElementById('kpiStockValueNote').textContent = `across ${_analyticsBranches.length || '—'} branch${_analyticsBranches.length !== 1 ? 'es' : ''}`;
+  } catch {
+    document.getElementById('kpiStockValue').innerHTML = '<span style="color:#ff9b9b;font-size:0.85rem;">Error</span>';
+  }
+}
+
+async function _loadKpiTodayRevenue() {
+  try {
+    const today = new Date().toISOString().split('T')[0];
+    const res   = await apiFetch(`/admin/analytics/daily/summary/?date=${today}`);
+    const data  = await res.json();
+    const total = (data.summary || []).reduce((s, b) => s + (b.total_revenue || 0), 0);
+    document.getElementById('kpiTodayRevenue').textContent =
+      `KES ${total.toLocaleString('en-KE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    document.getElementById('kpiTodayRevenueNote').textContent =
+      `${data.total_branches || 0} branch${data.total_branches !== 1 ? 'es' : ''} · ${today}`;
+  } catch {
+    document.getElementById('kpiTodayRevenue').innerHTML = '<span style="color:#ff9b9b;font-size:0.85rem;">Error</span>';
+  }
+}
+
+async function _loadKpiMonthRevenue() {
+  try {
+    const now   = new Date();
+    const month = now.getMonth() + 1;
+    const year  = now.getFullYear();
+    const res   = await apiFetch(`/admin/analytics/monthly/summary/?month=${month}&year=${year}`);
+    const data  = await res.json();
+    const total = (data.summary || []).reduce((s, b) => s + (b.total_revenue || 0), 0);
+    document.getElementById('kpiMonthRevenue').textContent =
+      `KES ${total.toLocaleString('en-KE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+    const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    document.getElementById('kpiMonthRevenueNote').textContent =
+      `${monthNames[month - 1]} ${year} · ${data.total_branches || 0} branch${data.total_branches !== 1 ? 'es' : ''}`;
+  } catch {
+    document.getElementById('kpiMonthRevenue').innerHTML = '<span style="color:#ff9b9b;font-size:0.85rem;">Error</span>';
+  }
+}
+
+// ── REVENUE CHART — last 7 days ───────────────
+async function buildRevenueChart() {
+  document.getElementById('chartLoading').classList.remove('hidden');
+  document.getElementById('chartWrapper').classList.add('hidden');
+  document.getElementById('chartEmpty').classList.add('hidden');
+
+  const branchId = document.getElementById('chartBranchFilter')?.value || '';
+
+  // Build array of last 7 dates (ISO strings)
+  const dates = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    dates.push(d.toISOString().split('T')[0]);
+  }
+
+  // Fetch each day's summary concurrently
+  const results = await Promise.allSettled(
+    dates.map(date => apiFetch(`/admin/analytics/daily/summary/?date=${date}`)
+      .then(r => r.json())
+      .then(data => {
+        // If filtering by branch, pick only that branch's revenue
+        if (branchId) {
+          const row = (data.summary || []).find(b => {
+            // match by branch name or branch_id if API returns it
+            const br = _analyticsBranches.find(x => x.branch_id === branchId);
+            return br && b.branch_name === br.name;
+          });
+          return { date, revenue: row ? parseFloat(row.total_revenue || 0) : 0 };
+        }
+        // All branches: sum
+        const total = (data.summary || []).reduce((s, b) => s + parseFloat(b.total_revenue || 0), 0);
+        return { date, revenue: total };
+      })
+      .catch(() => ({ date, revenue: 0 }))
+    )
+  );
+
+  const points = results.map((r, i) => r.status === 'fulfilled' ? r.value : { date: dates[i], revenue: 0 });
+  const hasData = points.some(p => p.revenue > 0);
+
+  document.getElementById('chartLoading').classList.add('hidden');
+
+  if (!hasData) {
+    document.getElementById('chartEmpty').classList.remove('hidden');
+    return;
+  }
+
+  document.getElementById('chartWrapper').classList.remove('hidden');
+
+  // Destroy previous chart instance if re-rendering
+  if (_revenueChart) { _revenueChart.destroy(); _revenueChart = null; }
+
+  const labels  = points.map(p => {
+    const d = new Date(p.date + 'T00:00:00');
+    return d.toLocaleDateString('en-KE', { weekday: 'short', day: 'numeric', month: 'short' });
+  });
+  const revenues = points.map(p => p.revenue);
+
+  const ctx = document.getElementById('revenueChart').getContext('2d');
+
+  // Gradient fill
+  const grad = ctx.createLinearGradient(0, 0, 0, 260);
+  grad.addColorStop(0, 'rgba(0,200,150,0.25)');
+  grad.addColorStop(1, 'rgba(0,200,150,0.00)');
+
+  _revenueChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: branchId
+          ? (_analyticsBranches.find(b => b.branch_id === branchId)?.name || 'Branch') + ' Revenue'
+          : 'Total Revenue (All Branches)',
+        data: revenues,
+        borderColor: '#00C896',
+        borderWidth: 2.5,
+        pointBackgroundColor: '#00C896',
+        pointBorderColor: '#0A2540',
+        pointBorderWidth: 2,
+        pointRadius: 5,
+        pointHoverRadius: 7,
+        fill: true,
+        backgroundColor: grad,
+        tension: 0.4,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: {
+          labels: {
+            color: '#9BBFD6',
+            font: { family: 'Syne', size: 11, weight: '700' },
+          }
+        },
+        tooltip: {
+          backgroundColor: 'rgba(6,22,42,0.92)',
+          borderColor: 'rgba(0,200,150,0.3)',
+          borderWidth: 1,
+          titleColor: '#E8F4F8',
+          bodyColor: '#9BBFD6',
+          titleFont: { family: 'Syne', weight: '700' },
+          callbacks: {
+            label: ctx => ` KES ${Number(ctx.parsed.y).toLocaleString('en-KE', { minimumFractionDigits: 2 })}`
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid:  { color: 'rgba(0,200,150,0.05)', drawBorder: false },
+          ticks: { color: '#7A9AB0', font: { family: 'DM Sans', size: 11 } },
+        },
+        y: {
+          grid:  { color: 'rgba(0,200,150,0.05)', drawBorder: false },
+          ticks: {
+            color: '#7A9AB0',
+            font: { family: 'DM Sans', size: 11 },
+            callback: v => 'KES ' + Number(v).toLocaleString('en-KE'),
+          },
+          beginAtZero: true,
+        }
+      }
+    }
+  });
+}
+
+function refreshRevenueChart() { buildRevenueChart(); }
+
+// ── TODAY'S SALES PER PRODUCT ──────────────────
+async function loadTodayProductSales() {
+  const loadingEl = document.getElementById('todayProductLoading');
+  const listEl    = document.getElementById('todayProductList');
+  const emptyEl   = document.getElementById('todayProductEmpty');
+  loadingEl.classList.remove('hidden');
+  listEl.classList.add('hidden');
+  emptyEl.classList.add('hidden');
+
+  try {
+    const today    = new Date().toISOString().split('T')[0];
+    const branchId = document.getElementById('todayBranchFilter')?.value || '';
+
+    let url = `/admin/analytics/daily/?date=${today}`;
+    if (branchId) url += `&branch_id=${branchId}`;
+
+    const res  = await apiFetch(url);
+    const data = await res.json();
+    const reports = data.reports || [];
+
+    if (!reports.length) {
+      loadingEl.classList.add('hidden');
+      emptyEl.classList.remove('hidden');
+      return;
+    }
+
+    // Aggregate by product across branches (or single branch if filtered)
+    const productMap = {};
+    reports.forEach(r => {
+      const key = r.product_name;
+      if (!productMap[key]) productMap[key] = { name: key, sold: 0, revenue: 0 };
+      productMap[key].sold    += r.total_sold    || 0;
+      productMap[key].revenue += parseFloat(r.total_revenue || 0);
+    });
+
+    const rows = Object.values(productMap).sort((a, b) => b.revenue - a.revenue);
+    const maxRevenue = rows[0]?.revenue || 1;
+
+    listEl.innerHTML = rows.map((p, idx) => {
+      const barPct = Math.max(4, Math.round((p.revenue / maxRevenue) * 100));
+      return `
+        <div class="product-sales-row">
+          <div class="w-5 text-center font-head font-bold text-xs" style="color:#7A9AB0;">${idx + 1}</div>
+          <div class="flex-1 min-w-0">
+            <p class="td-main truncate mb-1">${p.name}</p>
+            <div class="product-bar-track">
+              <div class="product-bar-fill" style="width:${barPct}%;"></div>
+            </div>
+          </div>
+          <div class="text-right flex-shrink-0 ml-3">
+            <p class="font-head font-bold text-sm text-wdtext">KES ${p.revenue.toLocaleString('en-KE', {minimumFractionDigits:2})}</p>
+            <p class="text-xs" style="color:#7A9AB0;">${p.sold.toLocaleString()} unit${p.sold !== 1 ? 's' : ''}</p>
+          </div>
+        </div>`;
+    }).join('');
+
+    loadingEl.classList.add('hidden');
+    listEl.classList.remove('hidden');
+  } catch {
+    loadingEl.classList.add('hidden');
+    emptyEl.classList.remove('hidden');
+    emptyEl.textContent = 'Failed to load product sales.';
+  }
+}
+
+// ── BRANCH DAILY SUMMARY (existing, preserved) ──
 async function loadDailySummary() {
   const date = document.getElementById('analyticsDate').value || new Date().toISOString().split('T')[0];
   document.getElementById('dailySummaryLoading').classList.remove('hidden');
@@ -2087,7 +2513,10 @@ async function loadDailySummary() {
     const res  = await apiFetch(`/admin/analytics/daily/summary/?date=${date}`);
     const data = await res.json();
     const rows = data.summary || [];
-    if (!rows.length) { document.getElementById('dailySummaryLoading').innerHTML = `<p class="text-sm text-muted text-center py-4">No data for ${date}.</p>`; return; }
+    if (!rows.length) {
+      document.getElementById('dailySummaryLoading').innerHTML = `<p class="text-sm text-muted text-center py-4">No data for ${date}.</p>`;
+      return;
+    }
     document.getElementById('dailySummaryBody').innerHTML = rows.map(r => `
       <tr style="border-bottom:1px solid rgba(0,200,150,0.06);" class="hover:bg-white/[0.02]">
         <td class="td-main px-4 py-3">${r.branch_name}</td>
@@ -2097,19 +2526,59 @@ async function loadDailySummary() {
       </tr>`).join('');
     document.getElementById('dailySummaryLoading').classList.add('hidden');
     document.getElementById('dailySummaryTable').classList.remove('hidden');
-  } catch { document.getElementById('dailySummaryLoading').innerHTML = `<p class="text-sm text-muted text-center py-4">Failed to load.</p>`; }
+  } catch {
+    document.getElementById('dailySummaryLoading').innerHTML = `<p class="text-sm text-muted text-center py-4">Failed to load.</p>`;
+  }
 }
 
+// ── MONTHLY SUMMARY — enhanced with branch breakdown ──
 async function loadMonthlySummary() {
   const month = document.getElementById('analyticsMonth').value;
   const year  = document.getElementById('analyticsYear').value || new Date().getFullYear();
+
   document.getElementById('monthlySummaryLoading').classList.remove('hidden');
+  document.getElementById('monthlyBranchList').classList.add('hidden');
   document.getElementById('monthlySummaryTable').classList.add('hidden');
+  document.getElementById('monthTotalRevenueBanner').innerHTML =
+    '<span class="skeleton inline-block w-28 h-6 rounded"></span>';
+
   try {
     const res  = await apiFetch(`/admin/analytics/monthly/summary/?month=${month}&year=${year}`);
     const data = await res.json();
     const rows = data.summary || [];
-    if (!rows.length) { document.getElementById('monthlySummaryLoading').innerHTML = `<p class="text-sm text-muted text-center py-4">No data for this period.</p>`; return; }
+
+    const totalRevenue = rows.reduce((s, r) => s + parseFloat(r.total_revenue || 0), 0);
+    document.getElementById('monthTotalRevenueBanner').textContent =
+      `KES ${totalRevenue.toLocaleString('en-KE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+    if (!rows.length) {
+      document.getElementById('monthlySummaryLoading').innerHTML =
+        `<p class="text-sm text-muted text-center py-4">No data for this period.</p>`;
+      return;
+    }
+
+    const maxBranchRev = Math.max(...rows.map(r => parseFloat(r.total_revenue || 0)), 1);
+
+    // Render branch cards + table
+    document.getElementById('monthlyBranchList').innerHTML = rows.map(r => {
+      const rev    = parseFloat(r.total_revenue || 0);
+      const barPct = Math.max(4, Math.round((rev / maxBranchRev) * 100));
+      return `
+        <div class="monthly-branch-row">
+          <div class="min-w-0 flex-1">
+            <p class="td-main truncate mb-1">${r.branch_name}</p>
+            <div class="product-bar-track" style="max-width:240px;">
+              <div class="product-bar-fill" style="width:${barPct}%;background:linear-gradient(90deg,#00A3FF,#00C896);"></div>
+            </div>
+          </div>
+          <div class="text-right ml-4 flex-shrink-0">
+            <p class="font-head font-bold text-sm text-wdtext">KES ${rev.toLocaleString('en-KE', {minimumFractionDigits:2})}</p>
+            <p class="text-xs" style="color:#7A9AB0;">${(r.total_sold || 0).toLocaleString()} units</p>
+          </div>
+        </div>`;
+    }).join('');
+
+    // Also populate the table for legacy view
     document.getElementById('monthlySummaryBody').innerHTML = rows.map(r => `
       <tr style="border-bottom:1px solid rgba(0,200,150,0.06);" class="hover:bg-white/[0.02]">
         <td class="td-main px-4 py-3">${r.branch_name}</td>
@@ -2118,9 +2587,13 @@ async function loadMonthlySummary() {
         <td class="td-sub px-4 py-3">${(r.total_sold || 0).toLocaleString()}</td>
         <td class="td-amt px-4 py-3">KES ${Number(r.total_revenue || 0).toLocaleString('en-KE', {minimumFractionDigits:2})}</td>
       </tr>`).join('');
+
     document.getElementById('monthlySummaryLoading').classList.add('hidden');
+    document.getElementById('monthlyBranchList').classList.remove('hidden');
     document.getElementById('monthlySummaryTable').classList.remove('hidden');
-  } catch { document.getElementById('monthlySummaryLoading').innerHTML = `<p class="text-sm text-muted text-center py-4">Failed to load.</p>`; }
+  } catch {
+    document.getElementById('monthlySummaryLoading').innerHTML = `<p class="text-sm text-muted text-center py-4">Failed to load.</p>`;
+  }
 }
 
 // ══════════════════════════════════════════════
@@ -2193,7 +2666,7 @@ function goToRestock(branchName = null, branchId = null) {
   }
 }
 
-// ── SCAN INVENTORY ────────────────────────────
+// ── SCAN INVENTORY ──────────────────────────────
 let scanOpen = false;
 function toggleScanResults() { if (scanOpen) closeScanResults(); else openScanResults(); }
 function closeScanResults() {

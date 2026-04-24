@@ -9,8 +9,6 @@ class InventorySerializer(serializers.ModelSerializer):
 
     branch = BranchSerializer(read_only=True)
     product = ProductSerializer(read_only=True)
-
-    # Calls model property — single source of truth
     is_in_stock = serializers.SerializerMethodField()
 
     class Meta:
@@ -25,7 +23,7 @@ class InventorySerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
     def get_is_in_stock(self, obj):
-        return obj.is_in_stock  # ← model property
+        return obj.is_in_stock
 
 
 class RestockLogSerializer(serializers.ModelSerializer):
@@ -60,10 +58,6 @@ class AdminInventorySerializer(serializers.ModelSerializer):
     product = ProductSerializer(read_only=True)
     is_in_stock = serializers.SerializerMethodField()
     is_low = serializers.SerializerMethodField()
-
-    # Changed to SerializerMethodField to avoid
-    # "Cannot filter a query once a slice has been taken" error
-    # Limit of 10 applied here instead of queryset slice
     restock_history = serializers.SerializerMethodField()
 
     class Meta:
@@ -74,7 +68,7 @@ class AdminInventorySerializer(serializers.ModelSerializer):
             'stock',
             'is_in_stock',
             'is_low',
-            'low_stock_threshold',  # Only editable field via PATCH
+            'low_stock_threshold',
             'last_updated',
             'restock_history',
         ]
@@ -89,15 +83,22 @@ class AdminInventorySerializer(serializers.ModelSerializer):
         ]
 
     def get_is_in_stock(self, obj):
-        return obj.is_in_stock  # ← model property
+        return obj.is_in_stock
 
     def get_is_low(self, obj):
-        return obj.is_low  # ← model property
+        return obj.is_low
 
     def get_restock_history(self, obj):
-        
         logs = obj.restock_logs.all().order_by('-restocked_at')[:10]
         return RestockLogSerializer(logs, many=True).data
+
+    def validate_low_stock_threshold(self, value):
+        if value < 1:
+            raise serializers.ValidationError(
+                "Low stock threshold must be at least 1. "
+                "A value of 0 would cause alerts to never fire."
+            )
+        return value
 
 
 class RestockSerializer(serializers.Serializer):

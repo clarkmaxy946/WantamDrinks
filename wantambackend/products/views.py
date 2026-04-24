@@ -64,12 +64,14 @@ class AdminProductListView(APIView):
 
     def get(self, request):
         products = Product.objects.all()
+
+        # COUNT(*) in SQL — runs before serialization, no rows pulled into memory
+        total_products = products.count()
         serializer = AdminProductSerializer(products, many=True, context={'request': request})
-        data = serializer.data
         return Response(
             {
-                "total_products": len(data),
-                "products": data
+                "total_products": total_products,
+                "products": serializer.data
             },
             status=status.HTTP_200_OK
         )

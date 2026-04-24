@@ -162,12 +162,13 @@ class AdminPaymentListView(APIView):
         if date:
             payments = payments.filter(created_at__date=date)
 
+        # COUNT(*) in SQL — runs before serialization, no rows pulled into memory
+        total_payments = payments.count()
         serializer = AdminPaymentSerializer(payments, many=True)
-        data = serializer.data
         return Response(
             {
-                "total_payments": len(data),
-                "payments": data
+                "total_payments": total_payments,
+                "payments": serializer.data
             },
             status=status.HTTP_200_OK
         )
@@ -194,6 +195,8 @@ class AdminPaymentDetailView(APIView):
             serializer.data,
             status=status.HTTP_200_OK
         )
+
+
 class TimeoutPaymentView(APIView):
     """
     POST /api/payments/<payment_id>/timeout/
@@ -251,6 +254,8 @@ class TimeoutPaymentView(APIView):
             },
             status=status.HTTP_200_OK
         )
+
+
 class AdminCancelPaymentView(APIView):
     """
     POST /api/admin/payments/<payment_id>/cancel/
@@ -302,4 +307,3 @@ class AdminCancelPaymentView(APIView):
             },
             status=status.HTTP_200_OK
         )
-            

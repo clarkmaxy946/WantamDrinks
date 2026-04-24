@@ -1,6 +1,7 @@
 # inventory/models.py
 from django.db import models
 from django.conf import settings
+from django.core.validators import MinValueValidator
 from branches.models import Branch
 from products.models import Product
 
@@ -19,7 +20,10 @@ class Inventory(models.Model):
         db_index=True
     )
     stock = models.PositiveIntegerField(default=0)
-    low_stock_threshold = models.PositiveIntegerField(default=10)
+    low_stock_threshold = models.PositiveIntegerField(
+        default=10,
+        validators=[MinValueValidator(1, message="Low stock threshold must be at least 1.")]
+    )
     last_updated = models.DateTimeField(auto_now=True)
 
     class Meta:
@@ -34,28 +38,32 @@ class Inventory(models.Model):
             )
         ]
 
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return f"{self.branch.name} | {self.product.name} | Stock: {self.stock}"
 
     @property
     def is_low(self):
         return self.stock <= self.low_stock_threshold
-    
+
     @property
     def is_in_stock(self):
         return self.stock > 0
 
 
 class RestockLog(models.Model):
-    
+
     inventory = models.ForeignKey(
         Inventory,
-        on_delete=models.PROTECT,       # Never delete a log's inventory reference
+        on_delete=models.PROTECT,
         related_name='restock_logs'
     )
     restocked_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
-        on_delete=models.SET_NULL,      # Log survives even if user is deleted
+        on_delete=models.SET_NULL,
         null=True,
         related_name='restock_logs'
     )
@@ -68,7 +76,7 @@ class RestockLog(models.Model):
         ordering = ['-restocked_at']
         indexes = [
             models.Index(fields=['restocked_at']),
-            models.Index(fields=['inventory', 'restocked_at']),  # Audit queries
+            models.Index(fields=['inventory', 'restocked_at']),
         ]
 
     def __str__(self):

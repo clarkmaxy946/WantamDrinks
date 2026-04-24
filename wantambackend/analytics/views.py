@@ -1,5 +1,6 @@
 # analytics/views.py
 import calendar
+from datetime import date as date_type
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -37,8 +38,15 @@ class DailySalesReportView(APIView):
         ).order_by('-date')
 
         # Filter by date
-        date = request.query_params.get('date')
-        if date:
+        date_raw = request.query_params.get('date')
+        if date_raw:
+            try:
+                date = date_type.fromisoformat(date_raw)
+            except ValueError:
+                return Response(
+                    {"error": f"Invalid value for 'date': '{date_raw}' must be a valid date in YYYY-MM-DD format."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
             reports = reports.filter(date=date)
 
         # Filter by branch
@@ -50,20 +58,21 @@ class DailySalesReportView(APIView):
         product_id = request.query_params.get('product_id')
         if product_id:
             reports = reports.filter(product__product_id=product_id)
-        
+
         totals = reports.aggregate(
             grand_total_sold=Sum('total_sold'),
             grand_total_revenue=Sum('total_revenue')
-        )   
+        )
 
+        # COUNT(*) in SQL — runs before serialization, no rows pulled into memory
+        total_records = reports.count()
         serializer = DailySalesReportSerializer(reports, many=True)
-        data = serializer.data
         return Response(
             {
-                "total_records": len(data),
+                "total_records": total_records,
                 "grand_total_sold": totals['grand_total_sold'] or 0,
                 "grand_total_revenue": totals['grand_total_revenue'] or 0,
-                "reports": data
+                "reports": serializer.data
             },
             status=status.HTTP_200_OK
         )
@@ -91,13 +100,39 @@ class MonthlySalesReportView(APIView):
         ).order_by('-year', '-month')
 
         # Filter by year
-        year = request.query_params.get('year')
-        if year:
+        year_raw = request.query_params.get('year')
+        year = None
+        if year_raw:
+            try:
+                year = int(year_raw)
+            except (ValueError, TypeError):
+                return Response(
+                    {"error": f"Invalid value for 'year': '{year_raw}' is not a valid integer."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            if year < 2000 or year > 2100:
+                return Response(
+                    {"error": f"Invalid value for 'year': '{year}' must be between 2000 and 2100."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
             reports = reports.filter(year=year)
 
         # Filter by month
-        month = request.query_params.get('month')
-        if month:
+        month_raw = request.query_params.get('month')
+        month = None
+        if month_raw:
+            try:
+                month = int(month_raw)
+            except (ValueError, TypeError):
+                return Response(
+                    {"error": f"Invalid value for 'month': '{month_raw}' is not a valid integer."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            if month < 1 or month > 12:
+                return Response(
+                    {"error": f"Invalid value for 'month': '{month}' must be between 1 and 12."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
             reports = reports.filter(month=month)
 
         # Filter by branch
@@ -109,28 +144,26 @@ class MonthlySalesReportView(APIView):
         product_id = request.query_params.get('product_id')
         if product_id:
             reports = reports.filter(product__product_id=product_id)
-        
+
         totals = reports.aggregate(
             grand_total_sold=Sum('total_sold'),
             grand_total_revenue=Sum('total_revenue')
-        )  
-        
-        month_name = None
-        if month:
-            try:
-                month_name = calendar.month_name[int(month)]
-            except (ValueError, IndexError):
-                month_name = None 
+        )
 
+        # month is guaranteed valid (1–12) at this point, so calendar.month_name
+        # cannot raise IndexError — no try/except needed here
+        month_name = calendar.month_name[month] if month else None
+
+        # COUNT(*) in SQL — runs before serialization, no rows pulled into memory
+        total_records = reports.count()
         serializer = MonthlySalesReportSerializer(reports, many=True)
-        data = serializer.data
         return Response(
             {
-                "total_records": len(data),
+                "total_records": total_records,
                 "month_name": month_name,
                 "grand_total_sold": totals['grand_total_sold'] or 0,
                 "grand_total_revenue": totals['grand_total_revenue'] or 0,
-                "reports": data
+                "reports": serializer.data
             },
             status=status.HTTP_200_OK
         )
@@ -157,8 +190,17 @@ class BranchDailySummaryView(APIView):
     permission_classes = [IsAuthenticated, IsAdminUser]
 
     def get(self, request):
-        # Default to today if no date provided
-        date = request.query_params.get('date', timezone.now().date())
+        date_raw = request.query_params.get('date')
+        if date_raw:
+            try:
+                date = date_type.fromisoformat(date_raw)
+            except ValueError:
+                return Response(
+                    {"error": f"Invalid value for 'date': '{date_raw}' must be a valid date in YYYY-MM-DD format."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        else:
+            date = timezone.now().date()
 
         # Aggregate at DB level — Sum() is faster than Python loops
         summaries = DailySalesReport.objects.filter(
@@ -172,6 +214,8 @@ class BranchDailySummaryView(APIView):
         ).order_by('branch__name')
 
         # Add date to each record for serializer
+        # len() is correct here — summaries is already a plain Python list,
+        # not a queryset, so there is no .count() to call
         data = [
             {
                 'branch_name': s['branch_name'],
@@ -209,9 +253,39 @@ class BranchMonthlySummaryView(APIView):
     def get(self, request):
         now = timezone.now()
 
-        # Default to current year and month
-        year = int(request.query_params.get('year', now.year))
-        month = int(request.query_params.get('month', now.month))
+        year_raw = request.query_params.get('year')
+        if year_raw:
+            try:
+                year = int(year_raw)
+            except (ValueError, TypeError):
+                return Response(
+                    {"error": f"Invalid value for 'year': '{year_raw}' is not a valid integer."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            if year < 2000 or year > 2100:
+                return Response(
+                    {"error": f"Invalid value for 'year': '{year}' must be between 2000 and 2100."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        else:
+            year = now.year
+
+        month_raw = request.query_params.get('month')
+        if month_raw:
+            try:
+                month = int(month_raw)
+            except (ValueError, TypeError):
+                return Response(
+                    {"error": f"Invalid value for 'month': '{month_raw}' is not a valid integer."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            if month < 1 or month > 12:
+                return Response(
+                    {"error": f"Invalid value for 'month': '{month}' must be between 1 and 12."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        else:
+            month = now.month
 
         summaries = MonthlySalesReport.objects.filter(
             year=year,
@@ -224,6 +298,8 @@ class BranchMonthlySummaryView(APIView):
             total_revenue=Sum('total_revenue')
         ).order_by('branch__name')
 
+        # len() is correct here — summaries is already a plain Python list,
+        # not a queryset, so there is no .count() to call
         data = [
             {
                 'branch_name': s['branch_name'],
@@ -263,8 +339,40 @@ class ProductSalesView(APIView):
 
     def get(self, request, product_name):
         now = timezone.now()
-        year = int(request.query_params.get('year', now.year))
-        month = int(request.query_params.get('month', now.month))
+
+        year_raw = request.query_params.get('year')
+        if year_raw:
+            try:
+                year = int(year_raw)
+            except (ValueError, TypeError):
+                return Response(
+                    {"error": f"Invalid value for 'year': '{year_raw}' is not a valid integer."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            if year < 2000 or year > 2100:
+                return Response(
+                    {"error": f"Invalid value for 'year': '{year}' must be between 2000 and 2100."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        else:
+            year = now.year
+
+        month_raw = request.query_params.get('month')
+        if month_raw:
+            try:
+                month = int(month_raw)
+            except (ValueError, TypeError):
+                return Response(
+                    {"error": f"Invalid value for 'month': '{month_raw}' is not a valid integer."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            if month < 1 or month > 12:
+                return Response(
+                    {"error": f"Invalid value for 'month': '{month}' must be between 1 and 12."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        else:
+            month = now.month
 
         reports = MonthlySalesReport.objects.filter(
             product__name__iexact=product_name,
@@ -284,6 +392,8 @@ class ProductSalesView(APIView):
                 status=status.HTTP_404_NOT_FOUND
             )
 
+        # len() is correct here — data is already a plain Python list,
+        # not a queryset, so there is no .count() to call
         data = [
             {
                 'product_name': r.product.name,

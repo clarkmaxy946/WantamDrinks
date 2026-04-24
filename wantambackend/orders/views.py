@@ -212,12 +212,13 @@ class AdminOrderListView(APIView):
         if date:
             orders = orders.filter(created_at__date=date)
 
+        # COUNT(*) in SQL — runs before serialization, no rows pulled into memory
+        total_orders = orders.count()
         serializer = AdminOrderSerializer(orders, many=True)
-        data = serializer.data
         return Response(
             {
-                "total_orders": len(data),
-                "orders": data
+                "total_orders": total_orders,
+                "orders": serializer.data
             },
             status=status.HTTP_200_OK
         )

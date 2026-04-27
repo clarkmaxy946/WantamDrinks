@@ -6,7 +6,6 @@
   <title>WantamDrinks — Admin Dashboard</title>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Chart.js for the revenue graph -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
   <script>
     tailwind.config = {
@@ -232,13 +231,6 @@
       animation: fadeUp 0.6s ease both;
     }
 
-    .product-sales-row {
-      display: flex; align-items: center; gap: 12px;
-      padding: 0.65rem 0;
-      border-bottom: 1px solid rgba(0,200,150,0.06);
-      transition: background 0.15s;
-    }
-    .product-sales-row:last-child { border-bottom: none; }
     .product-bar-track {
       flex: 1; height: 5px; border-radius: 3px;
       background: rgba(255,255,255,0.06); overflow: hidden;
@@ -257,6 +249,27 @@
       transition: border-color 0.2s;
     }
     .monthly-branch-row:hover { border-color: rgba(0,200,150,0.2); }
+
+    /* ── PIE CHART LEGEND ── */
+    .pie-legend-item {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 11px; color: #9BBFD6;
+      padding: 3px 8px; border-radius: 6px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.05);
+      white-space: nowrap;
+    }
+    .pie-legend-swatch {
+      width: 9px; height: 9px; border-radius: 2px; flex-shrink: 0; display: inline-block;
+    }
+    .pie-section-header {
+      font-size: 10px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.08em; color: rgba(122,154,176,0.6);
+      margin-bottom: 0.65rem; font-family: 'Syne', sans-serif;
+    }
+    .pie-chart-wrapper {
+      position: relative; height: 220px;
+    }
   </style>
 </head>
 
@@ -758,7 +771,12 @@
           <div id="inventoryTable" class="hidden overflow-x-auto">
             <table class="w-full border-collapse">
               <thead><tr style="border-bottom:1px solid rgba(0,200,150,0.1);">
-                <th class="th-cell">Branch</th><th class="th-cell">Product</th><th class="th-cell">Stock</th><th class="th-cell">Threshold</th><th class="th-cell">Status</th>
+                <th class="th-cell">Branch</th><th class="th-cell">Product</th><th class="th-cell">Stock</th>
+                <th class="th-cell">
+                  Threshold
+                  <span title="Click the number to edit — press Enter or click away to save" style="cursor:help;color:#4a7090;font-size:10px;margin-left:4px;">ⓘ</span>
+                </th>
+                <th class="th-cell">Status</th>
               </tr></thead>
               <tbody id="inventoryBody"></tbody>
             </table>
@@ -897,11 +915,9 @@
       </div>
 
       <!-- ══════════════════════════════════════════ -->
-      <!-- ANALYTICS — FULLY REPLACED SECTION        -->
+      <!-- ANALYTICS                                  -->
       <!-- ══════════════════════════════════════════ -->
       <div id="analyticsContent" class="hidden">
-
-        <!-- Header + sub-tab switcher (unchanged position) -->
         <div class="flex items-center justify-between mb-5 flex-wrap gap-3">
           <div>
             <h2 class="font-head font-bold text-xl text-wdtext">Analytics</h2>
@@ -913,80 +929,51 @@
           </div>
         </div>
 
-        <!-- ── KPI CARDS (always visible, above tabs) ── -->
+        <!-- KPI CARDS -->
         <div class="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
-          <!-- Total Products -->
           <div class="analytics-kpi-card kpi-blue" style="animation-delay:0s">
             <div class="flex items-center gap-2 mb-3">
               <div style="width:34px;height:34px;border-radius:10px;background:rgba(0,163,255,0.12);border:1px solid rgba(0,163,255,0.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00A3FF" stroke-width="2">
-                  <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
-                  <line x1="3" y1="6" x2="21" y2="6"/>
-                </svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00A3FF" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/></svg>
               </div>
               <p class="text-xs font-head font-bold uppercase tracking-wider" style="color:#7A9AB0;">Total Products</p>
             </div>
-            <p id="kpiTotalProducts" class="font-head font-black text-2xl text-wdtext">
-              <span class="skeleton inline-block w-10 h-6 rounded"></span>
-            </p>
+            <p id="kpiTotalProducts" class="font-head font-black text-2xl text-wdtext"><span class="skeleton inline-block w-10 h-6 rounded"></span></p>
             <p class="text-xs mt-1" style="color:#7A9AB0;" id="kpiTotalProductsNote">in catalogue</p>
           </div>
-
-          <!-- Total Stock Value -->
           <div class="analytics-kpi-card kpi-green" style="animation-delay:0.1s">
             <div class="flex items-center gap-2 mb-3">
               <div style="width:34px;height:34px;border-radius:10px;background:rgba(0,200,150,0.12);border:1px solid rgba(0,200,150,0.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00C896" stroke-width="2">
-                  <polyline points="21 8 21 21 3 21 3 8"/>
-                  <rect x="1" y="3" width="22" height="5" rx="1"/>
-                  <line x1="10" y1="12" x2="14" y2="12"/>
-                </svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00C896" stroke-width="2"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5" rx="1"/><line x1="10" y1="12" x2="14" y2="12"/></svg>
               </div>
               <p class="text-xs font-head font-bold uppercase tracking-wider" style="color:#7A9AB0;">Stock Value</p>
             </div>
-            <p id="kpiStockValue" class="font-head font-black text-xl text-wdtext leading-tight">
-              <span class="skeleton inline-block w-24 h-6 rounded"></span>
-            </p>
+            <p id="kpiStockValue" class="font-head font-black text-xl text-wdtext leading-tight"><span class="skeleton inline-block w-24 h-6 rounded"></span></p>
             <p class="text-xs mt-1" style="color:#7A9AB0;" id="kpiStockValueNote">across all branches</p>
           </div>
-
-          <!-- Today's Revenue -->
           <div class="analytics-kpi-card kpi-purple" style="animation-delay:0.2s">
             <div class="flex items-center gap-2 mb-3">
               <div style="width:34px;height:34px;border-radius:10px;background:rgba(180,79,255,0.12);border:1px solid rgba(180,79,255,0.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#b44fff" stroke-width="2">
-                  <line x1="12" y1="1" x2="12" y2="23"/>
-                  <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-                </svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#b44fff" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
               </div>
               <p class="text-xs font-head font-bold uppercase tracking-wider" style="color:#7A9AB0;">Today's Revenue</p>
             </div>
-            <p id="kpiTodayRevenue" class="font-head font-black text-xl text-wdtext leading-tight">
-              <span class="skeleton inline-block w-24 h-6 rounded"></span>
-            </p>
+            <p id="kpiTodayRevenue" class="font-head font-black text-xl text-wdtext leading-tight"><span class="skeleton inline-block w-24 h-6 rounded"></span></p>
             <p class="text-xs mt-1" style="color:#7A9AB0;" id="kpiTodayRevenueNote">all branches</p>
           </div>
-
-          <!-- This Month's Revenue -->
           <div class="analytics-kpi-card kpi-yellow" style="animation-delay:0.3s">
             <div class="flex items-center gap-2 mb-3">
               <div style="width:34px;height:34px;border-radius:10px;background:rgba(255,193,7,0.1);border:1px solid rgba(255,193,7,0.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffc107" stroke-width="2">
-                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-                  <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
-                  <line x1="3" y1="10" x2="21" y2="10"/>
-                </svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffc107" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
               </div>
               <p class="text-xs font-head font-bold uppercase tracking-wider" style="color:#7A9AB0;">This Month</p>
             </div>
-            <p id="kpiMonthRevenue" class="font-head font-black text-xl text-wdtext leading-tight">
-              <span class="skeleton inline-block w-24 h-6 rounded"></span>
-            </p>
+            <p id="kpiMonthRevenue" class="font-head font-black text-xl text-wdtext leading-tight"><span class="skeleton inline-block w-24 h-6 rounded"></span></p>
             <p class="text-xs mt-1" style="color:#7A9AB0;" id="kpiMonthRevenueNote">all branches</p>
           </div>
         </div>
 
-        <!-- ── REVENUE TREND GRAPH — past 7 days ── -->
+        <!-- REVENUE TREND CHART -->
         <div class="chart-container mb-6">
           <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
             <div>
@@ -1008,36 +995,81 @@
             <p class="text-sm text-muted">Loading revenue data…</p>
           </div>
           <div id="chartWrapper" class="hidden" style="position:relative;height:260px;">
-            <canvas id="revenueChart"></canvas>
+            <canvas id="revenueChart" role="img" aria-label="Line chart of daily revenue for the last 7 days">Revenue trend over the last 7 days.</canvas>
           </div>
           <p id="chartEmpty" class="hidden text-center py-10 text-muted text-sm">No revenue data available for the last 7 days.</p>
         </div>
 
-        <!-- ── DAILY TAB ── -->
+        <!-- ══ DAILY TAB ══ -->
         <div id="analyticsDaily">
-          <!-- Today's Sales per Product -->
+
+          <!-- PIE CHARTS — TWO SIDE BY SIDE, SHARED BRANCH FILTER -->
           <div class="panel-card p-5 mb-5">
-            <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
+            <div class="flex items-center justify-between mb-5 flex-wrap gap-3">
               <div>
-                <p class="font-head text-sm font-bold text-wdtext">Today's Sales by Product</p>
-                <p class="text-xs text-muted mt-0.5">Units sold &amp; revenue per product</p>
+                <p class="font-head text-sm font-bold text-wdtext">Sales by Product</p>
+                <p class="text-xs text-muted mt-0.5">Unit breakdown — daily &amp; monthly · hover a slice for details</p>
               </div>
               <div class="flex items-center gap-2 flex-wrap">
-                <select id="todayBranchFilter" class="input-field text-xs" onchange="loadTodayProductSales()" style="min-width:140px;">
+                <select id="todayBranchFilter" class="input-field text-xs" onchange="loadBothPieCharts()" style="min-width:140px;">
                   <option value="">All Branches</option>
                 </select>
-                <button onclick="loadTodayProductSales()" class="action-btn action-btn-muted text-xs flex items-center gap-1">
+                <button onclick="loadBothPieCharts()" class="action-btn action-btn-muted text-xs flex items-center gap-1">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/></svg>
                   Refresh
                 </button>
               </div>
             </div>
-            <div id="todayProductLoading" class="text-center py-8"><div class="spinner w-6 h-6 mx-auto mb-2"></div><p class="text-xs text-muted">Loading…</p></div>
-            <div id="todayProductList" class="hidden"></div>
-            <p id="todayProductEmpty" class="hidden text-center py-8 text-muted text-sm">No sales data for today.</p>
+
+            <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+
+              <!-- DAILY PIE -->
+              <div>
+                <p class="pie-section-header">Today's sales</p>
+                <div id="dailyPieLoading" class="text-center py-10">
+                  <div class="spinner w-6 h-6 mx-auto mb-2"></div>
+                  <p class="text-xs text-muted">Loading today's data…</p>
+                </div>
+                <div id="dailyPieWrapper" class="hidden">
+                  <div class="pie-chart-wrapper">
+                    <canvas id="dailySalesPieChart"
+                            role="img"
+                            aria-label="Pie chart of today product sales by units sold">
+                      Today's product sales by units.
+                    </canvas>
+                  </div>
+                  <div id="dailyPieLegend" class="flex flex-wrap gap-2 mt-3"></div>
+                </div>
+                <p id="dailyPieEmpty" class="hidden text-center py-10 text-muted text-sm">No sales data for today.</p>
+              </div>
+
+              <!-- MONTHLY PIE -->
+              <div>
+                <p class="pie-section-header">
+                  This month's sales
+                  <span id="monthlyPieLabel" class="ml-1" style="color:#00C896;text-transform:none;letter-spacing:normal;font-size:10px;"></span>
+                </p>
+                <div id="monthlyPieLoading" class="text-center py-10">
+                  <div class="spinner w-6 h-6 mx-auto mb-2"></div>
+                  <p class="text-xs text-muted">Loading monthly data…</p>
+                </div>
+                <div id="monthlyPieWrapper" class="hidden">
+                  <div class="pie-chart-wrapper">
+                    <canvas id="monthlySalesPieChart"
+                            role="img"
+                            aria-label="Pie chart of this month product sales by units sold">
+                      Monthly product sales by units.
+                    </canvas>
+                  </div>
+                  <div id="monthlyPieLegend" class="flex flex-wrap gap-2 mt-3"></div>
+                </div>
+                <p id="monthlyPieEmpty" class="hidden text-center py-10 text-muted text-sm">No sales data for this month.</p>
+              </div>
+
+            </div>
           </div>
 
-          <!-- Branch Daily Summary (existing, kept) -->
+          <!-- BRANCH DAILY SUMMARY TABLE -->
           <div class="panel-card p-5 mb-5">
             <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
               <p class="font-head text-sm font-bold text-wdtext">Branch Daily Summary</p>
@@ -1056,12 +1088,11 @@
               </table>
             </div>
           </div>
-        </div>
 
-        <!-- ── MONTHLY TAB ── -->
+        </div><!-- /analyticsDaily -->
+
+        <!-- ══ MONTHLY TAB ══ -->
         <div id="analyticsMonthly" class="hidden">
-
-          <!-- This Month's Revenue per Branch -->
           <div class="panel-card p-5 mb-5">
             <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
               <div>
@@ -1078,8 +1109,6 @@
                 <input type="number" id="analyticsYear" class="input-field text-xs w-24" placeholder="Year" onchange="loadMonthlySummary()"/>
               </div>
             </div>
-
-            <!-- Total month revenue banner -->
             <div class="rounded-xl px-4 py-3 mb-4 flex items-center justify-between flex-wrap gap-3"
                  style="background:rgba(0,200,150,0.06);border:1px solid rgba(0,200,150,0.15);">
               <p class="text-xs text-muted">Total Revenue Selected Period</p>
@@ -1087,7 +1116,6 @@
                 <span class="skeleton inline-block w-28 h-6 rounded"></span>
               </p>
             </div>
-
             <div id="monthlySummaryLoading" class="text-center py-8"><div class="spinner w-6 h-6 mx-auto mb-2"></div><p class="text-xs text-muted">Loading…</p></div>
             <div id="monthlyBranchList" class="hidden"></div>
             <div id="monthlySummaryTable" class="hidden overflow-x-auto">
@@ -1099,7 +1127,7 @@
               </table>
             </div>
           </div>
-        </div>
+        </div><!-- /analyticsMonthly -->
 
       </div>
       <!-- ══ END ANALYTICS ══ -->
@@ -1844,8 +1872,15 @@ async function submitAddProduct(btn) {
   try {
     const res  = await apiFetch('/admin/products/', { method:'POST', body: JSON.stringify({ name, price: price.toFixed(2), image }) });
     const data = await res.json();
-    if (res.ok) { closeAddProductModal(); const created = data.data || {}; showAlert(data.message || `Product '${name}' created. ID: ${created.product_id || '—'}`, 'ok'); loadProducts(); }
-    else { errEl.textContent = typeof data === 'object' ? Object.entries(data).map(([k,v]) => `${k}: ${Array.isArray(v) ? v.join(' ') : v}`).join(' | ') : 'Failed to create product.'; errEl.classList.remove('hidden'); }
+    if (res.ok) {
+      closeAddProductModal();
+      const created = data.data || {};
+      showAlert(data.message || `Product '${name}' created. ID: ${created.product_id || '—'}`, 'ok');
+      loadProducts();
+    } else {
+      errEl.textContent = typeof data === 'object' ? Object.entries(data).map(([k,v]) => `${k}: ${Array.isArray(v) ? v.join(' ') : v}`).join(' | ') : 'Failed to create product.';
+      errEl.classList.remove('hidden');
+    }
   } catch { errEl.textContent = 'Network error. Please try again.'; errEl.classList.remove('hidden'); }
   btn.disabled = false; btn.textContent = 'Create Product';
 }
@@ -1862,7 +1897,7 @@ async function deleteProduct(productId, productName, btn) {
 }
 
 // ══════════════════════════════════════════════
-// INVENTORY
+// INVENTORY — inline threshold editing
 // ══════════════════════════════════════════════
 async function loadInventory() {
   showLoading('inventory');
@@ -1874,20 +1909,100 @@ async function loadInventory() {
     document.getElementById('inventoryBody').innerHTML = records.map(r => {
       const branchName  = r.branch?.name  || r.branch_name  || '—';
       const productName = r.product?.name || r.product_name || '—';
-      const thresh      = r.low_stock_threshold ?? r.threshold ?? 0;
+      const branchId    = r.branch?.branch_id  || r.branch_id  || '';
+      const productId   = r.product?.product_id || r.product_id || '';
+      const thresh      = r.low_stock_threshold ?? r.threshold ?? 10;
       const isLow       = r.is_low ?? (r.stock <= thresh);
       return `
         <tr style="border-bottom:1px solid rgba(0,200,150,0.06);" class="hover:bg-white/[0.02] transition-colors">
           <td class="td-sub px-4 py-3">${branchName}</td>
           <td class="td-main px-4 py-3">${productName}</td>
           <td class="td-amt px-4 py-3" style="${isLow ? 'color:#ff6b6b;' : ''}">${r.stock ?? '—'}</td>
-          <td class="td-sub px-4 py-3">${thresh}</td>
-          <td class="px-4 py-3">${isLow ? `<span class="badge badge-critical">Low Stock</span>` : `<span class="badge badge-active">OK</span>`}</td>
+          <td class="px-4 py-3">
+            <div class="flex items-center gap-1.5">
+              <input
+                id="threshInput_${branchId}_${productId}"
+                type="number" min="1" value="${thresh}"
+                data-original="${thresh}"
+                data-branch="${branchId}"
+                data-product="${productId}"
+                onkeydown="if(event.key==='Enter'){event.preventDefault();saveThreshold(this);}
+                           if(event.key==='Escape'){resetThresholdInput(this);}"
+                onblur="saveThreshold(this)"
+                onfocus="this.dataset.focused='1'"
+                style="
+                  width:60px; padding:0.3rem 0.45rem;
+                  background:rgba(10,37,64,0.65);
+                  border:1px solid rgba(0,200,150,0.15);
+                  border-radius:8px; font-size:12px;
+                  font-family:'Syne',sans-serif; font-weight:700;
+                  color:#E8F4F8; outline:none; text-align:center;
+                  transition:border-color 0.2s, box-shadow 0.2s;
+                "
+                onfocus="this.style.borderColor='#00C896';this.style.boxShadow='0 0 0 3px rgba(0,200,150,0.1)';this.dataset.focused='1';"
+                class="thresh-input"
+              />
+              <span id="threshSaving_${branchId}_${productId}" class="hidden" style="font-size:10px;color:#7A9AB0;">saving…</span>
+              <span id="threshOk_${branchId}_${productId}"     class="hidden" style="font-size:13px;color:#00C896;">✓</span>
+              <span id="threshErr_${branchId}_${productId}"    class="hidden" style="font-size:10px;color:#ff6b6b;max-width:80px;"></span>
+            </div>
+          </td>
+          <td class="px-4 py-3" id="statusCell_${branchId}_${productId}">
+            ${isLow ? `<span class="badge badge-critical">Low Stock</span>` : `<span class="badge badge-active">OK</span>`}
+          </td>
         </tr>`;
     }).join('');
+
+    document.querySelectorAll('.thresh-input').forEach(inp => {
+      inp.addEventListener('blur', () => {
+        inp.style.borderColor = 'rgba(0,200,150,0.15)';
+        inp.style.boxShadow   = '';
+      }, { capture: false });
+    });
+
     showTable('inventory');
   } catch { showEmpty('inventory'); }
 }
+
+async function saveThreshold(input) {
+  if (input.dataset.saving === '1') return;
+  const branchId  = input.dataset.branch;
+  const productId = input.dataset.product;
+  const original  = parseInt(input.dataset.original, 10);
+  const val       = parseInt(input.value, 10);
+  const savingEl  = document.getElementById(`threshSaving_${branchId}_${productId}`);
+  const okEl      = document.getElementById(`threshOk_${branchId}_${productId}`);
+  const errEl     = document.getElementById(`threshErr_${branchId}_${productId}`);
+  okEl.classList.add('hidden');
+  errEl.classList.add('hidden');
+  if (val === original) return;
+  if (isNaN(val) || val < 1) { errEl.textContent = 'Min 1'; errEl.classList.remove('hidden'); input.value = original; return; }
+  input.dataset.saving = '1'; input.disabled = true; savingEl.classList.remove('hidden');
+  try {
+    const res  = await apiFetch(`/admin/inventory/${branchId}/${productId}/`, { method: 'PATCH', body: JSON.stringify({ low_stock_threshold: val }) });
+    const data = await res.json();
+    if (res.ok) {
+      input.dataset.original = val;
+      savingEl.classList.add('hidden'); okEl.classList.remove('hidden');
+      setTimeout(() => okEl.classList.add('hidden'), 1800);
+      const stock      = parseInt(input.closest('tr')?.querySelector('td:nth-child(3)')?.textContent?.trim() ?? '0', 10);
+      const statusCell = document.getElementById(`statusCell_${branchId}_${productId}`);
+      if (statusCell) {
+        const nowLow = stock <= val;
+        statusCell.innerHTML = nowLow ? `<span class="badge badge-critical">Low Stock</span>` : `<span class="badge badge-active">OK</span>`;
+        const stockCell = input.closest('tr')?.querySelector('td:nth-child(3)');
+        if (stockCell) stockCell.style.color = nowLow ? '#ff6b6b' : '';
+      }
+    } else {
+      const msg = typeof data === 'object' ? Object.entries(data).map(([k,v]) => `${Array.isArray(v) ? v.join(' ') : v}`).join(' ') : 'Error';
+      errEl.textContent = msg.slice(0, 40); errEl.classList.remove('hidden');
+      input.value = original; savingEl.classList.add('hidden');
+    }
+  } catch { errEl.textContent = 'Network error'; errEl.classList.remove('hidden'); input.value = original; savingEl.classList.add('hidden'); }
+  input.disabled = false; input.dataset.saving = '0';
+}
+
+function resetThresholdInput(input) { input.value = input.dataset.original; input.blur(); }
 
 // ══════════════════════════════════════════════
 // RESTOCK
@@ -1904,16 +2019,13 @@ async function loadRestockPanel() {
     const data     = await res.json();
     const branches = data.branches || [];
     branches.forEach(b => {
-      const opt = document.createElement('option');
-      opt.value = b.branch_id;
-      opt.textContent = b.name + (b.is_active ? '' : ' (Inactive)');
-      select.appendChild(opt);
+      const opt = document.createElement('option'); opt.value = b.branch_id;
+      opt.textContent = b.name + (b.is_active ? '' : ' (Inactive)'); select.appendChild(opt);
     });
     const logFilter = document.getElementById('logFilterBranch');
     logFilter.innerHTML = '<option value="">All Branches</option>';
     branches.forEach(b => {
-      const opt = document.createElement('option'); opt.value = b.branch_id; opt.textContent = b.name;
-      logFilter.appendChild(opt);
+      const opt = document.createElement('option'); opt.value = b.branch_id; opt.textContent = b.name; logFilter.appendChild(opt);
     });
   } catch { showAlert('Failed to load branches for restock.', 'error'); }
   loadingEl.classList.add('hidden');
@@ -1924,8 +2036,7 @@ async function loadRestockPanel() {
     const logProdFilter = document.getElementById('logFilterProduct');
     logProdFilter.innerHTML = '<option value="">All Products</option>';
     products.forEach(p => {
-      const opt = document.createElement('option'); opt.value = p.product_id; opt.textContent = p.name;
-      logProdFilter.appendChild(opt);
+      const opt = document.createElement('option'); opt.value = p.product_id; opt.textContent = p.name; logProdFilter.appendChild(opt);
     });
   } catch { /* non-fatal */ }
 }
@@ -1944,15 +2055,13 @@ async function onRestockBranchChange() {
     if (!res.ok) {
       const errData = await res.json().catch(() => ({}));
       document.getElementById('restockProductsLoading').classList.add('hidden');
-      showAlert(`Could not load inventory (${res.status}): ${errData.error || errData.detail || `HTTP ${res.status}`}`, 'error');
-      return;
+      showAlert(`Could not load inventory (${res.status}): ${errData.error || errData.detail || `HTTP ${res.status}`}`, 'error'); return;
     }
     const data    = await res.json();
     const records = Array.isArray(data) ? data : (data.results || data.inventory || []);
     if (!records.length) {
       document.getElementById('restockProductsLoading').classList.add('hidden');
-      document.getElementById('restockProductsEmpty').classList.remove('hidden');
-      return;
+      document.getElementById('restockProductsEmpty').classList.remove('hidden'); return;
     }
     document.getElementById('restockProductsBody').innerHTML = records.map(r => {
       const stock    = r.stock ?? 0;
@@ -2035,8 +2144,7 @@ async function submitRestockAll(btn) {
   } else {
     showAlert(`Restock failed for all products: ${failMessages.join(' | ')}`, 'error');
   }
-  onRestockBranchChange();
-  loadAlertsCard();
+  onRestockBranchChange(); loadAlertsCard();
 }
 
 async function loadRestockLog() {
@@ -2054,8 +2162,7 @@ async function loadRestockLog() {
     const logs = data.logs || [];
     if (!logs.length) {
       document.getElementById('restockLogLoading').classList.add('hidden');
-      document.getElementById('restockLogEmpty').classList.remove('hidden');
-      return;
+      document.getElementById('restockLogEmpty').classList.remove('hidden'); return;
     }
     document.getElementById('restockLogBody').innerHTML = logs.map(log => `
       <tr style="border-bottom:1px solid rgba(0,200,150,0.06);" class="hover:bg-white/[0.02] transition-colors">
@@ -2175,50 +2282,39 @@ async function adminCancelPayment(paymentId, btn) {
 }
 
 // ══════════════════════════════════════════════
-// ANALYTICS — ENHANCED
+// ANALYTICS — init & KPI cards
 // ══════════════════════════════════════════════
+let _revenueChart      = null;
+let _analyticsBranches = [];
 
-let _revenueChart = null;        // Chart.js instance
-let _analyticsBranches = [];     // Cached branch list for filter dropdowns
-
-// ── Entry point: called by _activatePanel ──
 async function initAnalytics() {
-  // Load branches into filter dropdowns (chart + today's sales)
   await _populateAnalyticsBranchFilters();
-
-  // Load all KPI cards in parallel
   await Promise.allSettled([
     loadAnalyticsKpiCards(),
     buildRevenueChart(),
-    loadTodayProductSales(),
+    loadBothPieCharts(),
     loadDailySummary(),
   ]);
 }
 
-// Populate the branch dropdowns in analytics once
 async function _populateAnalyticsBranchFilters() {
-  if (_analyticsBranches.length) return; // already cached
+  if (_analyticsBranches.length) return;
   try {
     const res  = await apiFetch('/admin/branches/');
     const data = await res.json();
     _analyticsBranches = data.branches || [];
   } catch { _analyticsBranches = []; }
-
   ['chartBranchFilter', 'todayBranchFilter'].forEach(id => {
     const sel = document.getElementById(id);
     if (!sel) return;
-    // keep first "All Branches" option
     sel.innerHTML = '<option value="">All Branches</option>';
     _analyticsBranches.forEach(b => {
       const opt = document.createElement('option');
-      opt.value = b.branch_id;
-      opt.textContent = b.name;
-      sel.appendChild(opt);
+      opt.value = b.branch_id; opt.textContent = b.name; sel.appendChild(opt);
     });
   });
 }
 
-// ── KPI CARDS ──────────────────────────────────
 async function loadAnalyticsKpiCards() {
   await Promise.allSettled([
     _loadKpiTotalProducts(),
@@ -2235,29 +2331,18 @@ async function _loadKpiTotalProducts() {
     const list = Array.isArray(data) ? data : (data.products || data.results || []);
     document.getElementById('kpiTotalProducts').textContent = list.length;
     document.getElementById('kpiTotalProductsNote').textContent = `${list.length} product${list.length !== 1 ? 's' : ''} in catalogue`;
-  } catch {
-    document.getElementById('kpiTotalProducts').innerHTML = '<span style="color:#ff9b9b;font-size:0.85rem;">Error</span>';
-  }
+  } catch { document.getElementById('kpiTotalProducts').innerHTML = '<span style="color:#ff9b9b;font-size:0.85rem;">Error</span>'; }
 }
 
 async function _loadKpiStockValue() {
   try {
-    // Fetch inventory (stock quantities) and products (prices) in parallel
-    const [invRes, prodRes] = await Promise.all([
-      apiFetch('/admin/inventory/'),
-      apiFetch('/admin/products/'),
-    ]);
+    const [invRes, prodRes] = await Promise.all([apiFetch('/admin/inventory/'), apiFetch('/admin/products/')]);
     const invData  = await invRes.json();
     const prodData = await prodRes.json();
-
     const inventory = Array.isArray(invData) ? invData : (invData.inventory || invData.results || []);
     const products  = Array.isArray(prodData) ? prodData : (prodData.products || prodData.results || []);
-
-    // Build price lookup: product_id → price
     const priceMap = {};
     products.forEach(p => { priceMap[p.product_id] = parseFloat(p.price || 0); });
-
-    // Sum: stock × price for every inventory row
     let totalValue = 0;
     inventory.forEach(r => {
       const stock     = r.stock ?? 0;
@@ -2265,13 +2350,10 @@ async function _loadKpiStockValue() {
       const unitPrice = priceMap[prodId] || parseFloat(r.product?.price || 0);
       totalValue += stock * unitPrice;
     });
-
     document.getElementById('kpiStockValue').textContent =
       `KES ${totalValue.toLocaleString('en-KE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     document.getElementById('kpiStockValueNote').textContent = `across ${_analyticsBranches.length || '—'} branch${_analyticsBranches.length !== 1 ? 'es' : ''}`;
-  } catch {
-    document.getElementById('kpiStockValue').innerHTML = '<span style="color:#ff9b9b;font-size:0.85rem;">Error</span>';
-  }
+  } catch { document.getElementById('kpiStockValue').innerHTML = '<span style="color:#ff9b9b;font-size:0.85rem;">Error</span>'; }
 }
 
 async function _loadKpiTodayRevenue() {
@@ -2284,9 +2366,7 @@ async function _loadKpiTodayRevenue() {
       `KES ${total.toLocaleString('en-KE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     document.getElementById('kpiTodayRevenueNote').textContent =
       `${data.total_branches || 0} branch${data.total_branches !== 1 ? 'es' : ''} · ${today}`;
-  } catch {
-    document.getElementById('kpiTodayRevenue').innerHTML = '<span style="color:#ff9b9b;font-size:0.85rem;">Error</span>';
-  }
+  } catch { document.getElementById('kpiTodayRevenue').innerHTML = '<span style="color:#ff9b9b;font-size:0.85rem;">Error</span>'; }
 }
 
 async function _loadKpiMonthRevenue() {
@@ -2299,81 +2379,57 @@ async function _loadKpiMonthRevenue() {
     const total = (data.summary || []).reduce((s, b) => s + (b.total_revenue || 0), 0);
     document.getElementById('kpiMonthRevenue').textContent =
       `KES ${total.toLocaleString('en-KE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-
     const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
     document.getElementById('kpiMonthRevenueNote').textContent =
       `${monthNames[month - 1]} ${year} · ${data.total_branches || 0} branch${data.total_branches !== 1 ? 'es' : ''}`;
-  } catch {
-    document.getElementById('kpiMonthRevenue').innerHTML = '<span style="color:#ff9b9b;font-size:0.85rem;">Error</span>';
-  }
+  } catch { document.getElementById('kpiMonthRevenue').innerHTML = '<span style="color:#ff9b9b;font-size:0.85rem;">Error</span>'; }
 }
 
-// ── REVENUE CHART — last 7 days ───────────────
+// ══════════════════════════════════════════════
+// ANALYTICS — Revenue line chart
+// ══════════════════════════════════════════════
 async function buildRevenueChart() {
   document.getElementById('chartLoading').classList.remove('hidden');
   document.getElementById('chartWrapper').classList.add('hidden');
   document.getElementById('chartEmpty').classList.add('hidden');
-
   const branchId = document.getElementById('chartBranchFilter')?.value || '';
-
-  // Build array of last 7 dates (ISO strings)
   const dates = [];
   for (let i = 6; i >= 0; i--) {
-    const d = new Date();
-    d.setDate(d.getDate() - i);
+    const d = new Date(); d.setDate(d.getDate() - i);
     dates.push(d.toISOString().split('T')[0]);
   }
-
-  // Fetch each day's summary concurrently
   const results = await Promise.allSettled(
     dates.map(date => apiFetch(`/admin/analytics/daily/summary/?date=${date}`)
       .then(r => r.json())
       .then(data => {
-        // If filtering by branch, pick only that branch's revenue
         if (branchId) {
           const row = (data.summary || []).find(b => {
-            // match by branch name or branch_id if API returns it
             const br = _analyticsBranches.find(x => x.branch_id === branchId);
             return br && b.branch_name === br.name;
           });
           return { date, revenue: row ? parseFloat(row.total_revenue || 0) : 0 };
         }
-        // All branches: sum
         const total = (data.summary || []).reduce((s, b) => s + parseFloat(b.total_revenue || 0), 0);
         return { date, revenue: total };
       })
       .catch(() => ({ date, revenue: 0 }))
     )
   );
-
-  const points = results.map((r, i) => r.status === 'fulfilled' ? r.value : { date: dates[i], revenue: 0 });
+  const points  = results.map((r, i) => r.status === 'fulfilled' ? r.value : { date: dates[i], revenue: 0 });
   const hasData = points.some(p => p.revenue > 0);
-
   document.getElementById('chartLoading').classList.add('hidden');
-
-  if (!hasData) {
-    document.getElementById('chartEmpty').classList.remove('hidden');
-    return;
-  }
-
+  if (!hasData) { document.getElementById('chartEmpty').classList.remove('hidden'); return; }
   document.getElementById('chartWrapper').classList.remove('hidden');
-
-  // Destroy previous chart instance if re-rendering
   if (_revenueChart) { _revenueChart.destroy(); _revenueChart = null; }
-
-  const labels  = points.map(p => {
+  const labels   = points.map(p => {
     const d = new Date(p.date + 'T00:00:00');
     return d.toLocaleDateString('en-KE', { weekday: 'short', day: 'numeric', month: 'short' });
   });
   const revenues = points.map(p => p.revenue);
-
-  const ctx = document.getElementById('revenueChart').getContext('2d');
-
-  // Gradient fill
+  const ctx  = document.getElementById('revenueChart').getContext('2d');
   const grad = ctx.createLinearGradient(0, 0, 0, 260);
   grad.addColorStop(0, 'rgba(0,200,150,0.25)');
   grad.addColorStop(1, 'rgba(0,200,150,0.00)');
-
   _revenueChart = new Chart(ctx, {
     type: 'line',
     data: {
@@ -2383,55 +2439,29 @@ async function buildRevenueChart() {
           ? (_analyticsBranches.find(b => b.branch_id === branchId)?.name || 'Branch') + ' Revenue'
           : 'Total Revenue (All Branches)',
         data: revenues,
-        borderColor: '#00C896',
-        borderWidth: 2.5,
-        pointBackgroundColor: '#00C896',
-        pointBorderColor: '#0A2540',
-        pointBorderWidth: 2,
-        pointRadius: 5,
-        pointHoverRadius: 7,
-        fill: true,
-        backgroundColor: grad,
-        tension: 0.4,
+        borderColor: '#00C896', borderWidth: 2.5,
+        pointBackgroundColor: '#00C896', pointBorderColor: '#0A2540', pointBorderWidth: 2,
+        pointRadius: 5, pointHoverRadius: 7,
+        fill: true, backgroundColor: grad, tension: 0.4,
       }]
     },
     options: {
-      responsive: true,
-      maintainAspectRatio: false,
+      responsive: true, maintainAspectRatio: false,
       interaction: { mode: 'index', intersect: false },
       plugins: {
-        legend: {
-          labels: {
-            color: '#9BBFD6',
-            font: { family: 'Syne', size: 11, weight: '700' },
-          }
-        },
+        legend: { labels: { color: '#9BBFD6', font: { family: 'Syne', size: 11, weight: '700' } } },
         tooltip: {
-          backgroundColor: 'rgba(6,22,42,0.92)',
-          borderColor: 'rgba(0,200,150,0.3)',
-          borderWidth: 1,
-          titleColor: '#E8F4F8',
-          bodyColor: '#9BBFD6',
+          backgroundColor: 'rgba(6,22,42,0.92)', borderColor: 'rgba(0,200,150,0.3)', borderWidth: 1,
+          titleColor: '#E8F4F8', bodyColor: '#9BBFD6',
           titleFont: { family: 'Syne', weight: '700' },
-          callbacks: {
-            label: ctx => ` KES ${Number(ctx.parsed.y).toLocaleString('en-KE', { minimumFractionDigits: 2 })}`
-          }
+          callbacks: { label: ctx => ` KES ${Number(ctx.parsed.y).toLocaleString('en-KE', { minimumFractionDigits: 2 })}` }
         }
       },
       scales: {
-        x: {
-          grid:  { color: 'rgba(0,200,150,0.05)', drawBorder: false },
-          ticks: { color: '#7A9AB0', font: { family: 'DM Sans', size: 11 } },
-        },
-        y: {
-          grid:  { color: 'rgba(0,200,150,0.05)', drawBorder: false },
-          ticks: {
-            color: '#7A9AB0',
-            font: { family: 'DM Sans', size: 11 },
-            callback: v => 'KES ' + Number(v).toLocaleString('en-KE'),
-          },
-          beginAtZero: true,
-        }
+        x: { grid: { color: 'rgba(0,200,150,0.05)', drawBorder: false }, ticks: { color: '#7A9AB0', font: { family: 'DM Sans', size: 11 } } },
+        y: { grid: { color: 'rgba(0,200,150,0.05)', drawBorder: false },
+             ticks: { color: '#7A9AB0', font: { family: 'DM Sans', size: 11 }, callback: v => 'KES ' + Number(v).toLocaleString('en-KE') },
+             beginAtZero: true }
       }
     }
   });
@@ -2439,19 +2469,124 @@ async function buildRevenueChart() {
 
 function refreshRevenueChart() { buildRevenueChart(); }
 
-// ── TODAY'S SALES PER PRODUCT ──────────────────
-async function loadTodayProductSales() {
-  const loadingEl = document.getElementById('todayProductLoading');
-  const listEl    = document.getElementById('todayProductList');
-  const emptyEl   = document.getElementById('todayProductEmpty');
+// ══════════════════════════════════════════════
+// ANALYTICS — PIE CHARTS (dynamic, color-stable)
+// ══════════════════════════════════════════════
+
+// 15-color palette — handles up to 15 distinct products;
+// new products auto-pick the next available slot when the
+// registry first encounters their name in this session.
+const PIE_PALETTE = [
+  '#1D9E75', '#378ADD', '#D85A30', '#7F77DD', '#BA7517',
+  '#D4537E', '#639922', '#E24B4A', '#0F6E56', '#185FA5',
+  '#993C1D', '#534AB7', '#854F0B', '#993556', '#3B6D11',
+];
+
+// Persistent registry — product name → hex color.
+// Populated on first encounter; survives tab switches within
+// the same session so colors never shift between refreshes.
+const _productColorRegistry = {};
+
+function getProductColor(productName) {
+  if (_productColorRegistry[productName]) return _productColorRegistry[productName];
+  const nextIdx = Object.keys(_productColorRegistry).length;
+  _productColorRegistry[productName] = PIE_PALETTE[nextIdx % PIE_PALETTE.length];
+  return _productColorRegistry[productName];
+}
+
+// Chart.js instances — destroyed before each redraw to
+// avoid canvas reuse errors and memory leaks.
+let _dailyPieChart   = null;
+let _monthlyPieChart = null;
+
+// Build the legend strip below each chart.
+// Shows: color swatch · product name · percentage
+function buildPieLegend(legendEl, labels, colors, data, total) {
+  legendEl.innerHTML = labels.map((label, i) => {
+    const pct = total > 0 ? ((data[i] / total) * 100).toFixed(1) : '0.0';
+    return `<span class="pie-legend-item">
+      <span class="pie-legend-swatch" style="background:${colors[i]};"></span>
+      ${label}&nbsp;<span style="color:#00C896;font-weight:700;">${pct}%</span>
+    </span>`;
+  }).join('');
+}
+
+// Core renderer — accepts a productMap {name: {sold, revenue}},
+// builds the pie and legend, destroys any previous chart instance.
+function renderPieChart(canvasId, legendId, productMap, existingChart) {
+  // Sort descending by units sold so the largest slice starts at top
+  const labels   = Object.keys(productMap).sort((a, b) => productMap[b].sold - productMap[a].sold);
+  const soldData = labels.map(l => productMap[l].sold);
+  const colors   = labels.map(l => getProductColor(l));
+  const total    = soldData.reduce((s, v) => s + v, 0);
+
+  buildPieLegend(document.getElementById(legendId), labels, colors, soldData, total);
+
+  // Destroy stale instance before creating a new one on the same canvas
+  if (existingChart) { existingChart.destroy(); }
+
+  const ctx = document.getElementById(canvasId).getContext('2d');
+  return new Chart(ctx, {
+    type: 'pie',
+    data: {
+      labels,
+      datasets: [{
+        data: soldData,
+        backgroundColor: colors,
+        borderColor: 'rgba(10,37,64,0.7)',
+        borderWidth: 2,
+        hoverBorderWidth: 3,
+        hoverBorderColor: 'rgba(0,200,150,0.6)',
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          // Dark panel tooltip matching the dashboard's aesthetic
+          backgroundColor: 'rgba(6,22,42,0.96)',
+          borderColor: 'rgba(0,200,150,0.35)',
+          borderWidth: 1,
+          titleColor: '#E8F4F8',
+          bodyColor: '#9BBFD6',
+          titleFont: { family: 'Syne, sans-serif', weight: '700', size: 13 },
+          bodyFont: { family: 'DM Sans, sans-serif', size: 12 },
+          padding: 14,
+          callbacks: {
+            // Title = product name
+            title: (items) => items[0].label,
+            // Body lines: units sold + percentage share
+            label: (item) => {
+              const val = item.parsed;   // units for this slice
+              const tot = item.dataset.data.reduce((a, b) => a + b, 0);
+              const pct = tot > 0 ? ((val / tot) * 100).toFixed(1) : '0.0';
+              return [
+                `  Units sold : ${val.toLocaleString('en-KE')}`,
+                `  Share      : ${pct}%`,
+              ];
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
+// ── Loaders ─────────────────────────────────────────────────────────────────
+
+async function loadDailyPieChart() {
+  const loadingEl = document.getElementById('dailyPieLoading');
+  const wrapperEl = document.getElementById('dailyPieWrapper');
+  const emptyEl   = document.getElementById('dailyPieEmpty');
   loadingEl.classList.remove('hidden');
-  listEl.classList.add('hidden');
+  wrapperEl.classList.add('hidden');
   emptyEl.classList.add('hidden');
 
   try {
     const today    = new Date().toISOString().split('T')[0];
     const branchId = document.getElementById('todayBranchFilter')?.value || '';
-
     let url = `/admin/analytics/daily/?date=${today}`;
     if (branchId) url += `&branch_id=${branchId}`;
 
@@ -2465,46 +2600,89 @@ async function loadTodayProductSales() {
       return;
     }
 
-    // Aggregate by product across branches (or single branch if filtered)
+    // Aggregate by product — the API returns one row per branch×product
+    // so when "All Branches" is selected we sum across branches.
     const productMap = {};
     reports.forEach(r => {
       const key = r.product_name;
-      if (!productMap[key]) productMap[key] = { name: key, sold: 0, revenue: 0 };
+      if (!productMap[key]) productMap[key] = { sold: 0, revenue: 0 };
       productMap[key].sold    += r.total_sold    || 0;
       productMap[key].revenue += parseFloat(r.total_revenue || 0);
     });
 
-    const rows = Object.values(productMap).sort((a, b) => b.revenue - a.revenue);
-    const maxRevenue = rows[0]?.revenue || 1;
-
-    listEl.innerHTML = rows.map((p, idx) => {
-      const barPct = Math.max(4, Math.round((p.revenue / maxRevenue) * 100));
-      return `
-        <div class="product-sales-row">
-          <div class="w-5 text-center font-head font-bold text-xs" style="color:#7A9AB0;">${idx + 1}</div>
-          <div class="flex-1 min-w-0">
-            <p class="td-main truncate mb-1">${p.name}</p>
-            <div class="product-bar-track">
-              <div class="product-bar-fill" style="width:${barPct}%;"></div>
-            </div>
-          </div>
-          <div class="text-right flex-shrink-0 ml-3">
-            <p class="font-head font-bold text-sm text-wdtext">KES ${p.revenue.toLocaleString('en-KE', {minimumFractionDigits:2})}</p>
-            <p class="text-xs" style="color:#7A9AB0;">${p.sold.toLocaleString()} unit${p.sold !== 1 ? 's' : ''}</p>
-          </div>
-        </div>`;
-    }).join('');
-
     loadingEl.classList.add('hidden');
-    listEl.classList.remove('hidden');
+    wrapperEl.classList.remove('hidden');
+    _dailyPieChart = renderPieChart('dailySalesPieChart', 'dailyPieLegend', productMap, _dailyPieChart);
+
   } catch {
     loadingEl.classList.add('hidden');
+    emptyEl.textContent = 'Failed to load daily product sales.';
     emptyEl.classList.remove('hidden');
-    emptyEl.textContent = 'Failed to load product sales.';
   }
 }
 
-// ── BRANCH DAILY SUMMARY (existing, preserved) ──
+async function loadMonthlyPieChart() {
+  const loadingEl = document.getElementById('monthlyPieLoading');
+  const wrapperEl = document.getElementById('monthlyPieWrapper');
+  const emptyEl   = document.getElementById('monthlyPieEmpty');
+  const labelEl   = document.getElementById('monthlyPieLabel');
+  loadingEl.classList.remove('hidden');
+  wrapperEl.classList.add('hidden');
+  emptyEl.classList.add('hidden');
+
+  try {
+    const now      = new Date();
+    const month    = now.getMonth() + 1;
+    const year     = now.getFullYear();
+    const branchId = document.getElementById('todayBranchFilter')?.value || '';
+
+    // Update the section subtitle so the admin knows which month is shown
+    const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    if (labelEl) labelEl.textContent = `— ${monthNames[month - 1]} ${year}`;
+
+    let url = `/admin/analytics/monthly/?month=${month}&year=${year}`;
+    if (branchId) url += `&branch_id=${branchId}`;
+
+    const res  = await apiFetch(url);
+    const data = await res.json();
+    const reports = data.reports || [];
+
+    if (!reports.length) {
+      loadingEl.classList.add('hidden');
+      emptyEl.classList.remove('hidden');
+      return;
+    }
+
+    // Same aggregation pattern as daily
+    const productMap = {};
+    reports.forEach(r => {
+      const key = r.product_name;
+      if (!productMap[key]) productMap[key] = { sold: 0, revenue: 0 };
+      productMap[key].sold    += r.total_sold    || 0;
+      productMap[key].revenue += parseFloat(r.total_revenue || 0);
+    });
+
+    loadingEl.classList.add('hidden');
+    wrapperEl.classList.remove('hidden');
+    _monthlyPieChart = renderPieChart('monthlySalesPieChart', 'monthlyPieLegend', productMap, _monthlyPieChart);
+
+  } catch {
+    loadingEl.classList.add('hidden');
+    emptyEl.textContent = 'Failed to load monthly product sales.';
+    emptyEl.classList.remove('hidden');
+  }
+}
+
+// Single entry-point — called by the branch dropdown and Refresh button.
+// Both charts share the same todayBranchFilter value.
+function loadBothPieCharts() {
+  loadDailyPieChart();
+  loadMonthlyPieChart();
+}
+
+// ══════════════════════════════════════════════
+// ANALYTICS — Daily & Monthly summary tables
+// ══════════════════════════════════════════════
 async function loadDailySummary() {
   const date = document.getElementById('analyticsDate').value || new Date().toISOString().split('T')[0];
   document.getElementById('dailySummaryLoading').classList.remove('hidden');
@@ -2531,35 +2709,25 @@ async function loadDailySummary() {
   }
 }
 
-// ── MONTHLY SUMMARY — enhanced with branch breakdown ──
 async function loadMonthlySummary() {
   const month = document.getElementById('analyticsMonth').value;
   const year  = document.getElementById('analyticsYear').value || new Date().getFullYear();
-
   document.getElementById('monthlySummaryLoading').classList.remove('hidden');
   document.getElementById('monthlyBranchList').classList.add('hidden');
   document.getElementById('monthlySummaryTable').classList.add('hidden');
-  document.getElementById('monthTotalRevenueBanner').innerHTML =
-    '<span class="skeleton inline-block w-28 h-6 rounded"></span>';
-
+  document.getElementById('monthTotalRevenueBanner').innerHTML = '<span class="skeleton inline-block w-28 h-6 rounded"></span>';
   try {
     const res  = await apiFetch(`/admin/analytics/monthly/summary/?month=${month}&year=${year}`);
     const data = await res.json();
     const rows = data.summary || [];
-
     const totalRevenue = rows.reduce((s, r) => s + parseFloat(r.total_revenue || 0), 0);
     document.getElementById('monthTotalRevenueBanner').textContent =
       `KES ${totalRevenue.toLocaleString('en-KE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-
     if (!rows.length) {
-      document.getElementById('monthlySummaryLoading').innerHTML =
-        `<p class="text-sm text-muted text-center py-4">No data for this period.</p>`;
+      document.getElementById('monthlySummaryLoading').innerHTML = `<p class="text-sm text-muted text-center py-4">No data for this period.</p>`;
       return;
     }
-
     const maxBranchRev = Math.max(...rows.map(r => parseFloat(r.total_revenue || 0)), 1);
-
-    // Render branch cards + table
     document.getElementById('monthlyBranchList').innerHTML = rows.map(r => {
       const rev    = parseFloat(r.total_revenue || 0);
       const barPct = Math.max(4, Math.round((rev / maxBranchRev) * 100));
@@ -2577,8 +2745,6 @@ async function loadMonthlySummary() {
           </div>
         </div>`;
     }).join('');
-
-    // Also populate the table for legacy view
     document.getElementById('monthlySummaryBody').innerHTML = rows.map(r => `
       <tr style="border-bottom:1px solid rgba(0,200,150,0.06);" class="hover:bg-white/[0.02]">
         <td class="td-main px-4 py-3">${r.branch_name}</td>
@@ -2587,7 +2753,6 @@ async function loadMonthlySummary() {
         <td class="td-sub px-4 py-3">${(r.total_sold || 0).toLocaleString()}</td>
         <td class="td-amt px-4 py-3">KES ${Number(r.total_revenue || 0).toLocaleString('en-KE', {minimumFractionDigits:2})}</td>
       </tr>`).join('');
-
     document.getElementById('monthlySummaryLoading').classList.add('hidden');
     document.getElementById('monthlyBranchList').classList.remove('hidden');
     document.getElementById('monthlySummaryTable').classList.remove('hidden');
@@ -2666,7 +2831,6 @@ function goToRestock(branchName = null, branchId = null) {
   }
 }
 
-// ── SCAN INVENTORY ──────────────────────────────
 let scanOpen = false;
 function toggleScanResults() { if (scanOpen) closeScanResults(); else openScanResults(); }
 function closeScanResults() {
@@ -2699,8 +2863,7 @@ async function openScanResults() {
           </div>
           <div><p class="font-head font-bold text-sm" style="color:#00C896;">All Clear — No Low Stock Detected</p><p class="text-xs text-muted mt-0.5">Every product in every branch is above its restock threshold.</p></div>
         </div>`;
-      document.getElementById('scanBadge').classList.add('hidden');
-      return;
+      document.getElementById('scanBadge').classList.add('hidden'); return;
     }
     const byBranch = {};
     alerts.forEach(a => { if (!byBranch[a.branch_name]) byBranch[a.branch_name] = []; byBranch[a.branch_name].push(a); });

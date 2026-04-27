@@ -6,6 +6,8 @@
   <title>WantamDrinks — Admin Dashboard</title>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js for the revenue graph -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
   <script>
     tailwind.config = {
       theme: {
@@ -21,13 +23,15 @@
             spin:    { to:{ transform:'rotate(360deg)' } },
             btnGlow: { '0%,100%':{ boxShadow:'0 0 20px rgba(128,0,255,0.5),0 0 60px rgba(0,163,255,0.3)' }, '50%':{ boxShadow:'0 0 40px rgba(128,0,255,0.8),0 0 100px rgba(0,163,255,0.5)' } },
             pulse2:  { '0%,100%':{ opacity:'1', transform:'scale(1)' }, '50%':{ opacity:'0.4', transform:'scale(1.5)' } },
+            scanPulse: { '0%,100%':{ opacity:'1' }, '50%':{ opacity:'0.5' } },
           },
           animation: {
-            fadeUp:  'fadeUp 0.6s ease both',
-            shimmer: 'shimmer 2s linear infinite',
-            spin:    'spin 0.8s linear infinite',
-            btnGlow: 'btnGlow 2.5s ease-in-out infinite',
-            pulse2:  'pulse2 2s ease-in-out infinite',
+            fadeUp:    'fadeUp 0.6s ease both',
+            shimmer:   'shimmer 2s linear infinite',
+            spin:      'spin 0.8s linear infinite',
+            btnGlow:   'btnGlow 2.5s ease-in-out infinite',
+            pulse2:    'pulse2 2s ease-in-out infinite',
+            scanPulse: 'scanPulse 1.2s ease-in-out infinite',
           },
         }
       }
@@ -80,11 +84,8 @@
 
     .stat-card {
       background: rgba(15,52,96,0.45);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border: 1px solid rgba(0,200,150,0.15);
-      border-radius: 20px;
-      padding: 1.5rem;
+      backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(0,200,150,0.15); border-radius: 20px; padding: 1.5rem;
       animation: fadeUp 0.6s ease both;
       transition: border-color 0.25s, box-shadow 0.25s, transform 0.25s;
       position: relative; overflow: hidden;
@@ -99,30 +100,20 @@
       box-shadow: 0 12px 40px rgba(0,0,0,0.3), 0 0 20px rgba(0,200,150,0.08);
       transform: translateY(-3px);
     }
-
     .stat-icon {
       width: 44px; height: 44px; border-radius: 12px;
-      display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
     }
-
     .skeleton {
       background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%);
-      background-size: 200% 100%;
-      animation: shimmer 1.5s infinite;
-      border-radius: 10px;
+      background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 10px;
     }
-
     .notif-dot {
-      width: 7px; height: 7px; border-radius: 50%;
-      background: #00C896; flex-shrink: 0;
-      box-shadow: 0 0 6px rgba(0,200,150,0.6);
-      animation: pulse2 2s ease-in-out infinite;
+      width: 7px; height: 7px; border-radius: 50%; background: #00C896; flex-shrink: 0;
+      box-shadow: 0 0 6px rgba(0,200,150,0.6); animation: pulse2 2s ease-in-out infinite;
     }
-
     .alert-bar {
-      border-radius: 10px; padding: 0.7rem 1rem;
-      font-size: 0.84rem; display: none;
+      border-radius: 10px; padding: 0.7rem 1rem; font-size: 0.84rem; display: none;
       align-items: center; gap: 8px; margin-bottom: 1rem;
     }
     .alert-bar.show { display: flex; }
@@ -141,28 +132,22 @@
     .th-cell  { text-align: left; padding: 10px 16px; font-size: 11px; font-weight: 700;
                 text-transform: uppercase; letter-spacing: 0.07em; color: #C0D8E8; }
 
-    .badge {
-      display: inline-flex; align-items: center;
-      padding: 2px 8px; border-radius: 6px;
-      font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
-    }
-    .badge-critical { background: rgba(255,80,80,0.15); color: #ff6b6b; border: 1px solid rgba(255,80,80,0.3); }
-    .badge-low      { background: rgba(255,180,0,0.12); color: #ffc107; border: 1px solid rgba(255,180,0,0.3); }
-    .badge-resolved { background: rgba(0,200,150,0.1);  color: #00C896; border: 1px solid rgba(0,200,150,0.3); }
-    .badge-pending  { background: rgba(255,180,0,0.12); color: #ffc107; border: 1px solid rgba(255,180,0,0.3); }
-    .badge-completed{ background: rgba(0,200,150,0.1);  color: #00C896; border: 1px solid rgba(0,200,150,0.3); }
-    .badge-failed   { background: rgba(255,80,80,0.15); color: #ff6b6b; border: 1px solid rgba(255,80,80,0.3); }
-    .badge-active   { background: rgba(0,200,150,0.1);  color: #00C896; border: 1px solid rgba(0,200,150,0.3); }
-    .badge-inactive { background: rgba(122,154,176,0.12); color: #7A9AB0; border: 1px solid rgba(122,154,176,0.25); }
+    .badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+    .badge-critical  { background: rgba(255,80,80,0.15);   color: #ff6b6b; border: 1px solid rgba(255,80,80,0.3); }
+    .badge-low       { background: rgba(255,180,0,0.12);   color: #ffc107; border: 1px solid rgba(255,180,0,0.3); }
+    .badge-resolved  { background: rgba(0,200,150,0.1);    color: #00C896; border: 1px solid rgba(0,200,150,0.3); }
+    .badge-pending   { background: rgba(255,180,0,0.12);   color: #ffc107; border: 1px solid rgba(255,180,0,0.3); }
+    .badge-completed { background: rgba(0,200,150,0.1);    color: #00C896; border: 1px solid rgba(0,200,150,0.3); }
+    .badge-failed    { background: rgba(255,80,80,0.15);   color: #ff6b6b; border: 1px solid rgba(255,80,80,0.3); }
+    .badge-active    { background: rgba(0,200,150,0.1);    color: #00C896; border: 1px solid rgba(0,200,150,0.3); }
+    .badge-inactive  { background: rgba(122,154,176,0.12); color: #7A9AB0; border: 1px solid rgba(122,154,176,0.25); }
+    .badge-success   { background: rgba(0,200,150,0.1);    color: #00C896; border: 1px solid rgba(0,200,150,0.3); }
+    .badge-cancelled { background: rgba(122,154,176,0.12); color: #7A9AB0; border: 1px solid rgba(122,154,176,0.25); }
 
     .panel-card {
-      background: rgba(15,52,96,0.45);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border: 1px solid rgba(0,200,150,0.15);
-      border-radius: 20px;
+      background: rgba(15,52,96,0.45); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(0,200,150,0.15); border-radius: 20px;
     }
-
     #sidebarOverlay { display: none; position: fixed; inset: 0; z-index: 25; background: rgba(0,0,0,0.5); }
     #sidebarOverlay.show { display: block; }
 
@@ -176,60 +161,102 @@
     .nav-section-label {
       font-size: 10px; font-weight: 700; text-transform: uppercase;
       letter-spacing: 0.1em; color: rgba(122,154,176,0.5);
-      padding: 0.5rem 1rem 0.25rem;
-      font-family: 'Syne', sans-serif;
+      padding: 0.5rem 1rem 0.25rem; font-family: 'Syne', sans-serif;
     }
-
     .spinner {
-      border: 2px solid rgba(0,200,150,0.2);
-      border-top-color: #00C896;
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-      display: inline-block;
+      border: 2px solid rgba(0,200,150,0.2); border-top-color: #00C896;
+      border-radius: 50%; animation: spin 0.8s linear infinite; display: inline-block;
     }
-
     .input-field {
-      background: rgba(10,37,64,0.65);
-      border: 1px solid rgba(0,200,150,0.15);
+      background: rgba(10,37,64,0.65); border: 1px solid rgba(0,200,150,0.15);
       border-radius: 10px; padding: 0.55rem 0.9rem;
-      font-family: 'DM Sans', sans-serif; font-size: 0.84rem;
-      color: #E8F4F8; outline: none;
-      transition: border-color 0.2s, box-shadow 0.2s;
+      font-family: 'DM Sans', sans-serif; font-size: 0.84rem; color: #E8F4F8;
+      outline: none; transition: border-color 0.2s, box-shadow 0.2s;
     }
     .input-field:focus { border-color: #00C896; box-shadow: 0 0 0 3px rgba(0,200,150,0.1); }
     .input-field::placeholder { color: #4a7090; }
 
-    .action-btn {
-      padding: 0.5rem 1.1rem; border-radius: 10px; font-size: 0.82rem;
-      font-family: 'Syne', sans-serif; font-weight: 700; cursor: pointer;
-      transition: all 0.2s; border: 1px solid transparent;
-    }
-    .action-btn-primary {
-      background: rgba(0,200,150,0.15); border-color: rgba(0,200,150,0.35); color: #00C896;
-    }
+    .action-btn { padding: 0.5rem 1.1rem; border-radius: 10px; font-size: 0.82rem; font-family: 'Syne', sans-serif; font-weight: 700; cursor: pointer; transition: all 0.2s; border: 1px solid transparent; }
+    .action-btn-primary { background: rgba(0,200,150,0.15); border-color: rgba(0,200,150,0.35); color: #00C896; }
     .action-btn-primary:hover { background: rgba(0,200,150,0.25); }
-    .action-btn-danger {
-      background: rgba(255,80,80,0.1); border-color: rgba(255,80,80,0.3); color: #ff6b6b;
-    }
-    .action-btn-danger:hover { background: rgba(255,80,80,0.2); }
-    .action-btn-muted {
-      background: rgba(122,154,176,0.1); border-color: rgba(122,154,176,0.2); color: #7A9AB0;
-    }
-    .action-btn-muted:hover { background: rgba(122,154,176,0.18); color: #E8F4F8; }
+    .action-btn-danger  { background: rgba(255,80,80,0.1);  border-color: rgba(255,80,80,0.3);  color: #ff6b6b; }
+    .action-btn-danger:hover  { background: rgba(255,80,80,0.2); }
+    .action-btn-muted   { background: rgba(122,154,176,0.1); border-color: rgba(122,154,176,0.2); color: #7A9AB0; }
+    .action-btn-muted:hover   { background: rgba(122,154,176,0.18); color: #E8F4F8; }
+    .action-btn-warning { background: rgba(255,180,0,0.1); border-color: rgba(255,180,0,0.3); color: #ffc107; }
+    .action-btn-warning:hover { background: rgba(255,180,0,0.2); }
+    .action-btn-edit    { background: rgba(0,163,255,0.1); border-color: rgba(0,163,255,0.3); color: #00A3FF; }
+    .action-btn-edit:hover    { background: rgba(0,163,255,0.2); }
 
-    .tab-btn {
-      padding: 0.45rem 1rem; border-radius: 10px;
-      font-size: 0.82rem; font-family: 'Syne', sans-serif; font-weight: 600;
-      cursor: pointer; transition: all 0.2s; border: 1px solid transparent;
-      color: #7A9AB0; background: transparent;
-    }
-    .tab-btn.active {
-      background: rgba(0,200,150,0.12); border-color: rgba(0,200,150,0.3); color: #00C896;
-    }
+    .tab-btn { padding: 0.45rem 1rem; border-radius: 10px; font-size: 0.82rem; font-family: 'Syne', sans-serif; font-weight: 600; cursor: pointer; transition: all 0.2s; border: 1px solid transparent; color: #7A9AB0; background: transparent; }
+    .tab-btn.active { background: rgba(0,200,150,0.12); border-color: rgba(0,200,150,0.3); color: #00C896; }
     .tab-btn:not(.active):hover { background: rgba(0,200,150,0.05); color: #E8F4F8; }
 
-    .trend-up   { color: #00C896; }
-    .trend-down { color: #ff6b6b; }
+    .scan-result-card { background: rgba(255,180,0,0.06); border: 1px solid rgba(255,180,0,0.2); border-radius: 14px; padding: 1rem 1.2rem; animation: fadeUp 0.4s ease both; }
+    .scan-result-card.critical-card { background: rgba(255,80,80,0.06); border-color: rgba(255,80,80,0.25); }
+
+    #scanResultsSection { max-height: 0; overflow: hidden; transition: max-height 0.4s ease, opacity 0.3s ease; opacity: 0; }
+    #scanResultsSection.open { max-height: 2000px; opacity: 1; }
+
+    /* ── ANALYTICS SPECIFIC STYLES ── */
+    .analytics-kpi-card {
+      background: rgba(15,52,96,0.45);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(0,200,150,0.12);
+      border-radius: 16px;
+      padding: 1.25rem 1.4rem;
+      animation: fadeUp 0.5s ease both;
+      transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+      position: relative; overflow: hidden;
+    }
+    .analytics-kpi-card:hover {
+      border-color: rgba(0,200,150,0.3);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.25), 0 0 16px rgba(0,200,150,0.06);
+      transform: translateY(-2px);
+    }
+    .analytics-kpi-card::after {
+      content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px;
+      border-radius: 0 0 16px 16px;
+    }
+    .analytics-kpi-card.kpi-green::after  { background: linear-gradient(90deg,#00C896,transparent); }
+    .analytics-kpi-card.kpi-blue::after   { background: linear-gradient(90deg,#00A3FF,transparent); }
+    .analytics-kpi-card.kpi-purple::after { background: linear-gradient(90deg,#b44fff,transparent); }
+    .analytics-kpi-card.kpi-yellow::after { background: linear-gradient(90deg,#ffc107,transparent); }
+
+    .chart-container {
+      background: rgba(15,52,96,0.45);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(0,200,150,0.12);
+      border-radius: 20px;
+      padding: 1.5rem;
+      animation: fadeUp 0.6s ease both;
+    }
+
+    .product-sales-row {
+      display: flex; align-items: center; gap: 12px;
+      padding: 0.65rem 0;
+      border-bottom: 1px solid rgba(0,200,150,0.06);
+      transition: background 0.15s;
+    }
+    .product-sales-row:last-child { border-bottom: none; }
+    .product-bar-track {
+      flex: 1; height: 5px; border-radius: 3px;
+      background: rgba(255,255,255,0.06); overflow: hidden;
+    }
+    .product-bar-fill {
+      height: 100%; border-radius: 3px;
+      background: linear-gradient(90deg, #00C896, #00A3FF);
+      transition: width 0.8s cubic-bezier(0.4,0,0.2,1);
+    }
+
+    .monthly-branch-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0.7rem 1rem; border-radius: 12px;
+      background: rgba(10,37,64,0.4); margin-bottom: 0.5rem;
+      border: 1px solid rgba(0,200,150,0.08);
+      transition: border-color 0.2s;
+    }
+    .monthly-branch-row:hover { border-color: rgba(0,200,150,0.2); }
   </style>
 </head>
 
@@ -266,8 +293,7 @@
     <p class="nav-section-label mt-3">Management</p>
     <button id="navUsers" class="nav-item" onclick="showPanel('users', this)">
       <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-        <circle cx="9" cy="7" r="4"/>
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
         <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
       </svg>
       Users
@@ -282,15 +308,13 @@
     <button id="navProducts" class="nav-item" onclick="showPanel('products', this)">
       <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
-        <line x1="3" y1="6" x2="21" y2="6"/>
-        <path d="M16 10a4 4 0 0 1-8 0"/>
+        <line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/>
       </svg>
       Products
     </button>
     <button id="navInventory" class="nav-item" onclick="showPanel('inventory', this)">
       <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <polyline points="21 8 21 21 3 21 3 8"/>
-        <rect x="1" y="3" width="22" height="5" rx="1"/>
+        <polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5" rx="1"/>
         <line x1="10" y1="12" x2="14" y2="12"/>
       </svg>
       Inventory
@@ -312,8 +336,7 @@
     </button>
     <button id="navAnalytics" class="nav-item" onclick="showPanel('analytics', this)">
       <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <line x1="18" y1="20" x2="18" y2="10"/>
-        <line x1="12" y1="20" x2="12" y2="4"/>
+        <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/>
         <line x1="6" y1="20" x2="6" y2="14"/>
       </svg>
       Analytics
@@ -332,7 +355,8 @@
   <div class="px-3 mt-4 mb-2">
     <button class="logout-btn" onclick="handleLogout()">
       <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/>
+        <line x1="21" y1="12" x2="9" y2="12"/>
       </svg>
       Log Out
     </button>
@@ -358,7 +382,9 @@
 
   <header class="relative z-10 flex items-center justify-between px-5 md:px-8 pt-5 pb-2">
     <button id="mobileMenuBtn" class="mr-3 p-2 rounded-xl" style="background:rgba(15,52,96,0.5);border:1px solid rgba(0,200,150,0.15);" onclick="openMobileSidebar()">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7A9AB0" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7A9AB0" stroke-width="2">
+        <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+      </svg>
     </button>
     <div class="flex-1">
       <h1 class="font-head font-black text-2xl md:text-3xl text-wdtext">
@@ -383,10 +409,12 @@
   </header>
 
   <main class="sb relative z-10 flex-1 overflow-y-auto px-5 md:px-8 pb-8 pt-4">
+    <div class="alert-bar" id="alertBar">
+      <span id="alertMsg"></span>
+      <button onclick="hideAlert()" class="ml-auto text-lg leading-none">✕</button>
+    </div>
 
-    <div class="alert-bar" id="alertBar"><span id="alertMsg"></span><button onclick="hideAlert()" class="ml-auto text-lg leading-none">✕</button></div>
-
-    <!-- OVERVIEW / DASHBOARD -->
+    <!-- ══ OVERVIEW / DASHBOARD ══ -->
     <div id="overviewPanel">
       <div class="flex items-center gap-2 mb-5">
         <div class="notif-dot"></div>
@@ -394,47 +422,40 @@
           <span style="color:#7A9AB0;">Now Viewing: </span>
           <span class="font-head font-semibold" style="color:#00C896;">Admin Dashboard</span>
         </p>
-        <span class="ml-auto text-xs" style="color:#7A9AB0;">Live data · refreshes in <span id="countdownDisplay" style="color:#00C896;font-family:'Syne',sans-serif;font-weight:700;">30s</span></span>
+        <span class="ml-auto text-xs" style="color:#7A9AB0;">Live data · refreshes in
+          <span id="countdownDisplay" style="color:#00C896;font-family:'Syne',sans-serif;font-weight:700;">30s</span>
+        </span>
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
-
-<div class="stat-card" style="animation-delay:0.3s">
+        <div class="stat-card" style="animation-delay:0.3s">
           <div class="flex items-start justify-between mb-4">
             <div class="stat-icon" style="background:rgba(123,47,247,0.12);border:1px solid rgba(123,47,247,0.2);">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#b44fff" stroke-width="2">
-                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                <circle cx="9" cy="7" r="4"/>
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
                 <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
               </svg>
             </div>
             <span class="text-xs font-head font-semibold px-2 py-1 rounded-lg" style="background:rgba(123,47,247,0.08);color:#b44fff;border:1px solid rgba(123,47,247,0.2);">TOTAL</span>
           </div>
           <p class="text-xs font-head font-bold uppercase tracking-widest mb-1" style="color:#7A9AB0;">Registered Users</p>
-          <p id="statUsers" class="font-head font-black text-2xl text-wdtext mb-1">
-            <span class="skeleton inline-block w-16 h-7 rounded"></span>
-          </p>
+          <p id="statUsers" class="font-head font-black text-2xl text-wdtext mb-1"><span class="skeleton inline-block w-16 h-7 rounded"></span></p>
           <p class="text-xs" style="color:#7A9AB0;" id="statUsersNote">all registered customers</p>
         </div>
-
         <div class="stat-card" style="animation-delay:0.1s">
           <div class="flex items-start justify-between mb-4">
             <div class="stat-icon" style="background:rgba(0,163,255,0.12);border:1px solid rgba(0,163,255,0.2);">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00A3FF" stroke-width="2">
                 <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
-                <line x1="3" y1="6" x2="21" y2="6"/>
-                <path d="M16 10a4 4 0 0 1-8 0"/>
+                <line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/>
               </svg>
             </div>
             <span class="text-xs font-head font-semibold px-2 py-1 rounded-lg" style="background:rgba(0,163,255,0.08);color:#00A3FF;border:1px solid rgba(0,163,255,0.15);">TODAY</span>
           </div>
           <p class="text-xs font-head font-bold uppercase tracking-widest mb-1" style="color:#7A9AB0;">Orders Today</p>
-          <p id="statOrders" class="font-head font-black text-2xl text-wdtext mb-1">
-            <span class="skeleton inline-block w-16 h-7 rounded"></span>
-          </p>
+          <p id="statOrders" class="font-head font-black text-2xl text-wdtext mb-1"><span class="skeleton inline-block w-16 h-7 rounded"></span></p>
           <p class="text-xs" style="color:#7A9AB0;" id="statOrdersNote">— across all branches</p>
         </div>
-
         <div class="stat-card" style="animation-delay:0s">
           <div class="flex items-start justify-between mb-4">
             <div class="stat-icon" style="background:rgba(0,200,150,0.12);border:1px solid rgba(0,200,150,0.2);">
@@ -446,14 +467,9 @@
             <span class="text-xs font-head font-semibold px-2 py-1 rounded-lg" style="background:rgba(0,200,150,0.08);color:#00C896;border:1px solid rgba(0,200,150,0.15);">TODAY</span>
           </div>
           <p class="text-xs font-head font-bold uppercase tracking-widest mb-1" style="color:#7A9AB0;">Total Revenue</p>
-          <p id="statRevenue" class="font-head font-black text-2xl text-wdtext mb-1">
-            <span class="skeleton inline-block w-28 h-7 rounded"></span>
-          </p>
+          <p id="statRevenue" class="font-head font-black text-2xl text-wdtext mb-1"><span class="skeleton inline-block w-28 h-7 rounded"></span></p>
           <p class="text-xs" style="color:#7A9AB0;" id="statRevenueNote">from sales analytics API</p>
         </div>
-
-        
-
         <div class="stat-card" style="animation-delay:0.2s">
           <div class="flex items-start justify-between mb-4">
             <div class="stat-icon" style="background:rgba(255,80,80,0.1);border:1px solid rgba(255,80,80,0.2);">
@@ -465,32 +481,24 @@
             <span class="text-xs font-head font-semibold px-2 py-1 rounded-lg" style="background:rgba(255,80,80,0.08);color:#ff6b6b;border:1px solid rgba(255,80,80,0.15);">LIVE</span>
           </div>
           <p class="text-xs font-head font-bold uppercase tracking-widest mb-1" style="color:#7A9AB0;">Unresolved Alerts</p>
-          <p id="statAlerts" class="font-head font-black text-2xl text-wdtext mb-1">
-            <span class="skeleton inline-block w-12 h-7 rounded"></span>
-          </p>
+          <p id="statAlerts" class="font-head font-black text-2xl text-wdtext mb-1"><span class="skeleton inline-block w-12 h-7 rounded"></span></p>
           <p class="text-xs" style="color:#7A9AB0;" id="statAlertsNote">— across all branches</p>
         </div>
-
-        
       </div>
 
       <div class="grid grid-cols-1 xl:grid-cols-3 gap-5">
         <div class="xl:col-span-2 panel-card p-5">
           <div class="flex items-center justify-between mb-4">
             <h3 class="font-head font-bold text-base text-wdtext">Recent Orders</h3>
-            <button onclick="showPanel('transactions', document.getElementById('navTransactions'))"
-                    class="text-xs text-accent hover:underline font-head">View All →</button>
+            <button onclick="showPanel('transactions', document.getElementById('navTransactions'))" class="text-xs text-accent hover:underline font-head">View All →</button>
           </div>
           <div class="overflow-x-auto">
             <table class="w-full border-collapse">
               <thead>
                 <tr style="border-bottom:1px solid rgba(0,200,150,0.1);">
-                  <th class="th-cell">Order ID</th>
-                  <th class="th-cell">Customer</th>
-                  <th class="th-cell">Branch</th>
-                  <th class="th-cell">Amount</th>
-                  <th class="th-cell">Status</th>
-                  <th class="th-cell">Time</th>
+                  <th class="th-cell">Order ID</th><th class="th-cell">Customer</th>
+                  <th class="th-cell">Branch</th><th class="th-cell">Amount</th>
+                  <th class="th-cell">Status</th><th class="th-cell">Time</th>
                 </tr>
               </thead>
               <tbody id="recentOrdersBody">
@@ -502,12 +510,10 @@
             </table>
           </div>
         </div>
-
         <div class="panel-card p-5 flex flex-col">
           <div class="flex items-center justify-between mb-4">
             <h3 class="font-head font-bold text-base text-wdtext">Alert Summary</h3>
-            <button onclick="showPanel('alerts', document.getElementById('navAlerts'))"
-                    class="text-xs text-accent hover:underline font-head">Manage →</button>
+            <button onclick="showPanel('alerts', document.getElementById('navAlerts'))" class="text-xs text-accent hover:underline font-head">Manage →</button>
           </div>
           <div id="alertSummaryContent" class="flex flex-col gap-3 flex-1">
             <div class="skeleton h-16 rounded-xl"></div>
@@ -529,47 +535,31 @@
       </div>
     </div>
 
-    <!-- INLINE PANEL -->
+    <!-- ══ INLINE PANEL ══ -->
     <div id="inlinePanel">
       <button onclick="closePanel()" class="flex items-center gap-2 text-sm mb-6 text-muted hover:text-accent transition-colors">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polyline points="15 18 9 12 15 6"/>
-        </svg>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
         Back to Dashboard
       </button>
 
-      <!-- USERS PANEL -->
+      <!-- USERS -->
       <div id="usersContent" class="hidden">
         <div class="flex items-center justify-between mb-5">
-          <div>
-            <h2 class="font-head font-bold text-xl text-wdtext">Users</h2>
-            <p class="text-xs text-muted mt-0.5">All registered customers &amp; staff</p>
-          </div>
+          <div><h2 class="font-head font-bold text-xl text-wdtext">Users</h2><p class="text-xs text-muted mt-0.5">All registered customers &amp; staff</p></div>
           <button class="action-btn action-btn-primary" onclick="openAddUserModal()">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="inline mr-1"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             Add User
           </button>
         </div>
         <div class="panel-card p-5">
-          <div id="usersLoading" class="text-center py-10">
-            <div class="spinner w-8 h-8 mx-auto mb-3"></div>
-            <p class="text-sm text-muted">Loading users…</p>
-          </div>
+          <div id="usersLoading" class="text-center py-10"><div class="spinner w-8 h-8 mx-auto mb-3"></div><p class="text-sm text-muted">Loading users…</p></div>
           <div id="usersTable" class="hidden overflow-x-auto">
             <table class="w-full border-collapse">
-              <thead>
-                <tr style="border-bottom:1px solid rgba(0,200,150,0.1);">
-                  <th class="th-cell">User ID</th>
-                  <th class="th-cell">Username</th>
-                  <th class="th-cell">Email</th>
-                  <th class="th-cell">Phone</th>
-                  <th class="th-cell">Role</th>
-                  <th class="th-cell">Status</th>
-                  <th class="th-cell">Orders</th>
-                  <th class="th-cell">Joined</th>
-                  <th class="th-cell">Action</th>
-                </tr>
-              </thead>
+              <thead><tr style="border-bottom:1px solid rgba(0,200,150,0.1);">
+                <th class="th-cell">User ID</th><th class="th-cell">Username</th><th class="th-cell">Email</th>
+                <th class="th-cell">Phone</th><th class="th-cell">Role</th><th class="th-cell">Status</th>
+                <th class="th-cell">Orders</th><th class="th-cell">Joined</th><th class="th-cell">Action</th>
+              </tr></thead>
               <tbody id="usersBody"></tbody>
             </table>
           </div>
@@ -585,26 +575,11 @@
             <button onclick="closeAddUserModal()" class="text-muted hover:text-wdtext transition-colors text-xl leading-none">✕</button>
           </div>
           <div class="space-y-4">
-            <div>
-              <label class="block text-xs font-bold text-muted uppercase tracking-wider mb-1">Username</label>
-              <input id="newUserUsername" type="text" class="input-field w-full" placeholder="e.g. john_doe"/>
-            </div>
-            <div>
-              <label class="block text-xs font-bold text-muted uppercase tracking-wider mb-1">Email (Gmail only)</label>
-              <input id="newUserEmail" type="email" class="input-field w-full" placeholder="user@gmail.com"/>
-            </div>
-            <div>
-              <label class="block text-xs font-bold text-muted uppercase tracking-wider mb-1">Phone (07/01XXXXXXXX)</label>
-              <input id="newUserPhone" type="tel" class="input-field w-full" placeholder="0712345678"/>
-            </div>
-            <div>
-              <label class="block text-xs font-bold text-muted uppercase tracking-wider mb-1">Password</label>
-              <input id="newUserPassword" type="password" class="input-field w-full" placeholder="Strong password"/>
-            </div>
-            <div>
-              <label class="block text-xs font-bold text-muted uppercase tracking-wider mb-1">Confirm Password</label>
-              <input id="newUserConfirm" type="password" class="input-field w-full" placeholder="Repeat password"/>
-            </div>
+            <div><label class="block text-xs font-bold text-muted uppercase tracking-wider mb-1">Username</label><input id="newUserUsername" type="text" class="input-field w-full" placeholder="e.g. john_doe"/></div>
+            <div><label class="block text-xs font-bold text-muted uppercase tracking-wider mb-1">Email (Gmail only)</label><input id="newUserEmail" type="email" class="input-field w-full" placeholder="user@gmail.com"/></div>
+            <div><label class="block text-xs font-bold text-muted uppercase tracking-wider mb-1">Phone (07/01XXXXXXXX)</label><input id="newUserPhone" type="tel" class="input-field w-full" placeholder="0712345678"/></div>
+            <div><label class="block text-xs font-bold text-muted uppercase tracking-wider mb-1">Password</label><input id="newUserPassword" type="password" class="input-field w-full" placeholder="Strong password"/></div>
+            <div><label class="block text-xs font-bold text-muted uppercase tracking-wider mb-1">Confirm Password</label><input id="newUserConfirm" type="password" class="input-field w-full" placeholder="Repeat password"/></div>
           </div>
           <div class="flex gap-3 mt-6">
             <button onclick="submitAddUser(this)" class="action-btn action-btn-primary flex-1">Create User</button>
@@ -614,36 +589,23 @@
         </div>
       </div>
 
-      <!-- BRANCHES PANEL -->
+      <!-- BRANCHES -->
       <div id="branchesContent" class="hidden">
         <div class="flex items-center justify-between mb-5">
-          <div>
-            <h2 class="font-head font-bold text-xl text-wdtext">Branches</h2>
-            <p class="text-xs text-muted mt-0.5">All branch locations</p>
-          </div>
+          <div><h2 class="font-head font-bold text-xl text-wdtext">Branches</h2><p class="text-xs text-muted mt-0.5">All branch locations</p></div>
           <button class="action-btn action-btn-primary" onclick="openAddBranchModal()">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="inline mr-1"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             Add Branch
           </button>
         </div>
         <div class="panel-card p-5">
-          <div id="branchesLoading" class="text-center py-10">
-            <div class="spinner w-8 h-8 mx-auto mb-3"></div>
-            <p class="text-sm text-muted">Loading branches…</p>
-          </div>
+          <div id="branchesLoading" class="text-center py-10"><div class="spinner w-8 h-8 mx-auto mb-3"></div><p class="text-sm text-muted">Loading branches…</p></div>
           <div id="branchesTable" class="hidden overflow-x-auto">
             <table class="w-full border-collapse">
-              <thead>
-                <tr style="border-bottom:1px solid rgba(0,200,150,0.1);">
-                  <th class="th-cell">Branch ID</th>
-                  <th class="th-cell">Name</th>
-                  <th class="th-cell">Location</th>
-                  <th class="th-cell">Manager</th>
-                  <th class="th-cell">Status</th>
-                  <th class="th-cell">Open Alerts</th>
-                  <th class="th-cell">Action</th>
-                </tr>
-              </thead>
+              <thead><tr style="border-bottom:1px solid rgba(0,200,150,0.1);">
+                <th class="th-cell">Branch ID</th><th class="th-cell">Name</th><th class="th-cell">Location</th>
+                <th class="th-cell">Manager</th><th class="th-cell">Status</th><th class="th-cell">Open Alerts</th><th class="th-cell">Action</th>
+              </tr></thead>
               <tbody id="branchesBody"></tbody>
             </table>
           </div>
@@ -651,12 +613,7 @@
         </div>
       </div>
 
-      <!-- ═══════════════════════════════════════════════════════════
-           ADD BRANCH MODAL
-           FIX 1: Added "Branch ID" as the first field.
-                  branch_id is the primary key on Branch model —
-                  the backend requires it in the POST body.
-      ═══════════════════════════════════════════════════════════ -->
+      <!-- ADD BRANCH MODAL -->
       <div id="addBranchModal" class="hidden fixed inset-0 z-50 flex items-center justify-center" style="background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);">
         <div class="panel-card p-7 w-full max-w-md mx-4 animate-fadeUp">
           <div class="flex items-center justify-between mb-6">
@@ -664,28 +621,11 @@
             <button onclick="closeAddBranchModal()" class="text-muted hover:text-wdtext transition-colors text-xl leading-none">✕</button>
           </div>
           <div class="space-y-4">
-            <!-- NEW FIELD: Branch ID (primary key — admin-assigned) -->
-            <div>
-              <label class="block text-xs font-bold text-muted uppercase tracking-wider mb-1">Branch ID</label>
-              <input id="newBranchId" type="text" class="input-field w-full" placeholder="e.g. NBI001, MSA001, THK001"/>
-              <p class="text-xs mt-1" style="color:#7A9AB0;">Unique identifier — cannot be changed later</p>
-            </div>
-            <div>
-              <label class="block text-xs font-bold text-muted uppercase tracking-wider mb-1">Branch Name</label>
-              <input id="newBranchName" type="text" class="input-field w-full" placeholder="e.g. Nakuru"/>
-            </div>
-            <div>
-              <label class="block text-xs font-bold text-muted uppercase tracking-wider mb-1">Location / Address</label>
-              <input id="newBranchLocation" type="text" class="input-field w-full" placeholder="e.g. Kenyatta Ave, Nakuru"/>
-            </div>
-            <div>
-              <label class="block text-xs font-bold text-muted uppercase tracking-wider mb-1">Manager Name</label>
-              <input id="newBranchManager" type="text" class="input-field w-full" placeholder="e.g. Jane Wanjiku"/>
-            </div>
-            <div>
-              <label class="block text-xs font-bold text-muted uppercase tracking-wider mb-1">Manager Phone (07/01XXXXXXXX)</label>
-              <input id="newBranchPhone" type="tel" class="input-field w-full" placeholder="0712345678"/>
-            </div>
+            <div><label class="block text-xs font-bold text-muted uppercase tracking-wider mb-1">Branch ID</label><input id="newBranchId" type="text" class="input-field w-full" placeholder="e.g. NBI001"/><p class="text-xs mt-1" style="color:#7A9AB0;">Unique identifier — cannot be changed later</p></div>
+            <div><label class="block text-xs font-bold text-muted uppercase tracking-wider mb-1">Branch Name</label><input id="newBranchName" type="text" class="input-field w-full" placeholder="e.g. Nakuru"/></div>
+            <div><label class="block text-xs font-bold text-muted uppercase tracking-wider mb-1">Location / Address</label><input id="newBranchLocation" type="text" class="input-field w-full" placeholder="e.g. Kenyatta Ave, Nakuru"/></div>
+            <div><label class="block text-xs font-bold text-muted uppercase tracking-wider mb-1">Manager Name</label><input id="newBranchManager" type="text" class="input-field w-full" placeholder="e.g. Jane Wanjiku"/></div>
+            <div><label class="block text-xs font-bold text-muted uppercase tracking-wider mb-1">Manager Phone</label><input id="newBranchPhone" type="tel" class="input-field w-full" placeholder="0712345678"/></div>
           </div>
           <div class="flex gap-3 mt-6">
             <button onclick="submitAddBranch(this)" class="action-btn action-btn-primary flex-1">Create Branch</button>
@@ -695,29 +635,43 @@
         </div>
       </div>
 
-      <!-- PRODUCTS PANEL -->
+      <!-- EDIT BRANCH MODAL -->
+      <div id="editBranchModal" class="hidden fixed inset-0 z-50 flex items-center justify-center" style="background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);">
+        <div class="panel-card p-7 w-full max-w-md mx-4 animate-fadeUp">
+          <div class="flex items-center justify-between mb-6">
+            <div><h3 class="font-head font-bold text-lg text-wdtext">Edit Branch</h3><p id="editBranchIdLabel" class="text-xs mt-0.5" style="color:#7A9AB0;font-family:monospace;"></p></div>
+            <button onclick="closeEditBranchModal()" class="text-muted hover:text-wdtext transition-colors text-xl leading-none">✕</button>
+          </div>
+          <div class="space-y-4">
+            <div><label class="block text-xs font-bold text-muted uppercase tracking-wider mb-1">Branch Name</label><input id="editBranchName" type="text" class="input-field w-full"/></div>
+            <div><label class="block text-xs font-bold text-muted uppercase tracking-wider mb-1">Location / Address</label><input id="editBranchLocation" type="text" class="input-field w-full"/></div>
+            <div><label class="block text-xs font-bold text-muted uppercase tracking-wider mb-1">Manager Name</label><input id="editBranchManagerName" type="text" class="input-field w-full"/></div>
+            <div><label class="block text-xs font-bold text-muted uppercase tracking-wider mb-1">Manager Phone</label><input id="editBranchManagerPhone" type="tel" class="input-field w-full"/></div>
+          </div>
+          <div class="flex gap-3 mt-6">
+            <button id="editBranchSubmitBtn" onclick="submitEditBranch(this)" class="action-btn action-btn-edit flex-1">Save Changes</button>
+            <button onclick="closeEditBranchModal()" class="action-btn action-btn-muted flex-1">Cancel</button>
+          </div>
+          <p id="editBranchError" class="hidden mt-3 text-xs text-center" style="color:#ff9b9b;"></p>
+        </div>
+      </div>
+
+      <!-- PRODUCTS -->
       <div id="productsContent" class="hidden">
         <div class="flex items-center justify-between mb-5">
-          <div>
-            <h2 class="font-head font-bold text-xl text-wdtext">Products</h2>
-            <p class="text-xs text-muted mt-0.5">Full product catalogue</p>
-          </div>
+          <div><h2 class="font-head font-bold text-xl text-wdtext">Products</h2><p class="text-xs text-muted mt-0.5">Full product catalogue</p></div>
+          <button class="action-btn action-btn-primary" onclick="openAddProductModal()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="inline mr-1"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add Product
+          </button>
         </div>
         <div class="panel-card p-5">
-          <div id="productsLoading" class="text-center py-10">
-            <div class="spinner w-8 h-8 mx-auto mb-3"></div>
-            <p class="text-sm text-muted">Loading products…</p>
-          </div>
+          <div id="productsLoading" class="text-center py-10"><div class="spinner w-8 h-8 mx-auto mb-3"></div><p class="text-sm text-muted">Loading products…</p></div>
           <div id="productsTable" class="hidden overflow-x-auto">
             <table class="w-full border-collapse">
-              <thead>
-                <tr style="border-bottom:1px solid rgba(0,200,150,0.1);">
-                  <th class="th-cell">Product ID</th>
-                  <th class="th-cell">Name</th>
-                  <th class="th-cell">Price (KES)</th>
-                  <th class="th-cell">Status</th>
-                </tr>
-              </thead>
+              <thead><tr style="border-bottom:1px solid rgba(0,200,150,0.1);">
+                <th class="th-cell">Product ID</th><th class="th-cell">Name</th><th class="th-cell">Price (KES)</th><th class="th-cell">Image File</th><th class="th-cell">Actions</th>
+              </tr></thead>
               <tbody id="productsBody"></tbody>
             </table>
           </div>
@@ -725,30 +679,92 @@
         </div>
       </div>
 
-      <!-- INVENTORY PANEL -->
+      <!-- EDIT PRODUCT MODAL -->
+      <div id="editProductModal" class="hidden fixed inset-0 z-50 flex items-center justify-center" style="background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);">
+        <div class="panel-card p-7 w-full max-w-sm mx-4 animate-fadeUp">
+          <div class="flex items-center justify-between mb-6">
+            <div>
+              <h3 class="font-head font-bold text-lg text-wdtext">Edit Product</h3>
+              <p id="editProductIdLabel" class="text-xs mt-0.5 font-mono" style="color:#7A9AB0;"></p>
+            </div>
+            <button onclick="closeEditProductModal()" class="text-muted hover:text-wdtext transition-colors text-xl leading-none">✕</button>
+          </div>
+          <div class="space-y-4">
+            <div>
+              <label class="block text-xs font-bold text-muted uppercase tracking-wider mb-1">Product Name</label>
+              <input id="editProductName" type="text" maxlength="20" class="input-field w-full" placeholder="e.g. Coke 500ml"/>
+              <p class="text-xs mt-1" style="color:#7A9AB0;">Max 20 characters · must be unique</p>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-muted uppercase tracking-wider mb-1">Price (KES)</label>
+              <input id="editProductPrice" type="number" min="1" step="0.01" class="input-field w-full" placeholder="e.g. 50.00"/>
+              <p class="text-xs mt-1" style="color:#7A9AB0;">Between KES 1 and KES 100,000</p>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-muted uppercase tracking-wider mb-1">Image Filename</label>
+              <input id="editProductImage" type="text" maxlength="100" class="input-field w-full" placeholder="e.g. coke.png"/>
+              <p class="text-xs mt-1" style="color:#7A9AB0;">Filename only — file must exist in <code style="color:#00C896;">static/images/</code></p>
+            </div>
+          </div>
+          <div class="flex gap-3 mt-6">
+            <button id="editProductSubmitBtn" onclick="submitEditProduct(this)" class="action-btn action-btn-edit flex-1">Save Changes</button>
+            <button onclick="closeEditProductModal()" class="action-btn action-btn-muted flex-1">Cancel</button>
+          </div>
+          <p id="editProductError" class="hidden mt-3 text-xs text-center" style="color:#ff9b9b;"></p>
+        </div>
+      </div>
+
+      <!-- ADD PRODUCT MODAL -->
+      <div id="addProductModal" class="hidden fixed inset-0 z-50 flex items-center justify-center" style="background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);">
+        <div class="panel-card p-7 w-full max-w-sm mx-4 animate-fadeUp">
+          <div class="flex items-center justify-between mb-6">
+            <div>
+              <h3 class="font-head font-bold text-lg text-wdtext">Add New Product</h3>
+              <p class="text-xs mt-0.5" style="color:#7A9AB0;">Product ID is auto-generated from the name</p>
+            </div>
+            <button onclick="closeAddProductModal()" class="text-muted hover:text-wdtext transition-colors text-xl leading-none">✕</button>
+          </div>
+          <div class="space-y-4">
+            <div>
+              <label class="block text-xs font-bold text-muted uppercase tracking-wider mb-1">Product Name</label>
+              <input id="newProductName" type="text" maxlength="20" class="input-field w-full" placeholder="e.g. Sprite 500ml"/>
+              <p class="text-xs mt-1" style="color:#7A9AB0;">Max 20 characters · must be unique</p>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-muted uppercase tracking-wider mb-1">Price (KES)</label>
+              <input id="newProductPrice" type="number" min="1" step="0.01" class="input-field w-full" placeholder="e.g. 60.00"/>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-muted uppercase tracking-wider mb-1">Image Filename <span style="color:#7A9AB0;font-weight:400;">(optional)</span></label>
+              <input id="newProductImage" type="text" maxlength="100" class="input-field w-full" placeholder="e.g. sprite.png"/>
+              <p class="text-xs mt-1" style="color:#7A9AB0;">Filename only — file must exist in <code style="color:#00C896;">static/images/</code></p>
+            </div>
+          </div>
+          <div class="flex gap-3 mt-6">
+            <button id="addProductSubmitBtn" onclick="submitAddProduct(this)" class="action-btn action-btn-primary flex-1">Create Product</button>
+            <button onclick="closeAddProductModal()" class="action-btn action-btn-muted flex-1">Cancel</button>
+          </div>
+          <p id="addProductError" class="hidden mt-3 text-xs text-center" style="color:#ff9b9b;"></p>
+        </div>
+      </div>
+
+      <!-- INVENTORY -->
       <div id="inventoryContent" class="hidden">
         <div class="flex items-center justify-between mb-5">
-          <div>
-            <h2 class="font-head font-bold text-xl text-wdtext">Inventory</h2>
-            <p class="text-xs text-muted mt-0.5">Stock levels across all branches</p>
-          </div>
+          <div><h2 class="font-head font-bold text-xl text-wdtext">Inventory</h2><p class="text-xs text-muted mt-0.5">Stock levels across all branches</p></div>
         </div>
         <div class="panel-card p-5">
-          <div id="inventoryLoading" class="text-center py-10">
-            <div class="spinner w-8 h-8 mx-auto mb-3"></div>
-            <p class="text-sm text-muted">Loading inventory…</p>
-          </div>
+          <div id="inventoryLoading" class="text-center py-10"><div class="spinner w-8 h-8 mx-auto mb-3"></div><p class="text-sm text-muted">Loading inventory…</p></div>
           <div id="inventoryTable" class="hidden overflow-x-auto">
             <table class="w-full border-collapse">
-              <thead>
-                <tr style="border-bottom:1px solid rgba(0,200,150,0.1);">
-                  <th class="th-cell">Branch</th>
-                  <th class="th-cell">Product</th>
-                  <th class="th-cell">Stock</th>
-                  <th class="th-cell">Threshold</th>
-                  <th class="th-cell">Status</th>
-                </tr>
-              </thead>
+              <thead><tr style="border-bottom:1px solid rgba(0,200,150,0.1);">
+                <th class="th-cell">Branch</th><th class="th-cell">Product</th><th class="th-cell">Stock</th>
+                <th class="th-cell">
+                  Threshold
+                  <span title="Click the number to edit — press Enter or click away to save" style="cursor:help;color:#4a7090;font-size:10px;margin-left:4px;">ⓘ</span>
+                </th>
+                <th class="th-cell">Status</th>
+              </tr></thead>
               <tbody id="inventoryBody"></tbody>
             </table>
           </div>
@@ -756,103 +772,143 @@
         </div>
       </div>
 
-      <!-- RESTOCK PANEL -->
+      <!-- RESTOCK -->
       <div id="restockContent" class="hidden">
         <div class="flex items-center justify-between mb-5">
-          <div>
-            <h2 class="font-head font-bold text-xl text-wdtext">Restock Inventory</h2>
-            <p class="text-xs text-muted mt-0.5">Select a branch, then add stock to any product</p>
+          <div><h2 class="font-head font-bold text-xl text-wdtext">Restock</h2><p class="text-xs text-muted mt-0.5">Manage stock &amp; review restock history</p></div>
+          <div class="flex gap-2">
+            <button id="tabRestockAction" class="tab-btn active" onclick="switchRestockTab('action')">Restock</button>
+            <button id="tabRestockLog" class="tab-btn" onclick="switchRestockTab('log')">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="inline mr-1">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/>
+                <line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>
+              </svg>
+              Audit Log
+            </button>
           </div>
         </div>
-
-        <div class="panel-card p-5 mb-5">
-          <p class="font-head text-sm font-bold text-wdtext mb-3">Step 1 — Select Branch</p>
-          <div class="flex gap-3 flex-wrap items-center">
-            <select id="restockBranchSelect" class="input-field" onchange="onRestockBranchChange()">
-              <option value="">— Choose a branch —</option>
-            </select>
-            <span id="restockBranchLoading" class="text-xs text-muted hidden">Loading branches…</span>
+        <div id="restockActionTab">
+          <div class="panel-card p-5 mb-5">
+            <p class="font-head text-sm font-bold text-wdtext mb-3">Step 1 — Select Branch</p>
+            <div class="flex gap-3 flex-wrap items-center">
+              <select id="restockBranchSelect" class="input-field" onchange="onRestockBranchChange()"><option value="">— Choose a branch —</option></select>
+              <span id="restockBranchLoading" class="text-xs text-muted hidden">Loading branches…</span>
+            </div>
+          </div>
+          <div id="restockProductsSection" class="hidden">
+            <div class="panel-card p-5">
+              <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
+                <p class="font-head text-sm font-bold text-wdtext">Step 2 — Restock Products <span id="restockBranchLabel" class="ml-2 text-xs font-normal" style="color:#00C896;"></span></p>
+                <button id="restockAllBtn" onclick="submitRestockAll(this)"
+                        class="action-btn action-btn-primary flex items-center gap-2"
+                        style="background:rgba(0,200,150,0.18);border-color:rgba(0,200,150,0.45);">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/>
+                  </svg>
+                  Restock All
+                </button>
+              </div>
+              <div id="restockProductsLoading" class="text-center py-8"><div class="spinner w-6 h-6 mx-auto mb-2"></div><p class="text-xs text-muted">Loading inventory…</p></div>
+              <div id="restockProductsTable" class="hidden overflow-x-auto">
+                <table class="w-full border-collapse">
+                  <thead><tr style="border-bottom:1px solid rgba(0,200,150,0.1);">
+                    <th class="th-cell">Product</th><th class="th-cell">Current Stock</th><th class="th-cell">Threshold</th><th class="th-cell">Status</th><th class="th-cell">Add Units</th><th class="th-cell">Action</th>
+                  </tr></thead>
+                  <tbody id="restockProductsBody"></tbody>
+                </table>
+              </div>
+              <p id="restockProductsEmpty" class="hidden text-center py-8 text-muted text-sm">No inventory records found for this branch.</p>
+            </div>
           </div>
         </div>
-
-        <div id="restockProductsSection" class="hidden">
+        <div id="restockLogTab" class="hidden">
+          <div class="flex gap-2 flex-wrap mb-4 items-center">
+            <select id="logFilterBranch" class="input-field text-xs" onchange="loadRestockLog()"><option value="">All Branches</option></select>
+            <select id="logFilterProduct" class="input-field text-xs" onchange="loadRestockLog()"><option value="">All Products</option></select>
+            <button onclick="loadRestockLog()" class="action-btn action-btn-muted text-xs flex items-center gap-1">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/></svg>
+              Refresh
+            </button>
+          </div>
           <div class="panel-card p-5">
-            <div class="flex items-center justify-between mb-4">
-              <p class="font-head text-sm font-bold text-wdtext">Step 2 — Restock Products
-                <span id="restockBranchLabel" class="ml-2 text-xs font-normal" style="color:#00C896;"></span>
-              </p>
-            </div>
-            <div id="restockProductsLoading" class="text-center py-8">
-              <div class="spinner w-6 h-6 mx-auto mb-2"></div>
-              <p class="text-xs text-muted">Loading inventory…</p>
-            </div>
-            <div id="restockProductsTable" class="hidden overflow-x-auto">
+            <div id="restockLogLoading" class="text-center py-10"><div class="spinner w-8 h-8 mx-auto mb-3"></div><p class="text-sm text-muted">Loading audit log…</p></div>
+            <div id="restockLogTable" class="hidden overflow-x-auto">
               <table class="w-full border-collapse">
-                <thead>
-                  <tr style="border-bottom:1px solid rgba(0,200,150,0.1);">
-                    <th class="th-cell">Product</th>
-                    <th class="th-cell">Current Stock</th>
-                    <th class="th-cell">Threshold</th>
-                    <th class="th-cell">Status</th>
-                    <th class="th-cell">Add Units</th>
-                    <th class="th-cell">Action</th>
-                  </tr>
-                </thead>
-                <tbody id="restockProductsBody"></tbody>
+                <thead><tr style="border-bottom:1px solid rgba(0,200,150,0.1);">
+                  <th class="th-cell">Branch</th><th class="th-cell">Product</th><th class="th-cell">Units Added</th>
+                  <th class="th-cell">Stock Before</th><th class="th-cell">Stock After</th><th class="th-cell">Restocked By</th><th class="th-cell">Date &amp; Time</th>
+                </tr></thead>
+                <tbody id="restockLogBody"></tbody>
               </table>
             </div>
-            <p id="restockProductsEmpty" class="hidden text-center py-8 text-muted text-sm">No inventory records found for this branch.</p>
+            <p id="restockLogEmpty" class="hidden text-center py-10 text-muted text-sm">No restock activity found.</p>
           </div>
         </div>
       </div>
 
-      <!-- TRANSACTIONS PANEL -->
+      <!-- TRANSACTIONS -->
       <div id="transactionsContent" class="hidden">
         <div class="flex items-center justify-between mb-5">
-          <div>
-            <h2 class="font-head font-bold text-xl text-wdtext">Transactions</h2>
-            <p class="text-xs text-muted mt-0.5">All orders across all branches</p>
-          </div>
-          <div class="flex gap-2 flex-wrap">
-            <select id="txFilterStatus" class="input-field text-xs" onchange="loadTransactions()">
-              <option value="">All Statuses</option>
-              <option value="PENDING">Pending</option>
-              <option value="COMPLETED">Completed</option>
-              <option value="FAILED">Failed</option>
-            </select>
+          <div><h2 class="font-head font-bold text-xl text-wdtext">Transactions</h2><p class="text-xs text-muted mt-0.5">Orders &amp; payments across all branches</p></div>
+          <div class="flex gap-2">
+            <button id="tabTxOrders" class="tab-btn active" onclick="switchTxTab('orders')">Orders</button>
+            <button id="tabTxPayments" class="tab-btn" onclick="switchTxTab('payments')">Payments</button>
           </div>
         </div>
-        <div class="panel-card p-5">
-          <div id="transactionsLoading" class="text-center py-10">
-            <div class="spinner w-8 h-8 mx-auto mb-3"></div>
-            <p class="text-sm text-muted">Loading transactions…</p>
+        <div id="txOrdersTab">
+          <div class="flex gap-2 flex-wrap mb-4 items-center">
+            <select id="txFilterStatus" class="input-field text-xs" onchange="loadTransactions()">
+              <option value="">All Statuses</option><option value="PENDING">Pending</option>
+              <option value="COMPLETED">Completed</option><option value="FAILED">Failed</option>
+            </select>
           </div>
-          <div id="transactionsTable" class="hidden overflow-x-auto">
-            <table class="w-full border-collapse">
-              <thead>
-                <tr style="border-bottom:1px solid rgba(0,200,150,0.1);">
-                  <th class="th-cell">Order ID</th>
-                  <th class="th-cell">Customer</th>
-                  <th class="th-cell">Branch</th>
-                  <th class="th-cell">Total</th>
-                  <th class="th-cell">Status</th>
-                  <th class="th-cell">Transaction ID</th>
-                  <th class="th-cell">Date</th>
-                </tr>
-              </thead>
-              <tbody id="transactionsBody"></tbody>
-            </table>
+          <div class="panel-card p-5">
+            <div id="transactionsLoading" class="text-center py-10"><div class="spinner w-8 h-8 mx-auto mb-3"></div><p class="text-sm text-muted">Loading orders…</p></div>
+            <div id="transactionsTable" class="hidden overflow-x-auto">
+              <table class="w-full border-collapse">
+                <thead><tr style="border-bottom:1px solid rgba(0,200,150,0.1);">
+                  <th class="th-cell">Order ID</th><th class="th-cell">Customer</th><th class="th-cell">Branch</th>
+                  <th class="th-cell">Total</th><th class="th-cell">Status</th><th class="th-cell">Transaction ID</th><th class="th-cell">Date</th>
+                </tr></thead>
+                <tbody id="transactionsBody"></tbody>
+              </table>
+            </div>
+            <p id="transactionsEmpty" class="hidden text-center py-10 text-muted text-sm">No orders found.</p>
           </div>
-          <p id="transactionsEmpty" class="hidden text-center py-10 text-muted text-sm">No transactions found.</p>
+        </div>
+        <div id="txPaymentsTab" class="hidden">
+          <div class="flex gap-2 flex-wrap mb-4 items-center">
+            <select id="pmtFilterStatus" class="input-field text-xs" onchange="loadPayments()">
+              <option value="">All Statuses</option><option value="PENDING">Pending</option>
+              <option value="SUCCESS">Success</option><option value="FAILED">Failed</option><option value="CANCELLED">Cancelled</option>
+            </select>
+          </div>
+          <div class="panel-card p-5">
+            <div id="paymentsLoading" class="text-center py-10"><div class="spinner w-8 h-8 mx-auto mb-3"></div><p class="text-sm text-muted">Loading payments…</p></div>
+            <div id="paymentsTable" class="hidden overflow-x-auto">
+              <table class="w-full border-collapse">
+                <thead><tr style="border-bottom:1px solid rgba(0,200,150,0.1);">
+                  <th class="th-cell">Payment ID</th><th class="th-cell">Order ID</th><th class="th-cell">Branch</th>
+                  <th class="th-cell">Customer</th><th class="th-cell">Phone</th><th class="th-cell">Amount</th>
+                  <th class="th-cell">Status</th><th class="th-cell">Receipt #</th><th class="th-cell">Failure Reason</th><th class="th-cell">Date</th>
+                </tr></thead>
+                <tbody id="paymentsBody"></tbody>
+              </table>
+            </div>
+            <p id="paymentsEmpty" class="hidden text-center py-10 text-muted text-sm">No payments found.</p>
+          </div>
         </div>
       </div>
 
-      <!-- ANALYTICS PANEL -->
+      <!-- ══════════════════════════════════════════ -->
+      <!-- ANALYTICS                                  -->
+      <!-- ══════════════════════════════════════════ -->
       <div id="analyticsContent" class="hidden">
-        <div class="flex items-center justify-between mb-5">
+        <div class="flex items-center justify-between mb-5 flex-wrap gap-3">
           <div>
             <h2 class="font-head font-bold text-xl text-wdtext">Analytics</h2>
-            <p class="text-xs text-muted mt-0.5">Sales performance by branch</p>
+            <p class="text-xs text-muted mt-0.5">Sales performance, stock value &amp; revenue trends</p>
           </div>
           <div class="flex gap-2">
             <button id="tabAnalyticsDaily" class="tab-btn active" onclick="switchAnalyticsTab('daily')">Daily</button>
@@ -860,27 +916,133 @@
           </div>
         </div>
 
-        <div id="analyticsDaily">
-          <div class="flex gap-2 mb-4 flex-wrap items-center">
-            <input type="date" id="analyticsDate" class="input-field text-xs" onchange="loadDailySummary()"/>
-            <span class="text-xs text-muted">Leave blank for today</span>
-          </div>
-          <div class="panel-card p-5 mb-4">
-            <p class="font-head text-sm font-bold mb-3 text-wdtext">Branch Daily Summary</p>
-            <div id="dailySummaryLoading" class="text-center py-8">
-              <div class="spinner w-6 h-6 mx-auto mb-2"></div>
-              <p class="text-xs text-muted">Loading…</p>
+        <div class="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+          <div class="analytics-kpi-card kpi-blue" style="animation-delay:0s">
+            <div class="flex items-center gap-2 mb-3">
+              <div style="width:34px;height:34px;border-radius:10px;background:rgba(0,163,255,0.12);border:1px solid rgba(0,163,255,0.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00A3FF" stroke-width="2">
+                  <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+                  <line x1="3" y1="6" x2="21" y2="6"/>
+                </svg>
+              </div>
+              <p class="text-xs font-head font-bold uppercase tracking-wider" style="color:#7A9AB0;">Total Products</p>
             </div>
+            <p id="kpiTotalProducts" class="font-head font-black text-2xl text-wdtext">
+              <span class="skeleton inline-block w-10 h-6 rounded"></span>
+            </p>
+            <p class="text-xs mt-1" style="color:#7A9AB0;" id="kpiTotalProductsNote">in catalogue</p>
+          </div>
+          <div class="analytics-kpi-card kpi-green" style="animation-delay:0.1s">
+            <div class="flex items-center gap-2 mb-3">
+              <div style="width:34px;height:34px;border-radius:10px;background:rgba(0,200,150,0.12);border:1px solid rgba(0,200,150,0.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00C896" stroke-width="2">
+                  <polyline points="21 8 21 21 3 21 3 8"/>
+                  <rect x="1" y="3" width="22" height="5" rx="1"/>
+                  <line x1="10" y1="12" x2="14" y2="12"/>
+                </svg>
+              </div>
+              <p class="text-xs font-head font-bold uppercase tracking-wider" style="color:#7A9AB0;">Stock Value</p>
+            </div>
+            <p id="kpiStockValue" class="font-head font-black text-xl text-wdtext leading-tight">
+              <span class="skeleton inline-block w-24 h-6 rounded"></span>
+            </p>
+            <p class="text-xs mt-1" style="color:#7A9AB0;" id="kpiStockValueNote">across all branches</p>
+          </div>
+          <div class="analytics-kpi-card kpi-purple" style="animation-delay:0.2s">
+            <div class="flex items-center gap-2 mb-3">
+              <div style="width:34px;height:34px;border-radius:10px;background:rgba(180,79,255,0.12);border:1px solid rgba(180,79,255,0.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#b44fff" stroke-width="2">
+                  <line x1="12" y1="1" x2="12" y2="23"/>
+                  <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                </svg>
+              </div>
+              <p class="text-xs font-head font-bold uppercase tracking-wider" style="color:#7A9AB0;">Today's Revenue</p>
+            </div>
+            <p id="kpiTodayRevenue" class="font-head font-black text-xl text-wdtext leading-tight">
+              <span class="skeleton inline-block w-24 h-6 rounded"></span>
+            </p>
+            <p class="text-xs mt-1" style="color:#7A9AB0;" id="kpiTodayRevenueNote">all branches</p>
+          </div>
+          <div class="analytics-kpi-card kpi-yellow" style="animation-delay:0.3s">
+            <div class="flex items-center gap-2 mb-3">
+              <div style="width:34px;height:34px;border-radius:10px;background:rgba(255,193,7,0.1);border:1px solid rgba(255,193,7,0.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffc107" stroke-width="2">
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                  <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
+                  <line x1="3" y1="10" x2="21" y2="10"/>
+                </svg>
+              </div>
+              <p class="text-xs font-head font-bold uppercase tracking-wider" style="color:#7A9AB0;">This Month</p>
+            </div>
+            <p id="kpiMonthRevenue" class="font-head font-black text-xl text-wdtext leading-tight">
+              <span class="skeleton inline-block w-24 h-6 rounded"></span>
+            </p>
+            <p class="text-xs mt-1" style="color:#7A9AB0;" id="kpiMonthRevenueNote">all branches</p>
+          </div>
+        </div>
+
+        <div class="chart-container mb-6">
+          <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
+            <div>
+              <h3 class="font-head font-bold text-base text-wdtext">Revenue Trend — Last 7 Days</h3>
+              <p class="text-xs text-muted mt-0.5">Daily revenue across selected scope</p>
+            </div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <select id="chartBranchFilter" class="input-field text-xs" onchange="refreshRevenueChart()" style="min-width:140px;">
+                <option value="">All Branches</option>
+              </select>
+              <button onclick="refreshRevenueChart()" class="action-btn action-btn-muted text-xs flex items-center gap-1">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/></svg>
+                Refresh
+              </button>
+            </div>
+          </div>
+          <div id="chartLoading" class="flex items-center justify-center py-12">
+            <div class="spinner w-6 h-6 mr-3"></div>
+            <p class="text-sm text-muted">Loading revenue data…</p>
+          </div>
+          <div id="chartWrapper" class="hidden" style="position:relative;height:260px;">
+            <canvas id="revenueChart"></canvas>
+          </div>
+          <p id="chartEmpty" class="hidden text-center py-10 text-muted text-sm">No revenue data available for the last 7 days.</p>
+        </div>
+
+        <div id="analyticsDaily">
+          <div class="panel-card p-5 mb-5">
+            <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
+              <div>
+                <p class="font-head text-sm font-bold text-wdtext">Today's Sales by Product</p>
+                <p class="text-xs text-muted mt-0.5">Units sold &amp; revenue per product</p>
+              </div>
+              <div class="flex items-center gap-2 flex-wrap">
+                <select id="todayBranchFilter" class="input-field text-xs" onchange="loadTodayProductSales()" style="min-width:140px;">
+                  <option value="">All Branches</option>
+                </select>
+                <button onclick="loadTodayProductSales()" class="action-btn action-btn-muted text-xs flex items-center gap-1">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/></svg>
+                  Refresh
+                </button>
+              </div>
+            </div>
+            <div id="todayProductLoading" class="text-center py-8"><div class="spinner w-6 h-6 mx-auto mb-2"></div><p class="text-xs text-muted">Loading…</p></div>
+            <div id="todayProductList" class="hidden"></div>
+            <p id="todayProductEmpty" class="hidden text-center py-8 text-muted text-sm">No sales data for today.</p>
+          </div>
+
+          <div class="panel-card p-5 mb-5">
+            <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
+              <p class="font-head text-sm font-bold text-wdtext">Branch Daily Summary</p>
+              <div class="flex items-center gap-2">
+                <input type="date" id="analyticsDate" class="input-field text-xs" onchange="loadDailySummary()"/>
+                <span class="text-xs text-muted hidden md:inline">blank = today</span>
+              </div>
+            </div>
+            <div id="dailySummaryLoading" class="text-center py-8"><div class="spinner w-6 h-6 mx-auto mb-2"></div><p class="text-xs text-muted">Loading…</p></div>
             <div id="dailySummaryTable" class="hidden overflow-x-auto">
               <table class="w-full border-collapse">
-                <thead>
-                  <tr style="border-bottom:1px solid rgba(0,200,150,0.1);">
-                    <th class="th-cell">Branch</th>
-                    <th class="th-cell">Date</th>
-                    <th class="th-cell">Units Sold</th>
-                    <th class="th-cell">Revenue (KES)</th>
-                  </tr>
-                </thead>
+                <thead><tr style="border-bottom:1px solid rgba(0,200,150,0.1);">
+                  <th class="th-cell">Branch</th><th class="th-cell">Date</th><th class="th-cell">Units Sold</th><th class="th-cell">Revenue (KES)</th>
+                </tr></thead>
                 <tbody id="dailySummaryBody"></tbody>
               </table>
             </div>
@@ -888,82 +1050,95 @@
         </div>
 
         <div id="analyticsMonthly" class="hidden">
-          <div class="flex gap-2 mb-4 flex-wrap items-center">
-            <select id="analyticsMonth" class="input-field text-xs" onchange="loadMonthlySummary()">
-              <option value="1">January</option><option value="2">February</option>
-              <option value="3">March</option><option value="4">April</option>
-              <option value="5">May</option><option value="6">June</option>
-              <option value="7">July</option><option value="8">August</option>
-              <option value="9">September</option><option value="10">October</option>
-              <option value="11">November</option><option value="12">December</option>
-            </select>
-            <input type="number" id="analyticsYear" class="input-field text-xs w-24" placeholder="Year" onchange="loadMonthlySummary()"/>
-          </div>
-          <div class="panel-card p-5 mb-4">
-            <p class="font-head text-sm font-bold mb-3 text-wdtext">Branch Monthly Summary</p>
-            <div id="monthlySummaryLoading" class="text-center py-8">
-              <div class="spinner w-6 h-6 mx-auto mb-2"></div>
-              <p class="text-xs text-muted">Loading…</p>
+          <div class="panel-card p-5 mb-5">
+            <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
+              <div>
+                <p class="font-head text-sm font-bold text-wdtext">Revenue by Branch</p>
+                <p class="text-xs text-muted mt-0.5">Monthly breakdown per branch</p>
+              </div>
+              <div class="flex items-center gap-2 flex-wrap">
+                <select id="analyticsMonth" class="input-field text-xs" onchange="loadMonthlySummary()">
+                  <option value="1">January</option><option value="2">February</option><option value="3">March</option>
+                  <option value="4">April</option><option value="5">May</option><option value="6">June</option>
+                  <option value="7">July</option><option value="8">August</option><option value="9">September</option>
+                  <option value="10">October</option><option value="11">November</option><option value="12">December</option>
+                </select>
+                <input type="number" id="analyticsYear" class="input-field text-xs w-24" placeholder="Year" onchange="loadMonthlySummary()"/>
+              </div>
             </div>
+            <div class="rounded-xl px-4 py-3 mb-4 flex items-center justify-between flex-wrap gap-3"
+                 style="background:rgba(0,200,150,0.06);border:1px solid rgba(0,200,150,0.15);">
+              <p class="text-xs text-muted">Total Revenue Selected Period</p>
+              <p id="monthTotalRevenueBanner" class="font-head font-black text-xl" style="color:#00C896;">
+                <span class="skeleton inline-block w-28 h-6 rounded"></span>
+              </p>
+            </div>
+            <div id="monthlySummaryLoading" class="text-center py-8"><div class="spinner w-6 h-6 mx-auto mb-2"></div><p class="text-xs text-muted">Loading…</p></div>
+            <div id="monthlyBranchList" class="hidden"></div>
             <div id="monthlySummaryTable" class="hidden overflow-x-auto">
               <table class="w-full border-collapse">
-                <thead>
-                  <tr style="border-bottom:1px solid rgba(0,200,150,0.1);">
-                    <th class="th-cell">Branch</th>
-                    <th class="th-cell">Month</th>
-                    <th class="th-cell">Year</th>
-                    <th class="th-cell">Units Sold</th>
-                    <th class="th-cell">Revenue (KES)</th>
-                  </tr>
-                </thead>
+                <thead><tr style="border-bottom:1px solid rgba(0,200,150,0.1);">
+                  <th class="th-cell">Branch</th><th class="th-cell">Month</th><th class="th-cell">Year</th><th class="th-cell">Units Sold</th><th class="th-cell">Revenue (KES)</th>
+                </tr></thead>
                 <tbody id="monthlySummaryBody"></tbody>
               </table>
             </div>
           </div>
         </div>
       </div>
+      <!-- ══ END ANALYTICS ══ -->
 
-      <!-- ALERTS PANEL -->
+      <!-- ALERTS -->
       <div id="alertsContent" class="hidden">
-        <div class="flex items-center justify-between mb-5">
-          <div>
-            <h2 class="font-head font-bold text-xl text-wdtext">Stock Alerts</h2>
-            <p class="text-xs text-muted mt-0.5">Low stock notifications from all branches</p>
-          </div>
-          <div class="flex gap-2 flex-wrap">
+        <div class="flex items-center justify-between mb-5 flex-wrap gap-3">
+          <div><h2 class="font-head font-bold text-xl text-wdtext">Stock Alerts</h2><p class="text-xs text-muted mt-0.5">Low stock notifications from all branches</p></div>
+          <div class="flex gap-2 flex-wrap items-center">
+            <button id="scanInventoryBtn" class="action-btn action-btn-warning flex items-center gap-2" onclick="toggleScanResults()">
+              <svg id="scanIcon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+                <line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/>
+              </svg>
+              Scan Inventory
+              <span id="scanBadge" class="hidden text-xs font-bold px-1.5 py-0.5 rounded-full" style="background:rgba(255,80,80,0.3);color:#ff6b6b;font-family:'Syne',sans-serif;">0</span>
+            </button>
             <select id="alertFilterResolved" class="input-field text-xs" onchange="loadAlerts()">
-              <option value="false">Unresolved</option>
-              <option value="true">Resolved</option>
-              <option value="">All</option>
+              <option value="false">Unresolved</option><option value="true">Resolved</option><option value="">All</option>
             </select>
             <select id="alertFilterSeverity" class="input-field text-xs" onchange="loadAlerts()">
-              <option value="">All Severities</option>
-              <option value="CRITICAL">Critical</option>
-              <option value="LOW">Low</option>
+              <option value="">All Severities</option><option value="CRITICAL">Critical</option><option value="LOW">Low</option>
             </select>
           </div>
         </div>
-        <div class="panel-card p-5">
-          <div id="alertsLoading" class="text-center py-10">
-            <div class="spinner w-8 h-8 mx-auto mb-3"></div>
-            <p class="text-sm text-muted">Loading alerts…</p>
+        <div id="scanResultsSection" class="mb-5">
+          <div class="panel-card p-5" style="border-color:rgba(255,180,0,0.25);background:rgba(255,180,0,0.03);">
+            <div class="flex items-center justify-between mb-4">
+              <div class="flex items-center gap-3">
+                <div style="width:10px;height:10px;border-radius:50%;background:#ffc107;box-shadow:0 0 8px rgba(255,193,7,0.6);animation:pulse2 1.5s ease-in-out infinite;flex-shrink:0;"></div>
+                <h3 class="font-head font-bold text-base text-wdtext">Inventory Scan Results</h3>
+                <span id="scanTimestamp" class="text-xs text-muted"></span>
+              </div>
+              <button onclick="closeScanResults()" class="text-muted hover:text-wdtext transition-colors text-sm">✕ Close</button>
+            </div>
+            <div id="scanLoading" class="text-center py-8 hidden"><div class="spinner w-6 h-6 mx-auto mb-2"></div><p class="text-xs text-muted">Scanning all branches for low stock…</p></div>
+            <div id="scanResultsBody"></div>
+            <div id="scanSummaryFooter" class="hidden mt-4 pt-3 flex items-center justify-between flex-wrap gap-3" style="border-top:1px solid rgba(255,180,0,0.15);">
+              <p id="scanSummaryText" class="text-xs text-muted"></p>
+              <button onclick="showPanel('restock', document.getElementById('navRestock'))" class="action-btn action-btn-primary text-xs flex items-center gap-1">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/></svg>
+                Go to Restock →
+              </button>
+            </div>
           </div>
+        </div>
+        <div class="panel-card p-5">
+          <div id="alertsLoading" class="text-center py-10"><div class="spinner w-8 h-8 mx-auto mb-3"></div><p class="text-sm text-muted">Loading alerts…</p></div>
           <div id="alertsTable" class="hidden overflow-x-auto">
             <table class="w-full border-collapse">
-              <thead>
-                <tr style="border-bottom:1px solid rgba(0,200,150,0.1);">
-                  <th class="th-cell">ID</th>
-                  <th class="th-cell">Branch</th>
-                  <th class="th-cell">Product</th>
-                  <th class="th-cell">Stock at Alert</th>
-                  <th class="th-cell">Current Stock</th>
-                  <th class="th-cell">Severity</th>
-                  <th class="th-cell">Status</th>
-                  <th class="th-cell">Resolved By</th>
-                  <th class="th-cell">Date</th>
-                  <th class="th-cell">Action</th>
-                </tr>
-              </thead>
+              <thead><tr style="border-bottom:1px solid rgba(0,200,150,0.1);">
+                <th class="th-cell">ID</th><th class="th-cell">Branch</th><th class="th-cell">Product</th>
+                <th class="th-cell">Stock at Alert</th><th class="th-cell">Current Stock</th><th class="th-cell">Severity</th>
+                <th class="th-cell">Status</th><th class="th-cell">Resolved By</th><th class="th-cell">Date</th><th class="th-cell">Action</th>
+              </tr></thead>
               <tbody id="alertsBody"></tbody>
             </table>
           </div>
@@ -979,7 +1154,7 @@
 // ══════════════════════════════════════════════
 // CONFIG
 // ══════════════════════════════════════════════
-const API_BASE = 'http://127.0.0.1:8000';
+const API_BASE = '/api';
 
 function getToken() {
   return sessionStorage.getItem('access_token') || localStorage.getItem('access_token') || '';
@@ -987,20 +1162,64 @@ function getToken() {
 function authHeaders() {
   return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` };
 }
+let _redirectingToLogin = false;
 
 async function apiFetch(path, opts = {}) {
   const res = await fetch(API_BASE + path, { headers: authHeaders(), ...opts });
-  if (res.status === 401) {
-    if (!window.location.pathname.startsWith('/login')) {
-      sessionStorage.clear();
-      localStorage.removeItem('access_token');
-      localStorage.removeItem('refresh_token');
-      showAlert('Session expired. Redirecting to login…', 'error');
-      setTimeout(() => { window.location.href = '/login/'; }, 1800);
-    }
-    return res;
+  if (res.status === 401 && !_redirectingToLogin) {
+    _redirectingToLogin = true;
+    sessionStorage.clear();
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
+    localStorage.removeItem('username');
+    localStorage.removeItem('user_id');
+    localStorage.removeItem('is_staff');
+    showAlert('Session expired. Redirecting to login…', 'error');
+    setTimeout(() => { window.location.href = '/login/'; }, 1800);
   }
   return res;
+}
+
+// ══════════════════════════════════════════════
+// URL ROUTING
+// ══════════════════════════════════════════════
+const PANEL_URLS = {
+  dashboard:    '/admin_dashboard/',
+  users:        '/admin_dashboard/users/',
+  branches:     '/admin_dashboard/branches/',
+  products:     '/admin_dashboard/products/',
+  inventory:    '/admin_dashboard/inventory/',
+  restock:      '/admin_dashboard/restock/',
+  transactions: '/admin_dashboard/transactions/',
+  analytics:    '/admin_dashboard/analytics/',
+  alerts:       '/admin_dashboard/alerts/',
+};
+
+const SUBTAB_URLS = {
+  'restock:action':        '/admin_dashboard/restock/action/',
+  'restock:log':           '/admin_dashboard/restock/log/',
+  'transactions:orders':   '/admin_dashboard/transactions/orders/',
+  'transactions:payments': '/admin_dashboard/transactions/payments/',
+  'analytics:daily':       '/admin_dashboard/analytics/daily/',
+  'analytics:monthly':     '/admin_dashboard/analytics/monthly/',
+};
+
+function resolveUrl(path) {
+  if (path === '/admin_dashboard/restock/action/')        return { panel: 'restock',       subtab: 'action'   };
+  if (path === '/admin_dashboard/restock/log/')           return { panel: 'restock',       subtab: 'log'      };
+  if (path === '/admin_dashboard/transactions/orders/')   return { panel: 'transactions',  subtab: 'orders'   };
+  if (path === '/admin_dashboard/transactions/payments/') return { panel: 'transactions',  subtab: 'payments' };
+  if (path === '/admin_dashboard/analytics/daily/')       return { panel: 'analytics',     subtab: 'daily'    };
+  if (path === '/admin_dashboard/analytics/monthly/')     return { panel: 'analytics',     subtab: 'monthly'  };
+  if (path === '/admin_dashboard/users/')        return { panel: 'users',        subtab: null };
+  if (path === '/admin_dashboard/branches/')     return { panel: 'branches',     subtab: null };
+  if (path === '/admin_dashboard/products/')     return { panel: 'products',     subtab: null };
+  if (path === '/admin_dashboard/inventory/')    return { panel: 'inventory',    subtab: null };
+  if (path === '/admin_dashboard/restock/')      return { panel: 'restock',      subtab: 'action' };
+  if (path === '/admin_dashboard/transactions/') return { panel: 'transactions', subtab: 'orders' };
+  if (path === '/admin_dashboard/analytics/')    return { panel: 'analytics',    subtab: 'daily'  };
+  if (path === '/admin_dashboard/alerts/')       return { panel: 'alerts',       subtab: null };
+  return { panel: 'dashboard', subtab: null };
 }
 
 // ══════════════════════════════════════════════
@@ -1026,7 +1245,33 @@ document.addEventListener('DOMContentLoaded', () => {
 
   loadOverviewData();
   startAutoRefresh();
+
+  const path = window.location.pathname;
+  history.replaceState({ path }, '', path);
+  routeToPath(path, false);
 });
+
+window.addEventListener('popstate', function(e) {
+  const path = (e.state && e.state.path) || window.location.pathname;
+  routeToPath(path, false);
+});
+
+function routeToPath(path, pushState) {
+  const { panel, subtab } = resolveUrl(path);
+  if (panel === 'dashboard') { _activateOverview(pushState ? path : null); return; }
+  const navMap = {
+    users: 'navUsers', branches: 'navBranches', products: 'navProducts',
+    inventory: 'navInventory', restock: 'navRestock', transactions: 'navTransactions',
+    analytics: 'navAnalytics', alerts: 'navAlerts',
+  };
+  const navBtn = document.getElementById(navMap[panel]);
+  _activatePanel(panel, navBtn, pushState ? path : null);
+  if (subtab) {
+    if (panel === 'restock')      _switchRestockTabUI(subtab);
+    if (panel === 'transactions') _switchTxTabUI(subtab);
+    if (panel === 'analytics')    _switchAnalyticsTabUI(subtab);
+  }
+}
 
 // ══════════════════════════════════════════════
 // AUTO-REFRESH
@@ -1045,7 +1290,6 @@ function startAutoRefresh() {
     if (!document.getElementById('overviewPanel').classList.contains('hide')) loadOverviewData();
   }, REFRESH_INTERVAL * 1000);
 }
-
 function updateCountdownDisplay() {
   const el = document.getElementById('countdownDisplay');
   if (el) el.textContent = countdown + 's';
@@ -1068,7 +1312,7 @@ async function loadOverviewData() {
 async function loadRevenueCard() {
   try {
     const today = new Date().toISOString().split('T')[0];
-    const res   = await apiFetch(`/api/admin/analytics/daily/summary/?date=${today}`);
+    const res   = await apiFetch(`/admin/analytics/daily/summary/?date=${today}`);
     const data  = await res.json();
     if (res.ok) {
       const total = (data.summary || []).reduce((sum, b) => sum + (b.total_revenue || 0), 0);
@@ -1087,15 +1331,15 @@ async function loadRevenueCard() {
 async function loadOrdersCard() {
   try {
     const today = new Date().toISOString().split('T')[0];
-    const res   = await apiFetch(`/api/admin/orders/?date=${today}`);
+    const res   = await apiFetch(`/admin/orders/?date=${today}`);
     const data  = await res.json();
     if (res.ok) {
-      const orders  = data.orders || [];
+      const orders    = data.orders || [];
       const pending   = orders.filter(o => o.status === 'PENDING').length;
       const completed = orders.filter(o => o.status === 'COMPLETED').length;
       document.getElementById('statOrders').textContent = data.total_orders ?? orders.length;
       document.getElementById('statOrdersNote').innerHTML =
-        `<span style="color:#ffc107;">PENDING: ${pending}</span> &nbsp;·&nbsp; <span style="color:#00C896;">COMPLETED: ${completed}</span>`;
+        `<span style="color:#ffc107;">PENDING: ${pending}</span>&nbsp;·&nbsp;<span style="color:#00C896;">COMPLETED: ${completed}</span>`;
     } else {
       document.getElementById('statOrders').innerHTML = '<span style="color:#7A9AB0;font-size:0.9rem;">No data</span>';
     }
@@ -1106,7 +1350,7 @@ async function loadOrdersCard() {
 
 async function loadAlertsCard() {
   try {
-    const res  = await apiFetch('/api/admin/alerts/summary/');
+    const res  = await apiFetch('/admin/alerts/summary/');
     const data = await res.json();
     if (res.ok) {
       document.getElementById('statAlerts').textContent = data.total_unresolved ?? '—';
@@ -1114,9 +1358,8 @@ async function loadAlertsCard() {
         `<span style="color:#ff6b6b;">CRITICAL: ${data.critical_count ?? 0}</span>&nbsp;·&nbsp;` +
         `<span style="color:#ffc107;">LOW: ${data.low_count ?? 0}</span>`;
       const badge = document.getElementById('alertBadgeCount');
-      if (data.total_unresolved > 0) {
-        badge.textContent = data.total_unresolved; badge.classList.remove('hidden');
-      } else { badge.classList.add('hidden'); }
+      if (data.total_unresolved > 0) { badge.textContent = data.total_unresolved; badge.classList.remove('hidden'); }
+      else badge.classList.add('hidden');
     }
   } catch {
     document.getElementById('statAlerts').innerHTML = '<span style="color:#ff9b9b;font-size:0.9rem;">Error</span>';
@@ -1125,7 +1368,7 @@ async function loadAlertsCard() {
 
 async function loadUsersCard() {
   try {
-    const res  = await apiFetch('/api/admin/users/');
+    const res  = await apiFetch('/admin/users/');
     const data = await res.json();
     if (res.ok) {
       document.getElementById('statUsers').textContent = data.total_users ?? (data.users || []).length;
@@ -1141,14 +1384,13 @@ async function loadRecentOrders() {
   const tbody = document.getElementById('recentOrdersBody');
   try {
     const today = new Date().toISOString().split('T')[0];
-    const res   = await apiFetch(`/api/admin/orders/?date=${today}`);
+    const res   = await apiFetch(`/admin/orders/?date=${today}`);
     const data  = await res.json();
     if (!res.ok || !(data.orders || []).length) {
       tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-muted text-sm">No orders today.</td></tr>`;
       return;
     }
-    const rows = (data.orders || []).slice(0, 8);
-    tbody.innerHTML = rows.map(o => `
+    tbody.innerHTML = (data.orders || []).slice(0, 8).map(o => `
       <tr style="border-bottom:1px solid rgba(0,200,150,0.06);" class="hover:bg-white/[0.02] transition-colors">
         <td class="td-id px-4 py-3">${o.order_id}</td>
         <td class="td-sub px-4 py-3">${o.customer_id || o.customer || '—'}</td>
@@ -1156,8 +1398,7 @@ async function loadRecentOrders() {
         <td class="td-amt px-4 py-3">KES ${Number(o.total_price || 0).toLocaleString('en-KE')}</td>
         <td class="px-4 py-3"><span class="badge badge-${(o.status || '').toLowerCase()}">${o.status || '—'}</span></td>
         <td class="td-date px-4 py-3">${fmtTime(o.created_at)}</td>
-      </tr>
-    `).join('');
+      </tr>`).join('');
   } catch {
     tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-muted text-sm">Failed to load orders.</td></tr>`;
   }
@@ -1167,36 +1408,25 @@ async function loadAlertSummary() {
   const container = document.getElementById('alertSummaryContent');
   const branchEl  = document.getElementById('branchesAffected');
   try {
-    const res  = await apiFetch('/api/admin/alerts/summary/');
+    const res  = await apiFetch('/admin/alerts/summary/');
     const data = await res.json();
     if (!res.ok) throw new Error();
     container.innerHTML = `
       <div class="rounded-xl p-4 flex items-center gap-4" style="background:rgba(255,80,80,0.08);border:1px solid rgba(255,80,80,0.18);">
         <div class="text-3xl font-head font-black" style="color:#ff6b6b;">${data.critical_count ?? 0}</div>
-        <div>
-          <p class="text-sm font-head font-bold" style="color:#ff9b9b;">Critical</p>
-          <p class="text-xs text-muted">Immediate action needed</p>
-        </div>
+        <div><p class="text-sm font-head font-bold" style="color:#ff9b9b;">Critical</p><p class="text-xs text-muted">Immediate action needed</p></div>
       </div>
       <div class="rounded-xl p-4 flex items-center gap-4" style="background:rgba(255,193,7,0.08);border:1px solid rgba(255,193,7,0.2);">
         <div class="text-3xl font-head font-black" style="color:#ffc107;">${data.low_count ?? 0}</div>
-        <div>
-          <p class="text-sm font-head font-bold" style="color:#ffd54f;">Low Stock</p>
-          <p class="text-xs text-muted">Monitor &amp; restock soon</p>
-        </div>
+        <div><p class="text-sm font-head font-bold" style="color:#ffd54f;">Low Stock</p><p class="text-xs text-muted">Monitor &amp; restock soon</p></div>
       </div>
       <div class="rounded-xl p-4 flex items-center gap-4" style="background:rgba(0,200,150,0.06);border:1px solid rgba(0,200,150,0.15);">
         <div class="text-3xl font-head font-black text-wdtext">${data.total_unresolved ?? 0}</div>
-        <div>
-          <p class="text-sm font-head font-bold text-wdtext">Total Unresolved</p>
-          <p class="text-xs text-muted">Pending resolution</p>
-        </div>
-      </div>
-    `;
+        <div><p class="text-sm font-head font-bold text-wdtext">Total Unresolved</p><p class="text-xs text-muted">Pending resolution</p></div>
+      </div>`;
     const branches = data.branches_affected || [];
     branchEl.innerHTML = branches.length
-      ? branches.map(b => `<span class="px-2 py-1 rounded-lg text-xs font-head font-semibold"
-             style="background:rgba(0,200,150,0.1);border:1px solid rgba(0,200,150,0.2);color:#00C896;">${b}</span>`).join('')
+      ? branches.map(b => `<span class="px-2 py-1 rounded-lg text-xs font-head font-semibold" style="background:rgba(0,200,150,0.1);border:1px solid rgba(0,200,150,0.2);color:#00C896;">${b}</span>`).join('')
       : `<span class="text-xs text-muted">None — all clear ✓</span>`;
   } catch {
     container.innerHTML = `<p class="text-sm text-muted text-center py-6">Failed to load alert summary.</p>`;
@@ -1214,32 +1444,93 @@ function setNavActive(btn) {
   ALL_NAV.forEach(id => document.getElementById(id)?.classList.remove('active'));
   btn?.classList.add('active');
 }
-function showOverview(btn) {
-  setNavActive(btn);
+
+function showOverview(btn) { _activateOverview('/admin_dashboard/'); }
+
+function showPanel(section, btn) {
+  const url = PANEL_URLS[section] || '/admin_dashboard/';
+  _activatePanel(section, btn, url);
+  if (section === 'restock')      history.replaceState({ path: SUBTAB_URLS['restock:action']        }, '', SUBTAB_URLS['restock:action']);
+  if (section === 'transactions') history.replaceState({ path: SUBTAB_URLS['transactions:orders']   }, '', SUBTAB_URLS['transactions:orders']);
+  if (section === 'analytics')    history.replaceState({ path: SUBTAB_URLS['analytics:daily']       }, '', SUBTAB_URLS['analytics:daily']);
+}
+
+function _activateOverview(pushUrl) {
+  setNavActive(document.getElementById('navDashboard'));
   document.getElementById('overviewPanel').classList.remove('hide');
   document.getElementById('inlinePanel').classList.remove('show');
   ALL_CONTENT.forEach(id => document.getElementById(id)?.classList.add('hidden'));
+  closeMobileSidebar();
+  if (pushUrl) history.pushState({ path: pushUrl }, '', pushUrl);
 }
-function showPanel(section, btn) {
+
+function _activatePanel(section, btn, pushUrl) {
   setNavActive(btn);
   document.getElementById('overviewPanel').classList.add('hide');
   document.getElementById('inlinePanel').classList.add('show');
   ALL_CONTENT.forEach(id => document.getElementById(id)?.classList.add('hidden'));
   const el = document.getElementById(section + 'Content');
   if (el) el.classList.remove('hidden');
-  switch(section) {
+
+  switch (section) {
     case 'users':        loadUsers();        break;
     case 'branches':     loadBranches();     break;
     case 'products':     loadProducts();     break;
     case 'inventory':    loadInventory();    break;
-    case 'transactions': loadTransactions(); break;
-    case 'analytics':    loadDailySummary(); break;
+    case 'transactions': _initTransactions(); break;
+    case 'analytics':    initAnalytics();    break;
     case 'alerts':       loadAlerts();       break;
     case 'restock':      loadRestockPanel(); break;
   }
+
   closeMobileSidebar();
+  if (pushUrl) history.pushState({ path: pushUrl }, '', pushUrl);
 }
-function closePanel() { showOverview(document.getElementById('navDashboard')); }
+
+function closePanel() { _activateOverview('/admin_dashboard/'); }
+
+// ══════════════════════════════════════════════
+// SUB-TAB SWITCHERS
+// ══════════════════════════════════════════════
+function switchRestockTab(tab) {
+  _switchRestockTabUI(tab);
+  history.pushState({ path: SUBTAB_URLS[`restock:${tab}`] }, '', SUBTAB_URLS[`restock:${tab}`]);
+}
+function _switchRestockTabUI(tab) {
+  const isAction = tab === 'action';
+  document.getElementById('restockActionTab').classList.toggle('hidden', !isAction);
+  document.getElementById('restockLogTab').classList.toggle('hidden', isAction);
+  document.getElementById('tabRestockAction').classList.toggle('active', isAction);
+  document.getElementById('tabRestockLog').classList.toggle('active', !isAction);
+  if (!isAction) loadRestockLog();
+}
+
+function _initTransactions() { _switchTxTabUI('orders'); }
+function switchTxTab(tab) {
+  _switchTxTabUI(tab);
+  history.pushState({ path: SUBTAB_URLS[`transactions:${tab}`] }, '', SUBTAB_URLS[`transactions:${tab}`]);
+}
+function _switchTxTabUI(tab) {
+  const isOrders = tab === 'orders';
+  document.getElementById('txOrdersTab').classList.toggle('hidden', !isOrders);
+  document.getElementById('txPaymentsTab').classList.toggle('hidden', isOrders);
+  document.getElementById('tabTxOrders').classList.toggle('active', isOrders);
+  document.getElementById('tabTxPayments').classList.toggle('active', !isOrders);
+  if (isOrders) loadTransactions(); else loadPayments();
+}
+
+function switchAnalyticsTab(tab) {
+  _switchAnalyticsTabUI(tab);
+  history.pushState({ path: SUBTAB_URLS[`analytics:${tab}`] }, '', SUBTAB_URLS[`analytics:${tab}`]);
+}
+function _switchAnalyticsTabUI(tab) {
+  const isDaily = tab === 'daily';
+  document.getElementById('analyticsDaily').classList.toggle('hidden', !isDaily);
+  document.getElementById('analyticsMonthly').classList.toggle('hidden', isDaily);
+  document.getElementById('tabAnalyticsDaily').classList.toggle('active', isDaily);
+  document.getElementById('tabAnalyticsMonthly').classList.toggle('active', !isDaily);
+  if (isDaily) loadDailySummary(); else loadMonthlySummary();
+}
 
 // ══════════════════════════════════════════════
 // USERS
@@ -1247,8 +1538,8 @@ function closePanel() { showOverview(document.getElementById('navDashboard')); }
 async function loadUsers() {
   showLoading('users');
   try {
-    const res  = await apiFetch('/api/admin/users/');
-    const data = await res.json();
+    const res   = await apiFetch('/admin/users/');
+    const data  = await res.json();
     const users = data.users || [];
     if (!users.length) { showEmpty('users'); return; }
     const myId = sessionStorage.getItem('user_id') || localStorage.getItem('user_id') || '';
@@ -1264,19 +1555,16 @@ async function loadUsers() {
         <td class="td-date px-4 py-3">${fmtDate(u.created_at)}</td>
         <td class="px-4 py-3">
           ${u.user_id !== myId
-            ? `<button class="action-btn action-btn-danger text-xs" onclick="deleteUser('${u.user_id}', '${u.username}', this)">Delete</button>`
+            ? `<button class="action-btn action-btn-danger text-xs" onclick="deleteUser('${u.user_id}','${u.username}',this)">Delete</button>`
             : `<span class="text-xs text-muted">You</span>`}
         </td>
-      </tr>
-    `).join('');
+      </tr>`).join('');
     showTable('users');
   } catch { showEmpty('users'); }
 }
 
 function openAddUserModal() {
-  ['newUserUsername','newUserEmail','newUserPhone','newUserPassword','newUserConfirm'].forEach(id => {
-    document.getElementById(id).value = '';
-  });
+  ['newUserUsername','newUserEmail','newUserPhone','newUserPassword','newUserConfirm'].forEach(id => { document.getElementById(id).value = ''; });
   document.getElementById('addUserError').classList.add('hidden');
   document.getElementById('addUserModal').classList.remove('hidden');
 }
@@ -1290,30 +1578,15 @@ async function submitAddUser(btn) {
   const confirm  = document.getElementById('newUserConfirm').value;
   const errEl    = document.getElementById('addUserError');
   errEl.classList.add('hidden');
-  if (!username || !email || !phone || !password || !confirm) {
-    errEl.textContent = 'All fields are required.'; errEl.classList.remove('hidden'); return;
-  }
-  if (password !== confirm) {
-    errEl.textContent = 'Passwords do not match.'; errEl.classList.remove('hidden'); return;
-  }
+  if (!username || !email || !phone || !password || !confirm) { errEl.textContent = 'All fields are required.'; errEl.classList.remove('hidden'); return; }
+  if (password !== confirm) { errEl.textContent = 'Passwords do not match.'; errEl.classList.remove('hidden'); return; }
   btn.disabled = true; btn.textContent = 'Creating…';
   try {
-    const res  = await apiFetch('/api/auth/register/', {
-      method: 'POST',
-      body: JSON.stringify({ username, email, phone_number: phone, password, confirm_password: confirm })
-    });
+    const res  = await apiFetch('/auth/register/', { method:'POST', body: JSON.stringify({ username, email, phone_number: phone, password, confirm_password: confirm }) });
     const data = await res.json();
-    if (res.ok) {
-      closeAddUserModal();
-      showAlert(`User '${username}' created successfully.`, 'ok');
-      loadUsers(); loadUsersCard();
-    } else {
-      const msgs = Object.values(data).flat().join(' ');
-      errEl.textContent = msgs || 'Failed to create user.'; errEl.classList.remove('hidden');
-    }
-  } catch {
-    errEl.textContent = 'Network error. Please try again.'; errEl.classList.remove('hidden');
-  }
+    if (res.ok) { closeAddUserModal(); showAlert(`User '${username}' created successfully.`, 'ok'); loadUsers(); loadUsersCard(); }
+    else { errEl.textContent = Object.values(data).flat().join(' ') || 'Failed to create user.'; errEl.classList.remove('hidden'); }
+  } catch { errEl.textContent = 'Network error. Please try again.'; errEl.classList.remove('hidden'); }
   btn.disabled = false; btn.textContent = 'Create User';
 }
 
@@ -1321,19 +1594,11 @@ async function deleteUser(userId, username, btn) {
   if (!confirm(`Delete user '${username}'? This cannot be undone.`)) return;
   btn.disabled = true; btn.textContent = 'Deleting…';
   try {
-    const res  = await apiFetch(`/api/admin/users/${userId}/`, { method: 'DELETE' });
+    const res  = await apiFetch(`/admin/users/${userId}/`, { method:'DELETE' });
     const data = await res.json();
-    if (res.ok) {
-      showAlert(data.message || `User '${username}' deleted.`, 'ok');
-      loadUsers(); loadUsersCard();
-    } else {
-      showAlert(data.error || 'Failed to delete user.', 'error');
-      btn.disabled = false; btn.textContent = 'Delete';
-    }
-  } catch {
-    showAlert('Network error.', 'error');
-    btn.disabled = false; btn.textContent = 'Delete';
-  }
+    if (res.ok) { showAlert(data.message || `User '${username}' deleted.`, 'ok'); loadUsers(); loadUsersCard(); }
+    else { showAlert(data.error || 'Failed to delete user.', 'error'); btn.disabled = false; btn.textContent = 'Delete'; }
+  } catch { showAlert('Network error.', 'error'); btn.disabled = false; btn.textContent = 'Delete'; }
 }
 
 // ══════════════════════════════════════════════
@@ -1342,130 +1607,117 @@ async function deleteUser(userId, username, btn) {
 async function loadBranches() {
   showLoading('branches');
   try {
-    const res  = await apiFetch('/api/admin/branches/');
-    const data = await res.json();
+    const res      = await apiFetch('/admin/branches/');
+    const data     = await res.json();
     const branches = data.branches || [];
     if (!branches.length) { showEmpty('branches'); return; }
     document.getElementById('branchesBody').innerHTML = branches.map(b => {
       const alertCount = b.alert_count ?? 0;
-      const toggleBtn = b.is_active
-        ? `<button class="action-btn action-btn-muted text-xs" onclick="deactivateBranch('${b.branch_id}', '${b.name}', this)">Deactivate</button>`
-        : `<button class="action-btn action-btn-primary text-xs" onclick="activateBranch('${b.branch_id}', '${b.name}', this)">Activate</button>`;
+      const toggleBtn  = b.is_active
+        ? `<button class="action-btn action-btn-muted text-xs" onclick="deactivateBranch('${b.branch_id}','${b.name}',this)">Deactivate</button>`
+        : `<button class="action-btn action-btn-primary text-xs" onclick="activateBranch('${b.branch_id}','${b.name}',this)">Activate</button>`;
       const deleteBtn = !b.is_active
-        ? `<button class="action-btn action-btn-danger text-xs" onclick="deleteBranch('${b.branch_id}', '${b.name}', this)">Delete</button>`
+        ? `<button class="action-btn action-btn-danger text-xs" onclick="deleteBranch('${b.branch_id}','${b.name}',this)">Delete</button>`
         : `<button class="action-btn text-xs" style="opacity:0.35;cursor:not-allowed;" disabled title="Deactivate first">Delete</button>`;
+      const safeName     = (b.name || '').replace(/'/g, "\\'");
+      const safeLocation = (b.location || '').replace(/'/g, "\\'");
+      const safeMgrName  = (b.manager_name || '').replace(/'/g, "\\'");
+      const safeMgrPhone = (b.manager_phone || '').replace(/'/g, "\\'");
       return `
         <tr style="border-bottom:1px solid rgba(0,200,150,0.06);" class="hover:bg-white/[0.02] transition-colors">
           <td class="td-id px-4 py-3">${b.branch_id}</td>
           <td class="td-main px-4 py-3">${b.name}</td>
           <td class="td-sub px-4 py-3">${b.location || '—'}</td>
-          <td class="td-sub px-4 py-3">${b.manager_name || '—'}</td>
+          <td class="td-sub px-4 py-3">${b.manager_name || '—'}<br><span class="text-xs" style="color:#7A9AB0;">${b.manager_phone || ''}</span></td>
           <td class="px-4 py-3"><span class="badge ${b.is_active ? 'badge-active' : 'badge-inactive'}">${b.is_active ? 'Active' : 'Inactive'}</span></td>
-          <td class="px-4 py-3">
-            ${alertCount > 0
-              ? `<span class="badge badge-critical">${alertCount} alert${alertCount !== 1 ? 's' : ''}</span>`
-              : `<span class="text-xs" style="color:#00C896;">✓ Clear</span>`}
-          </td>
-          <td class="px-4 py-3 flex gap-2">${toggleBtn}${deleteBtn}</td>
-        </tr>
-      `;
+          <td class="px-4 py-3">${alertCount > 0 ? `<span class="badge badge-critical">${alertCount} alert${alertCount !== 1 ? 's' : ''}</span>` : `<span class="text-xs" style="color:#00C896;">✓ Clear</span>`}</td>
+          <td class="px-4 py-3"><div class="flex gap-2 flex-wrap">
+            <button class="action-btn action-btn-edit text-xs" onclick="openEditBranchModal('${b.branch_id}','${safeName}','${safeLocation}','${safeMgrName}','${safeMgrPhone}')">Edit</button>
+            ${toggleBtn}${deleteBtn}
+          </div></td>
+        </tr>`;
     }).join('');
     showTable('branches');
   } catch { showEmpty('branches'); }
+}
+
+let _editBranchId = null;
+function openEditBranchModal(branchId, name, location, managerName, managerPhone) {
+  _editBranchId = branchId;
+  document.getElementById('editBranchIdLabel').textContent      = 'ID: ' + branchId;
+  document.getElementById('editBranchName').value               = name;
+  document.getElementById('editBranchLocation').value           = location;
+  document.getElementById('editBranchManagerName').value        = managerName;
+  document.getElementById('editBranchManagerPhone').value       = managerPhone;
+  document.getElementById('editBranchError').classList.add('hidden');
+  document.getElementById('editBranchModal').classList.remove('hidden');
+}
+function closeEditBranchModal() { document.getElementById('editBranchModal').classList.add('hidden'); _editBranchId = null; }
+
+async function submitEditBranch(btn) {
+  if (!_editBranchId) return;
+  const name          = document.getElementById('editBranchName').value.trim();
+  const location      = document.getElementById('editBranchLocation').value.trim();
+  const manager_name  = document.getElementById('editBranchManagerName').value.trim();
+  const manager_phone = document.getElementById('editBranchManagerPhone').value.trim();
+  const errEl         = document.getElementById('editBranchError');
+  errEl.classList.add('hidden');
+  if (!name || !location || !manager_name || !manager_phone) { errEl.textContent = 'All fields are required.'; errEl.classList.remove('hidden'); return; }
+  btn.disabled = true; btn.textContent = 'Saving…';
+  try {
+    const res  = await apiFetch(`/admin/branches/${_editBranchId}/`, { method:'PATCH', body: JSON.stringify({ name, location, manager_name, manager_phone }) });
+    const data = await res.json();
+    if (res.ok) { closeEditBranchModal(); showAlert(data.message || 'Branch updated successfully.', 'ok'); loadBranches(); }
+    else { errEl.textContent = typeof data === 'object' ? Object.entries(data).map(([k,v]) => `${k}: ${Array.isArray(v) ? v.join(' ') : v}`).join(' | ') : 'Failed to update branch.'; errEl.classList.remove('hidden'); }
+  } catch { errEl.textContent = 'Network error. Please try again.'; errEl.classList.remove('hidden'); }
+  btn.disabled = false; btn.textContent = 'Save Changes';
 }
 
 async function deactivateBranch(branchId, branchName, btn) {
   if (!confirm(`Deactivate branch '${branchName}'?\n\nIt will be hidden from customers and can be deleted afterward.`)) return;
   btn.disabled = true; btn.textContent = 'Deactivating…';
   try {
-    const res  = await apiFetch(`/api/admin/branches/${branchId}/`, {
-      method: 'PATCH',
-      body: JSON.stringify({ is_active: false })
-    });
+    const res  = await apiFetch(`/admin/branches/${branchId}/`, { method:'PATCH', body: JSON.stringify({ is_active: false }) });
     const data = await res.json();
-    if (res.ok) {
-      showAlert(data.message || `Branch '${branchName}' deactivated.`, 'ok');
-      loadBranches();
-    } else {
-      showAlert(data.error || 'Failed to deactivate branch.', 'error');
-      btn.disabled = false; btn.textContent = 'Deactivate';
-    }
-  } catch {
-    showAlert('Network error.', 'error');
-    btn.disabled = false; btn.textContent = 'Deactivate';
-  }
+    if (res.ok) { showAlert(data.message || `Branch '${branchName}' deactivated.`, 'ok'); loadBranches(); }
+    else { showAlert(data.error || 'Failed to deactivate branch.', 'error'); btn.disabled = false; btn.textContent = 'Deactivate'; }
+  } catch { showAlert('Network error.', 'error'); btn.disabled = false; btn.textContent = 'Deactivate'; }
 }
 
 async function activateBranch(branchId, branchName, btn) {
-  if (!confirm(`Reactivate branch '${branchName}'?\n\nIt will become visible to customers again.`)) return;
+  if (!confirm(`Reactivate branch '${branchName}'?`)) return;
   btn.disabled = true; btn.textContent = 'Activating…';
   try {
-    const res  = await apiFetch(`/api/admin/branches/${branchId}/`, {
-      method: 'PATCH',
-      body: JSON.stringify({ is_active: true })
-    });
+    const res  = await apiFetch(`/admin/branches/${branchId}/`, { method:'PATCH', body: JSON.stringify({ is_active: true }) });
     const data = await res.json().catch(() => ({}));
-    if (res.ok) {
-      showAlert(data.message || `Branch '${branchName}' reactivated.`, 'ok');
-      loadBranches();
-    } else {
-      showAlert(data.error || 'Failed to activate branch.', 'error');
-      btn.disabled = false; btn.textContent = 'Activate';
-    }
-  } catch {
-    showAlert('Network error.', 'error');
-    btn.disabled = false; btn.textContent = 'Activate';
-  }
+    if (res.ok) { showAlert(data.message || `Branch '${branchName}' reactivated.`, 'ok'); loadBranches(); }
+    else { showAlert(data.error || 'Failed to activate branch.', 'error'); btn.disabled = false; btn.textContent = 'Activate'; }
+  } catch { showAlert('Network error.', 'error'); btn.disabled = false; btn.textContent = 'Activate'; }
 }
 
-// ═══════════════════════════════════════════════════════════════════
-// ADD BRANCH MODAL — FIX 1
-// openAddBranchModal: clear the new newBranchId field too
-// submitAddBranch: read branch_id, validate it, include in POST body
-// ═══════════════════════════════════════════════════════════════════
 function openAddBranchModal() {
-  ['newBranchId','newBranchName','newBranchLocation','newBranchManager','newBranchPhone'].forEach(id => {
-    document.getElementById(id).value = '';
-  });
+  ['newBranchId','newBranchName','newBranchLocation','newBranchManager','newBranchPhone'].forEach(id => { document.getElementById(id).value = ''; });
   document.getElementById('addBranchError').classList.add('hidden');
   document.getElementById('addBranchModal').classList.remove('hidden');
 }
 function closeAddBranchModal() { document.getElementById('addBranchModal').classList.add('hidden'); }
 
 async function submitAddBranch(btn) {
-  const branch_id    = document.getElementById('newBranchId').value.trim();
-  const name         = document.getElementById('newBranchName').value.trim();
-  const location     = document.getElementById('newBranchLocation').value.trim();
-  const manager_name = document.getElementById('newBranchManager').value.trim();
-  const manager_phone= document.getElementById('newBranchPhone').value.trim();
-  const errEl        = document.getElementById('addBranchError');
+  const branch_id     = document.getElementById('newBranchId').value.trim();
+  const name          = document.getElementById('newBranchName').value.trim();
+  const location      = document.getElementById('newBranchLocation').value.trim();
+  const manager_name  = document.getElementById('newBranchManager').value.trim();
+  const manager_phone = document.getElementById('newBranchPhone').value.trim();
+  const errEl         = document.getElementById('addBranchError');
   errEl.classList.add('hidden');
-
-  if (!branch_id || !name || !location || !manager_name || !manager_phone) {
-    errEl.textContent = 'All fields are required.'; errEl.classList.remove('hidden'); return;
-  }
-
+  if (!branch_id || !name || !location || !manager_name || !manager_phone) { errEl.textContent = 'All fields are required.'; errEl.classList.remove('hidden'); return; }
   btn.disabled = true; btn.textContent = 'Creating…';
   try {
-    const res  = await apiFetch('/api/admin/branches/', {
-      method: 'POST',
-      body: JSON.stringify({ branch_id, name, location, manager_name, manager_phone, is_active: true })
-    });
+    const res  = await apiFetch('/admin/branches/', { method:'POST', body: JSON.stringify({ branch_id, name, location, manager_name, manager_phone, is_active: true }) });
     const data = await res.json();
-    if (res.ok) {
-      closeAddBranchModal();
-      showAlert(data.message || `Branch '${name}' created successfully.`, 'ok');
-      loadBranches();
-    } else {
-      // Show the first validation message from the backend
-      const msgs = typeof data === 'object'
-        ? Object.entries(data).map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(' ') : v}`).join(' | ')
-        : 'Failed to create branch.';
-      errEl.textContent = msgs; errEl.classList.remove('hidden');
-    }
-  } catch {
-    errEl.textContent = 'Network error. Please try again.'; errEl.classList.remove('hidden');
-  }
+    if (res.ok) { closeAddBranchModal(); showAlert(data.message || `Branch '${name}' created successfully.`, 'ok'); loadBranches(); }
+    else { errEl.textContent = typeof data === 'object' ? Object.entries(data).map(([k,v]) => `${k}: ${Array.isArray(v) ? v.join(' ') : v}`).join(' | ') : 'Failed to create branch.'; errEl.classList.remove('hidden'); }
+  } catch { errEl.textContent = 'Network error. Please try again.'; errEl.classList.remove('hidden'); }
   btn.disabled = false; btn.textContent = 'Create Branch';
 }
 
@@ -1473,25 +1725,17 @@ async function deleteBranch(branchId, branchName, btn) {
   if (!confirm(`Delete branch '${branchName}'? This cannot be undone.`)) return;
   btn.disabled = true; btn.textContent = 'Deleting…';
   try {
-    const res = await apiFetch(`/api/admin/branches/${branchId}/`, { method: 'DELETE' });
-    // Handle both 200 (with JSON body) and 204 (empty body)
+    const res = await apiFetch(`/admin/branches/${branchId}/`, { method:'DELETE' });
     if (res.ok) {
       let msg = `Branch '${branchName}' deleted.`;
-      if (res.status !== 204) {
-        const data = await res.json().catch(() => ({}));
-        msg = data.message || msg;
-      }
-      showAlert(msg, 'ok');
-      loadBranches();
+      if (res.status !== 204) { const data = await res.json().catch(() => ({})); msg = data.message || msg; }
+      showAlert(msg, 'ok'); loadBranches();
     } else {
       const data = await res.json().catch(() => ({}));
       showAlert(data.error || 'Failed to delete. Ensure the branch is inactive first.', 'error');
       btn.disabled = false; btn.textContent = 'Delete';
     }
-  } catch {
-    showAlert('Network error.', 'error');
-    btn.disabled = false; btn.textContent = 'Delete';
-  }
+  } catch { showAlert('Network error.', 'error'); btn.disabled = false; btn.textContent = 'Delete'; }
 }
 
 // ══════════════════════════════════════════════
@@ -1500,51 +1744,446 @@ async function deleteBranch(branchId, branchName, btn) {
 async function loadProducts() {
   showLoading('products');
   try {
-    const res  = await fetch(API_BASE + '/api/products/', { headers: authHeaders() });
-    const data = await res.json();
+    const res      = await apiFetch('/admin/products/');
+    const data     = await res.json();
     const products = Array.isArray(data) ? data : (data.products || data.results || []);
     if (!products.length) { showEmpty('products'); return; }
-    document.getElementById('productsBody').innerHTML = products.map(p => `
-      <tr style="border-bottom:1px solid rgba(0,200,150,0.06);" class="hover:bg-white/[0.02] transition-colors">
-        <td class="td-id px-4 py-3">${p.product_id}</td>
-        <td class="td-main px-4 py-3">${p.name}</td>
-        <td class="td-amt px-4 py-3">${Number(p.price || 0).toLocaleString('en-KE')}</td>
-        <td class="px-4 py-3"><span class="badge ${p.is_available !== false ? 'badge-active' : 'badge-inactive'}">${p.is_available !== false ? 'Available' : 'Unavailable'}</span></td>
-      </tr>
-    `).join('');
+    document.getElementById('productsBody').innerHTML = products.map(p => {
+      const safeName  = (p.name  || '').replace(/'/g, "\\'").replace(/\\/g, '\\\\');
+      const safeImage = (p.image || '').replace(/'/g, "\\'").replace(/\\/g, '\\\\');
+      return `
+        <tr style="border-bottom:1px solid rgba(0,200,150,0.06);" class="hover:bg-white/[0.02] transition-colors">
+          <td class="td-id px-4 py-3">${p.product_id}</td>
+          <td class="td-main px-4 py-3">${p.name}</td>
+          <td class="td-amt px-4 py-3">KES ${Number(p.price || 0).toLocaleString('en-KE', {minimumFractionDigits:2})}</td>
+          <td class="td-sub px-4 py-3">${p.image
+            ? `<span class="font-mono text-xs" style="color:#00C896;">${p.image}</span>`
+            : `<span class="text-xs text-muted">—</span>`}</td>
+          <td class="px-4 py-3">
+            <div class="flex gap-2 flex-wrap">
+              <button class="action-btn action-btn-edit text-xs"
+                onclick="openEditProductModal('${p.product_id}','${safeName}',${p.price},'${safeImage}')">Edit</button>
+              <button class="action-btn action-btn-danger text-xs"
+                onclick="deleteProduct('${p.product_id}','${safeName}',this)">Delete</button>
+            </div>
+          </td>
+        </tr>`;
+    }).join('');
     showTable('products');
   } catch { showEmpty('products'); }
 }
 
+let _editProductId = null;
+
+function openEditProductModal(productId, productName, currentPrice, currentImage) {
+  _editProductId = productId;
+  document.getElementById('editProductIdLabel').textContent  = 'ID: ' + productId;
+  document.getElementById('editProductName').value           = productName;
+  document.getElementById('editProductPrice').value          = currentPrice;
+  document.getElementById('editProductImage').value          = currentImage || '';
+  document.getElementById('editProductError').classList.add('hidden');
+  document.getElementById('editProductModal').classList.remove('hidden');
+}
+function closeEditProductModal() { document.getElementById('editProductModal').classList.add('hidden'); _editProductId = null; }
+
+async function submitEditProduct(btn) {
+  if (!_editProductId) return;
+  const name  = document.getElementById('editProductName').value.trim();
+  const price = parseFloat(document.getElementById('editProductPrice').value);
+  const image = document.getElementById('editProductImage').value.trim();
+  const errEl = document.getElementById('editProductError');
+  errEl.classList.add('hidden');
+  if (!name)               { errEl.textContent = 'Product name is required.'; errEl.classList.remove('hidden'); return; }
+  if (name.length > 20)    { errEl.textContent = 'Name cannot exceed 20 characters.'; errEl.classList.remove('hidden'); return; }
+  if (isNaN(price) || price <= 0) { errEl.textContent = 'Enter a valid price greater than KES 0.'; errEl.classList.remove('hidden'); return; }
+  if (price > 100000)      { errEl.textContent = 'Price cannot exceed KES 100,000.'; errEl.classList.remove('hidden'); return; }
+  btn.disabled = true; btn.textContent = 'Saving…';
+  try {
+    const res  = await apiFetch(`/admin/products/${_editProductId}/`, { method:'PATCH', body: JSON.stringify({ name, price: price.toFixed(2), image }) });
+    const data = await res.json();
+    if (res.ok) { closeEditProductModal(); showAlert(data.message || `Product '${name}' updated successfully.`, 'ok'); loadProducts(); }
+    else { errEl.textContent = typeof data === 'object' ? Object.entries(data).map(([k,v]) => `${k}: ${Array.isArray(v) ? v.join(' ') : v}`).join(' | ') : 'Failed to update product.'; errEl.classList.remove('hidden'); }
+  } catch { errEl.textContent = 'Network error. Please try again.'; errEl.classList.remove('hidden'); }
+  btn.disabled = false; btn.textContent = 'Save Changes';
+}
+
+function openAddProductModal() {
+  ['newProductName','newProductPrice','newProductImage'].forEach(id => { document.getElementById(id).value = ''; });
+  document.getElementById('addProductError').classList.add('hidden');
+  document.getElementById('addProductModal').classList.remove('hidden');
+}
+function closeAddProductModal() { document.getElementById('addProductModal').classList.add('hidden'); }
+
+async function submitAddProduct(btn) {
+  const name  = document.getElementById('newProductName').value.trim();
+  const price = parseFloat(document.getElementById('newProductPrice').value);
+  const image = document.getElementById('newProductImage').value.trim();
+  const errEl = document.getElementById('addProductError');
+  errEl.classList.add('hidden');
+  if (!name)               { errEl.textContent = 'Product name is required.'; errEl.classList.remove('hidden'); return; }
+  if (name.length > 20)    { errEl.textContent = 'Name cannot exceed 20 characters.'; errEl.classList.remove('hidden'); return; }
+  if (isNaN(price) || price <= 0) { errEl.textContent = 'Enter a valid price greater than KES 0.'; errEl.classList.remove('hidden'); return; }
+  if (price > 100000)      { errEl.textContent = 'Price cannot exceed KES 100,000.'; errEl.classList.remove('hidden'); return; }
+  btn.disabled = true; btn.textContent = 'Creating…';
+  try {
+    const res  = await apiFetch('/admin/products/', { method:'POST', body: JSON.stringify({ name, price: price.toFixed(2), image }) });
+    const data = await res.json();
+    if (res.ok) { closeAddProductModal(); const created = data.data || {}; showAlert(data.message || `Product '${name}' created. ID: ${created.product_id || '—'}`, 'ok'); loadProducts(); }
+    else { errEl.textContent = typeof data === 'object' ? Object.entries(data).map(([k,v]) => `${k}: ${Array.isArray(v) ? v.join(' ') : v}`).join(' | ') : 'Failed to create product.'; errEl.classList.remove('hidden'); }
+  } catch { errEl.textContent = 'Network error. Please try again.'; errEl.classList.remove('hidden'); }
+  btn.disabled = false; btn.textContent = 'Create Product';
+}
+
+async function deleteProduct(productId, productName, btn) {
+  if (!confirm(`Delete product '${productName}'?\n\nThis cannot be undone. Products with existing orders cannot be deleted.`)) return;
+  btn.disabled = true; btn.textContent = 'Deleting…';
+  try {
+    const res  = await apiFetch(`/admin/products/${productId}/`, { method:'DELETE' });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok) { showAlert(data.message || `Product '${productName}' deleted.`, 'ok'); loadProducts(); }
+    else { showAlert(data.error || 'Failed to delete product.', 'error'); btn.disabled = false; btn.textContent = 'Delete'; }
+  } catch { showAlert('Network error.', 'error'); btn.disabled = false; btn.textContent = 'Delete'; }
+}
+
 // ══════════════════════════════════════════════
-// INVENTORY
+// INVENTORY — inline threshold editing
 // ══════════════════════════════════════════════
 async function loadInventory() {
   showLoading('inventory');
   try {
-    const res  = await apiFetch('/api/admin/inventory/');
-    const data = await res.json();
+    const res     = await apiFetch('/admin/inventory/');
+    const data    = await res.json();
     const records = Array.isArray(data) ? data : (data.inventory || data.results || []);
     if (!records.length) { showEmpty('inventory'); return; }
     document.getElementById('inventoryBody').innerHTML = records.map(r => {
       const branchName  = r.branch?.name  || r.branch_name  || '—';
       const productName = r.product?.name || r.product_name || '—';
-      const thresh      = r.low_stock_threshold ?? r.threshold ?? 0;
+      const branchId    = r.branch?.branch_id  || r.branch_id  || '';
+      const productId   = r.product?.product_id || r.product_id || '';
+      const thresh      = r.low_stock_threshold ?? r.threshold ?? 10;
       const isLow       = r.is_low ?? (r.stock <= thresh);
+      // Each Threshold cell contains a small inline number input.
+      // Saving is triggered by Enter key or blur (clicking away).
       return `
         <tr style="border-bottom:1px solid rgba(0,200,150,0.06);" class="hover:bg-white/[0.02] transition-colors">
           <td class="td-sub px-4 py-3">${branchName}</td>
           <td class="td-main px-4 py-3">${productName}</td>
           <td class="td-amt px-4 py-3" style="${isLow ? 'color:#ff6b6b;' : ''}">${r.stock ?? '—'}</td>
-          <td class="td-sub px-4 py-3">${thresh}</td>
           <td class="px-4 py-3">
+            <div class="flex items-center gap-1.5">
+              <input
+                id="threshInput_${branchId}_${productId}"
+                type="number" min="1" value="${thresh}"
+                data-original="${thresh}"
+                data-branch="${branchId}"
+                data-product="${productId}"
+                onkeydown="if(event.key==='Enter'){event.preventDefault();saveThreshold(this);}
+                           if(event.key==='Escape'){resetThresholdInput(this);}"
+                onblur="saveThreshold(this)"
+                onfocus="this.dataset.focused='1'"
+                style="
+                  width:60px; padding:0.3rem 0.45rem;
+                  background:rgba(10,37,64,0.65);
+                  border:1px solid rgba(0,200,150,0.15);
+                  border-radius:8px; font-size:12px;
+                  font-family:'Syne',sans-serif; font-weight:700;
+                  color:#E8F4F8; outline:none; text-align:center;
+                  transition:border-color 0.2s, box-shadow 0.2s;
+                "
+                onfocus="this.style.borderColor='#00C896';this.style.boxShadow='0 0 0 3px rgba(0,200,150,0.1)';this.dataset.focused='1';"
+                class="thresh-input"
+              />
+              <span id="threshSaving_${branchId}_${productId}" class="hidden" style="font-size:10px;color:#7A9AB0;">saving…</span>
+              <span id="threshOk_${branchId}_${productId}"     class="hidden" style="font-size:13px;color:#00C896;">✓</span>
+              <span id="threshErr_${branchId}_${productId}"    class="hidden" style="font-size:10px;color:#ff6b6b;max-width:80px;"></span>
+            </div>
+          </td>
+          <td class="px-4 py-3" id="statusCell_${branchId}_${productId}">
             ${isLow ? `<span class="badge badge-critical">Low Stock</span>` : `<span class="badge badge-active">OK</span>`}
           </td>
-        </tr>
-      `;
+        </tr>`;
     }).join('');
+
+    // Restore border on blur for every input
+    document.querySelectorAll('.thresh-input').forEach(inp => {
+      inp.addEventListener('blur', () => {
+        inp.style.borderColor = 'rgba(0,200,150,0.15)';
+        inp.style.boxShadow   = '';
+      }, { capture: false });
+    });
+
     showTable('inventory');
   } catch { showEmpty('inventory'); }
+}
+
+// Called on Enter or blur — saves only when the value actually changed
+async function saveThreshold(input) {
+  // blur fires after keydown Enter; guard against double-save
+  if (input.dataset.saving === '1') return;
+
+  const branchId  = input.dataset.branch;
+  const productId = input.dataset.product;
+  const original  = parseInt(input.dataset.original, 10);
+  const val       = parseInt(input.value, 10);
+
+  const savingEl = document.getElementById(`threshSaving_${branchId}_${productId}`);
+  const okEl     = document.getElementById(`threshOk_${branchId}_${productId}`);
+  const errEl    = document.getElementById(`threshErr_${branchId}_${productId}`);
+
+  // Reset feedback
+  okEl.classList.add('hidden');
+  errEl.classList.add('hidden');
+
+  // No change — nothing to do
+  if (val === original) return;
+
+  // Validate
+  if (isNaN(val) || val < 1) {
+    errEl.textContent = 'Min 1';
+    errEl.classList.remove('hidden');
+    input.value = original; // revert
+    return;
+  }
+
+  input.dataset.saving = '1';
+  input.disabled = true;
+  savingEl.classList.remove('hidden');
+
+  try {
+    const res  = await apiFetch(
+      `/admin/inventory/${branchId}/${productId}/`,
+      { method: 'PATCH', body: JSON.stringify({ low_stock_threshold: val }) }
+    );
+    const data = await res.json();
+
+    if (res.ok) {
+      input.dataset.original = val; // accept new value as baseline
+      savingEl.classList.add('hidden');
+      okEl.classList.remove('hidden');
+      setTimeout(() => okEl.classList.add('hidden'), 1800);
+      // Refresh the Low Stock badge for this row
+      const stock     = parseInt(input.closest('tr')?.querySelector('td:nth-child(3)')?.textContent?.trim() ?? '0', 10);
+      const statusCell = document.getElementById(`statusCell_${branchId}_${productId}`);
+      if (statusCell) {
+        const nowLow = stock <= val;
+        statusCell.innerHTML = nowLow
+          ? `<span class="badge badge-critical">Low Stock</span>`
+          : `<span class="badge badge-active">OK</span>`;
+        // Also update the stock cell colour
+        const stockCell = input.closest('tr')?.querySelector('td:nth-child(3)');
+        if (stockCell) stockCell.style.color = nowLow ? '#ff6b6b' : '';
+      }
+    } else {
+      const msg = typeof data === 'object'
+        ? Object.entries(data).map(([k,v]) => `${Array.isArray(v) ? v.join(' ') : v}`).join(' ')
+        : 'Error';
+      errEl.textContent = msg.slice(0, 40);
+      errEl.classList.remove('hidden');
+      input.value = original; // revert
+      savingEl.classList.add('hidden');
+    }
+  } catch {
+    errEl.textContent = 'Network error';
+    errEl.classList.remove('hidden');
+    input.value = original;
+    savingEl.classList.add('hidden');
+  }
+
+  input.disabled      = false;
+  input.dataset.saving = '0';
+}
+
+// Escape key — revert without saving
+function resetThresholdInput(input) {
+  input.value = input.dataset.original;
+  input.blur();
+}
+
+// ══════════════════════════════════════════════
+// RESTOCK
+// ══════════════════════════════════════════════
+async function loadRestockPanel() {
+  _switchRestockTabUI('action');
+  const select    = document.getElementById('restockBranchSelect');
+  const loadingEl = document.getElementById('restockBranchLoading');
+  select.innerHTML = '<option value="">— Choose a branch —</option>';
+  document.getElementById('restockProductsSection').classList.add('hidden');
+  loadingEl.classList.remove('hidden');
+  try {
+    const res      = await apiFetch('/admin/branches/');
+    const data     = await res.json();
+    const branches = data.branches || [];
+    branches.forEach(b => {
+      const opt = document.createElement('option');
+      opt.value = b.branch_id;
+      opt.textContent = b.name + (b.is_active ? '' : ' (Inactive)');
+      select.appendChild(opt);
+    });
+    const logFilter = document.getElementById('logFilterBranch');
+    logFilter.innerHTML = '<option value="">All Branches</option>';
+    branches.forEach(b => {
+      const opt = document.createElement('option'); opt.value = b.branch_id; opt.textContent = b.name;
+      logFilter.appendChild(opt);
+    });
+  } catch { showAlert('Failed to load branches for restock.', 'error'); }
+  loadingEl.classList.add('hidden');
+  try {
+    const res      = await apiFetch('/products/');
+    const data     = await res.json();
+    const products = Array.isArray(data) ? data : (data.products || data.results || []);
+    const logProdFilter = document.getElementById('logFilterProduct');
+    logProdFilter.innerHTML = '<option value="">All Products</option>';
+    products.forEach(p => {
+      const opt = document.createElement('option'); opt.value = p.product_id; opt.textContent = p.name;
+      logProdFilter.appendChild(opt);
+    });
+  } catch { /* non-fatal */ }
+}
+
+async function onRestockBranchChange() {
+  const branchId = document.getElementById('restockBranchSelect').value;
+  const section  = document.getElementById('restockProductsSection');
+  if (!branchId) { section.classList.add('hidden'); return; }
+  section.classList.remove('hidden');
+  document.getElementById('restockProductsLoading').classList.remove('hidden');
+  document.getElementById('restockProductsTable').classList.add('hidden');
+  document.getElementById('restockProductsEmpty').classList.add('hidden');
+  document.getElementById('restockBranchLabel').textContent = '— ' + document.getElementById('restockBranchSelect').selectedOptions[0].textContent;
+  try {
+    const res = await apiFetch(`/admin/inventory/${branchId}/`);
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      document.getElementById('restockProductsLoading').classList.add('hidden');
+      showAlert(`Could not load inventory (${res.status}): ${errData.error || errData.detail || `HTTP ${res.status}`}`, 'error');
+      return;
+    }
+    const data    = await res.json();
+    const records = Array.isArray(data) ? data : (data.results || data.inventory || []);
+    if (!records.length) {
+      document.getElementById('restockProductsLoading').classList.add('hidden');
+      document.getElementById('restockProductsEmpty').classList.remove('hidden');
+      return;
+    }
+    document.getElementById('restockProductsBody').innerHTML = records.map(r => {
+      const stock    = r.stock ?? 0;
+      const thresh   = r.low_stock_threshold ?? 0;
+      const isLow    = r.is_low ?? (stock <= thresh);
+      const prodId   = r.product?.product_id ?? '';
+      const prodName = r.product?.name ?? '—';
+      const safeName = prodName.replace(/'/g, "\\'");
+      return `
+        <tr style="border-bottom:1px solid rgba(0,200,150,0.06);" class="hover:bg-white/[0.02] transition-colors">
+          <td class="td-main px-4 py-3">${prodName}</td>
+          <td class="td-amt px-4 py-3" style="${isLow ? 'color:#ff6b6b;' : ''}">${stock}</td>
+          <td class="td-sub px-4 py-3">${thresh}</td>
+          <td class="px-4 py-3">${isLow ? `<span class="badge badge-critical">Low</span>` : `<span class="badge badge-active">OK</span>`}</td>
+          <td class="px-4 py-3"><input type="number" min="1" placeholder="Units" id="restockQty_${prodId}" class="input-field text-xs w-24" style="padding:0.4rem 0.6rem;"/></td>
+          <td class="px-4 py-3"><button class="action-btn action-btn-primary text-xs" onclick="submitRestock('${branchId}','${prodId}','${safeName}',this)">Restock</button></td>
+        </tr>`;
+    }).join('');
+    document.getElementById('restockProductsLoading').classList.add('hidden');
+    document.getElementById('restockProductsTable').classList.remove('hidden');
+  } catch(e) {
+    document.getElementById('restockProductsLoading').classList.add('hidden');
+    showAlert('Failed to load inventory for this branch.', 'error');
+  }
+}
+
+async function submitRestock(branchId, productId, productName, btn) {
+  const qtyInput = document.getElementById(`restockQty_${productId}`);
+  const qty      = parseInt(qtyInput?.value, 10);
+  if (!qty || qty < 1) { showAlert('Please enter a valid quantity (minimum 1).', 'error'); return; }
+  btn.disabled = true; btn.textContent = 'Restocking…';
+  try {
+    const res  = await apiFetch(`/admin/inventory/${branchId}/${productId}/restock/`, { method:'POST', body: JSON.stringify({ quantity: qty }) });
+    const data = await res.json();
+    if (res.ok) {
+      showAlert(data.message || `${productName} restocked. New stock: ${data.current_stock}`, 'ok');
+      if (qtyInput) qtyInput.value = '';
+      onRestockBranchChange(); loadAlertsCard();
+    } else {
+      showAlert(data.error || data.detail || Object.values(data).flat().join(' ') || 'Restock failed.', 'error');
+      btn.disabled = false; btn.textContent = 'Restock';
+    }
+  } catch { showAlert('Network error during restock.', 'error'); btn.disabled = false; btn.textContent = 'Restock'; }
+}
+
+async function submitRestockAll(btn) {
+  const branchId = document.getElementById('restockBranchSelect').value;
+  if (!branchId) { showAlert('Please select a branch first.', 'error'); return; }
+  const tbody = document.getElementById('restockProductsBody');
+  const rows  = tbody ? tbody.querySelectorAll('tr') : [];
+  const items = [];
+  rows.forEach(row => {
+    const input = row.querySelector('input[id^="restockQty_"]');
+    if (!input) return;
+    const productId = input.id.replace('restockQty_', '');
+    const qty       = parseInt(input.value, 10);
+    const nameTd    = row.querySelector('td:first-child');
+    const prodName  = nameTd ? nameTd.textContent.trim() : productId;
+    if (qty && qty >= 1) items.push({ productId, qty, prodName, input });
+  });
+  if (!items.length) { showAlert('Please enter a quantity for at least one product.', 'error'); return; }
+  const branchLabel = document.getElementById('restockBranchLabel').textContent.replace('— ', '').trim();
+  if (!confirm(`Restock ${items.length} product${items.length !== 1 ? 's' : ''} in ${branchLabel || 'this branch'}?\n\n` +
+    items.map(i => `• ${i.prodName}: +${i.qty}`).join('\n'))) return;
+  btn.disabled = true; btn.textContent = 'Restocking…';
+  let successCount = 0, failCount = 0, failMessages = [];
+  for (const item of items) {
+    try {
+      const res  = await apiFetch(`/admin/inventory/${branchId}/${item.productId}/restock/`, { method: 'POST', body: JSON.stringify({ quantity: item.qty }) });
+      const data = await res.json();
+      if (res.ok) { successCount++; item.input.value = ''; }
+      else { failCount++; failMessages.push(`${item.prodName}: ${data.error || data.detail || 'failed'}`); }
+    } catch { failCount++; failMessages.push(`${item.prodName}: network error`); }
+  }
+  btn.disabled = false; btn.textContent = 'Restock All';
+  if (successCount > 0 && failCount === 0) {
+    showAlert(`✓ All ${successCount} product${successCount !== 1 ? 's' : ''} restocked successfully.`, 'ok');
+  } else if (successCount > 0 && failCount > 0) {
+    showAlert(`${successCount} restocked, ${failCount} failed: ${failMessages.join(' | ')}`, 'error');
+  } else {
+    showAlert(`Restock failed for all products: ${failMessages.join(' | ')}`, 'error');
+  }
+  onRestockBranchChange();
+  loadAlertsCard();
+}
+
+async function loadRestockLog() {
+  document.getElementById('restockLogLoading').classList.remove('hidden');
+  document.getElementById('restockLogTable').classList.add('hidden');
+  document.getElementById('restockLogEmpty').classList.add('hidden');
+  try {
+    const branchId  = document.getElementById('logFilterBranch').value;
+    const productId = document.getElementById('logFilterProduct').value;
+    let url = '/admin/inventory/logs/?';
+    if (branchId)  url += `branch_id=${branchId}&`;
+    if (productId) url += `product_id=${productId}&`;
+    const res  = await apiFetch(url);
+    const data = await res.json();
+    const logs = data.logs || [];
+    if (!logs.length) {
+      document.getElementById('restockLogLoading').classList.add('hidden');
+      document.getElementById('restockLogEmpty').classList.remove('hidden');
+      return;
+    }
+    document.getElementById('restockLogBody').innerHTML = logs.map(log => `
+      <tr style="border-bottom:1px solid rgba(0,200,150,0.06);" class="hover:bg-white/[0.02] transition-colors">
+        <td class="td-sub px-4 py-3">${log.branch_name || '—'}</td>
+        <td class="td-main px-4 py-3">${log.product_name || '—'}</td>
+        <td class="px-4 py-3"><span class="font-head font-bold text-sm" style="color:#00C896;">+${log.quantity_added ?? 0}</span></td>
+        <td class="td-sub px-4 py-3 text-center">${log.stock_before ?? '—'}</td>
+        <td class="td-sub px-4 py-3 text-center" style="color:#00C896;">${log.stock_after ?? '—'}</td>
+        <td class="td-sub px-4 py-3">${log.restocked_by || '—'}</td>
+        <td class="td-date px-4 py-3">${fmtDateTime(log.restocked_at)}</td>
+      </tr>`).join('');
+    document.getElementById('restockLogLoading').classList.add('hidden');
+    document.getElementById('restockLogTable').classList.remove('hidden');
+  } catch {
+    document.getElementById('restockLogLoading').classList.add('hidden');
+    document.getElementById('restockLogEmpty').classList.remove('hidden');
+    document.getElementById('restockLogEmpty').textContent = 'Failed to load audit log.';
+  }
 }
 
 // ══════════════════════════════════════════════
@@ -1554,10 +2193,8 @@ async function loadTransactions() {
   showLoading('transactions');
   try {
     const status = document.getElementById('txFilterStatus').value;
-    let url = '/api/admin/orders/';
-    if (status) url += `?status=${status}`;
-    const res  = await apiFetch(url);
-    const data = await res.json();
+    const res    = await apiFetch('/admin/orders/' + (status ? `?status=${status}` : ''));
+    const data   = await res.json();
     const orders = data.orders || [];
     if (!orders.length) { showEmpty('transactions'); return; }
     document.getElementById('transactionsBody').innerHTML = orders.map(o => `
@@ -1569,31 +2206,338 @@ async function loadTransactions() {
         <td class="px-4 py-3"><span class="badge badge-${(o.status || '').toLowerCase()}">${o.status || '—'}</span></td>
         <td class="td-id px-4 py-3">${o.transaction_id || '—'}</td>
         <td class="td-date px-4 py-3">${fmtDateTime(o.created_at)}</td>
-      </tr>
-    `).join('');
+        <td class="px-4 py-3">
+          ${o.status === 'PENDING'
+            ? `<button class="action-btn action-btn-danger text-xs" onclick="adminCancelOrder('${o.order_id}', this)">Cancel</button>`
+            : `<span class="text-xs text-muted">—</span>`}
+        </td>
+      </tr>`).join('');
+    document.querySelector('#transactionsTable thead tr').innerHTML = `
+      <th class="th-cell">Order ID</th><th class="th-cell">Customer</th><th class="th-cell">Branch</th>
+      <th class="th-cell">Total</th><th class="th-cell">Status</th><th class="th-cell">Transaction ID</th>
+      <th class="th-cell">Date</th><th class="th-cell">Action</th>`;
     showTable('transactions');
   } catch { showEmpty('transactions'); }
+}
+
+async function adminCancelOrder(orderId, btn) {
+  if (!confirm(`Cancel order '${orderId}'?\n\nThis will mark it as Failed and restore stock to inventory.`)) return;
+  btn.disabled = true; btn.textContent = 'Cancelling…';
+  try {
+    const res  = await apiFetch(`/orders/${orderId}/cancel/`, { method: 'POST' });
+    const data = await res.json();
+    if (res.ok) { showAlert(data.message || `Order '${orderId}' cancelled. Stock restored.`, 'ok'); loadTransactions(); loadOrdersCard(); }
+    else { showAlert(data.error || 'Failed to cancel order.', 'error'); btn.disabled = false; btn.textContent = 'Cancel'; }
+  } catch { showAlert('Network error while cancelling order.', 'error'); btn.disabled = false; btn.textContent = 'Cancel'; }
+}
+
+async function loadPayments() {
+  showLoading('payments');
+  try {
+    const status   = document.getElementById('pmtFilterStatus').value;
+    const res      = await apiFetch('/admin/payments/' + (status ? `?status=${status}` : ''));
+    const data     = await res.json();
+    const payments = data.payments || [];
+    if (!payments.length) { showEmpty('payments'); return; }
+    document.getElementById('paymentsBody').innerHTML = payments.map(p => {
+      const sk = (p.status || '').toLowerCase();
+      const bc = sk === 'success' ? 'badge-success' : sk === 'failed' ? 'badge-failed' : sk === 'cancelled' ? 'badge-cancelled' : 'badge-pending';
+      const fr = p.failure_reason
+        ? `<span class="text-xs" style="color:#ff9b9b;max-width:140px;display:inline-block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${p.failure_reason}">${p.failure_reason}</span>`
+        : '<span class="text-xs text-muted">—</span>';
+      return `
+        <tr style="border-bottom:1px solid rgba(0,200,150,0.06);" class="hover:bg-white/[0.02] transition-colors">
+          <td class="td-id px-4 py-3">${p.payment_id || '—'}</td>
+          <td class="td-id px-4 py-3">${p.order_id || '—'}</td>
+          <td class="td-sub px-4 py-3">${p.order_branch || '—'}</td>
+          <td class="td-sub px-4 py-3">${p.customer_id || '—'}</td>
+          <td class="td-sub px-4 py-3">${p.phone_number || '—'}</td>
+          <td class="td-amt px-4 py-3">KES ${Number(p.amount || 0).toLocaleString('en-KE')}</td>
+          <td class="px-4 py-3"><span class="badge ${bc}">${p.status || '—'}</span></td>
+          <td class="td-id px-4 py-3">${p.receipt_number || '—'}</td>
+          <td class="px-4 py-3">${fr}</td>
+          <td class="td-date px-4 py-3">${fmtDateTime(p.created_at)}</td>
+          <td class="px-4 py-3">
+            ${p.status === 'PENDING'
+              ? `<button class="action-btn action-btn-danger text-xs" onclick="adminCancelPayment('${p.payment_id}', this)">Cancel</button>`
+              : `<span class="text-xs text-muted">—</span>`}
+          </td>
+        </tr>`;
+    }).join('');
+    document.querySelector('#paymentsTable thead tr').innerHTML = `
+      <th class="th-cell">Payment ID</th><th class="th-cell">Order ID</th><th class="th-cell">Branch</th>
+      <th class="th-cell">Customer</th><th class="th-cell">Phone</th><th class="th-cell">Amount</th>
+      <th class="th-cell">Status</th><th class="th-cell">Receipt #</th><th class="th-cell">Failure Reason</th>
+      <th class="th-cell">Date</th><th class="th-cell">Action</th>`;
+    showTable('payments');
+  } catch { showEmpty('payments'); }
+}
+
+async function adminCancelPayment(paymentId, btn) {
+  if (!confirm(`Cancel payment '${paymentId}'?\n\nThis will mark it Cancelled, its order as Failed, and restore stock.`)) return;
+  btn.disabled = true; btn.textContent = 'Cancelling…';
+  try {
+    const res  = await apiFetch(`/admin/payments/${paymentId}/cancel/`, { method: 'POST' });
+    const data = await res.json();
+    if (res.ok) { showAlert(data.message || `Payment '${paymentId}' cancelled.`, 'ok'); loadPayments(); loadOrdersCard(); }
+    else { showAlert(data.error || 'Failed to cancel payment.', 'error'); btn.disabled = false; btn.textContent = 'Cancel'; }
+  } catch { showAlert('Network error while cancelling payment.', 'error'); btn.disabled = false; btn.textContent = 'Cancel'; }
 }
 
 // ══════════════════════════════════════════════
 // ANALYTICS
 // ══════════════════════════════════════════════
-function switchAnalyticsTab(tab) {
-  const isDaily = tab === 'daily';
-  document.getElementById('analyticsDaily').classList.toggle('hidden', !isDaily);
-  document.getElementById('analyticsMonthly').classList.toggle('hidden', isDaily);
-  document.getElementById('tabAnalyticsDaily').classList.toggle('active', isDaily);
-  document.getElementById('tabAnalyticsMonthly').classList.toggle('active', !isDaily);
-  if (isDaily) loadDailySummary(); else loadMonthlySummary();
+let _revenueChart = null;
+let _analyticsBranches = [];
+
+async function initAnalytics() {
+  await _populateAnalyticsBranchFilters();
+  await Promise.allSettled([
+    loadAnalyticsKpiCards(),
+    buildRevenueChart(),
+    loadTodayProductSales(),
+    loadDailySummary(),
+  ]);
+}
+
+async function _populateAnalyticsBranchFilters() {
+  if (_analyticsBranches.length) return;
+  try {
+    const res  = await apiFetch('/admin/branches/');
+    const data = await res.json();
+    _analyticsBranches = data.branches || [];
+  } catch { _analyticsBranches = []; }
+  ['chartBranchFilter', 'todayBranchFilter'].forEach(id => {
+    const sel = document.getElementById(id);
+    if (!sel) return;
+    sel.innerHTML = '<option value="">All Branches</option>';
+    _analyticsBranches.forEach(b => {
+      const opt = document.createElement('option');
+      opt.value = b.branch_id;
+      opt.textContent = b.name;
+      sel.appendChild(opt);
+    });
+  });
+}
+
+async function loadAnalyticsKpiCards() {
+  await Promise.allSettled([
+    _loadKpiTotalProducts(),
+    _loadKpiStockValue(),
+    _loadKpiTodayRevenue(),
+    _loadKpiMonthRevenue(),
+  ]);
+}
+
+async function _loadKpiTotalProducts() {
+  try {
+    const res  = await apiFetch('/admin/products/');
+    const data = await res.json();
+    const list = Array.isArray(data) ? data : (data.products || data.results || []);
+    document.getElementById('kpiTotalProducts').textContent = list.length;
+    document.getElementById('kpiTotalProductsNote').textContent = `${list.length} product${list.length !== 1 ? 's' : ''} in catalogue`;
+  } catch {
+    document.getElementById('kpiTotalProducts').innerHTML = '<span style="color:#ff9b9b;font-size:0.85rem;">Error</span>';
+  }
+}
+
+async function _loadKpiStockValue() {
+  try {
+    const [invRes, prodRes] = await Promise.all([
+      apiFetch('/admin/inventory/'),
+      apiFetch('/admin/products/'),
+    ]);
+    const invData  = await invRes.json();
+    const prodData = await prodRes.json();
+    const inventory = Array.isArray(invData) ? invData : (invData.inventory || invData.results || []);
+    const products  = Array.isArray(prodData) ? prodData : (prodData.products || prodData.results || []);
+    const priceMap = {};
+    products.forEach(p => { priceMap[p.product_id] = parseFloat(p.price || 0); });
+    let totalValue = 0;
+    inventory.forEach(r => {
+      const stock     = r.stock ?? 0;
+      const prodId    = r.product?.product_id ?? r.product_id ?? '';
+      const unitPrice = priceMap[prodId] || parseFloat(r.product?.price || 0);
+      totalValue += stock * unitPrice;
+    });
+    document.getElementById('kpiStockValue').textContent =
+      `KES ${totalValue.toLocaleString('en-KE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    document.getElementById('kpiStockValueNote').textContent = `across ${_analyticsBranches.length || '—'} branch${_analyticsBranches.length !== 1 ? 'es' : ''}`;
+  } catch {
+    document.getElementById('kpiStockValue').innerHTML = '<span style="color:#ff9b9b;font-size:0.85rem;">Error</span>';
+  }
+}
+
+async function _loadKpiTodayRevenue() {
+  try {
+    const today = new Date().toISOString().split('T')[0];
+    const res   = await apiFetch(`/admin/analytics/daily/summary/?date=${today}`);
+    const data  = await res.json();
+    const total = (data.summary || []).reduce((s, b) => s + (b.total_revenue || 0), 0);
+    document.getElementById('kpiTodayRevenue').textContent =
+      `KES ${total.toLocaleString('en-KE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    document.getElementById('kpiTodayRevenueNote').textContent =
+      `${data.total_branches || 0} branch${data.total_branches !== 1 ? 'es' : ''} · ${today}`;
+  } catch {
+    document.getElementById('kpiTodayRevenue').innerHTML = '<span style="color:#ff9b9b;font-size:0.85rem;">Error</span>';
+  }
+}
+
+async function _loadKpiMonthRevenue() {
+  try {
+    const now   = new Date();
+    const month = now.getMonth() + 1;
+    const year  = now.getFullYear();
+    const res   = await apiFetch(`/admin/analytics/monthly/summary/?month=${month}&year=${year}`);
+    const data  = await res.json();
+    const total = (data.summary || []).reduce((s, b) => s + (b.total_revenue || 0), 0);
+    document.getElementById('kpiMonthRevenue').textContent =
+      `KES ${total.toLocaleString('en-KE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    document.getElementById('kpiMonthRevenueNote').textContent =
+      `${monthNames[month - 1]} ${year} · ${data.total_branches || 0} branch${data.total_branches !== 1 ? 'es' : ''}`;
+  } catch {
+    document.getElementById('kpiMonthRevenue').innerHTML = '<span style="color:#ff9b9b;font-size:0.85rem;">Error</span>';
+  }
+}
+
+async function buildRevenueChart() {
+  document.getElementById('chartLoading').classList.remove('hidden');
+  document.getElementById('chartWrapper').classList.add('hidden');
+  document.getElementById('chartEmpty').classList.add('hidden');
+  const branchId = document.getElementById('chartBranchFilter')?.value || '';
+  const dates = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    dates.push(d.toISOString().split('T')[0]);
+  }
+  const results = await Promise.allSettled(
+    dates.map(date => apiFetch(`/admin/analytics/daily/summary/?date=${date}`)
+      .then(r => r.json())
+      .then(data => {
+        if (branchId) {
+          const row = (data.summary || []).find(b => {
+            const br = _analyticsBranches.find(x => x.branch_id === branchId);
+            return br && b.branch_name === br.name;
+          });
+          return { date, revenue: row ? parseFloat(row.total_revenue || 0) : 0 };
+        }
+        const total = (data.summary || []).reduce((s, b) => s + parseFloat(b.total_revenue || 0), 0);
+        return { date, revenue: total };
+      })
+      .catch(() => ({ date, revenue: 0 }))
+    )
+  );
+  const points  = results.map((r, i) => r.status === 'fulfilled' ? r.value : { date: dates[i], revenue: 0 });
+  const hasData = points.some(p => p.revenue > 0);
+  document.getElementById('chartLoading').classList.add('hidden');
+  if (!hasData) { document.getElementById('chartEmpty').classList.remove('hidden'); return; }
+  document.getElementById('chartWrapper').classList.remove('hidden');
+  if (_revenueChart) { _revenueChart.destroy(); _revenueChart = null; }
+  const labels   = points.map(p => {
+    const d = new Date(p.date + 'T00:00:00');
+    return d.toLocaleDateString('en-KE', { weekday: 'short', day: 'numeric', month: 'short' });
+  });
+  const revenues = points.map(p => p.revenue);
+  const ctx  = document.getElementById('revenueChart').getContext('2d');
+  const grad = ctx.createLinearGradient(0, 0, 0, 260);
+  grad.addColorStop(0, 'rgba(0,200,150,0.25)');
+  grad.addColorStop(1, 'rgba(0,200,150,0.00)');
+  _revenueChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: branchId
+          ? (_analyticsBranches.find(b => b.branch_id === branchId)?.name || 'Branch') + ' Revenue'
+          : 'Total Revenue (All Branches)',
+        data: revenues,
+        borderColor: '#00C896', borderWidth: 2.5,
+        pointBackgroundColor: '#00C896', pointBorderColor: '#0A2540', pointBorderWidth: 2,
+        pointRadius: 5, pointHoverRadius: 7,
+        fill: true, backgroundColor: grad, tension: 0.4,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { labels: { color: '#9BBFD6', font: { family: 'Syne', size: 11, weight: '700' } } },
+        tooltip: {
+          backgroundColor: 'rgba(6,22,42,0.92)', borderColor: 'rgba(0,200,150,0.3)', borderWidth: 1,
+          titleColor: '#E8F4F8', bodyColor: '#9BBFD6',
+          titleFont: { family: 'Syne', weight: '700' },
+          callbacks: { label: ctx => ` KES ${Number(ctx.parsed.y).toLocaleString('en-KE', { minimumFractionDigits: 2 })}` }
+        }
+      },
+      scales: {
+        x: { grid: { color: 'rgba(0,200,150,0.05)', drawBorder: false }, ticks: { color: '#7A9AB0', font: { family: 'DM Sans', size: 11 } } },
+        y: { grid: { color: 'rgba(0,200,150,0.05)', drawBorder: false },
+             ticks: { color: '#7A9AB0', font: { family: 'DM Sans', size: 11 }, callback: v => 'KES ' + Number(v).toLocaleString('en-KE') },
+             beginAtZero: true }
+      }
+    }
+  });
+}
+
+function refreshRevenueChart() { buildRevenueChart(); }
+
+async function loadTodayProductSales() {
+  const loadingEl = document.getElementById('todayProductLoading');
+  const listEl    = document.getElementById('todayProductList');
+  const emptyEl   = document.getElementById('todayProductEmpty');
+  loadingEl.classList.remove('hidden');
+  listEl.classList.add('hidden');
+  emptyEl.classList.add('hidden');
+  try {
+    const today    = new Date().toISOString().split('T')[0];
+    const branchId = document.getElementById('todayBranchFilter')?.value || '';
+    let url = `/admin/analytics/daily/?date=${today}`;
+    if (branchId) url += `&branch_id=${branchId}`;
+    const res  = await apiFetch(url);
+    const data = await res.json();
+    const reports = data.reports || [];
+    if (!reports.length) { loadingEl.classList.add('hidden'); emptyEl.classList.remove('hidden'); return; }
+    const productMap = {};
+    reports.forEach(r => {
+      const key = r.product_name;
+      if (!productMap[key]) productMap[key] = { name: key, sold: 0, revenue: 0 };
+      productMap[key].sold    += r.total_sold    || 0;
+      productMap[key].revenue += parseFloat(r.total_revenue || 0);
+    });
+    const rows = Object.values(productMap).sort((a, b) => b.revenue - a.revenue);
+    const maxRevenue = rows[0]?.revenue || 1;
+    listEl.innerHTML = rows.map((p, idx) => {
+      const barPct = Math.max(4, Math.round((p.revenue / maxRevenue) * 100));
+      return `
+        <div class="product-sales-row">
+          <div class="w-5 text-center font-head font-bold text-xs" style="color:#7A9AB0;">${idx + 1}</div>
+          <div class="flex-1 min-w-0">
+            <p class="td-main truncate mb-1">${p.name}</p>
+            <div class="product-bar-track"><div class="product-bar-fill" style="width:${barPct}%;"></div></div>
+          </div>
+          <div class="text-right flex-shrink-0 ml-3">
+            <p class="font-head font-bold text-sm text-wdtext">KES ${p.revenue.toLocaleString('en-KE', {minimumFractionDigits:2})}</p>
+            <p class="text-xs" style="color:#7A9AB0;">${p.sold.toLocaleString()} unit${p.sold !== 1 ? 's' : ''}</p>
+          </div>
+        </div>`;
+    }).join('');
+    loadingEl.classList.add('hidden');
+    listEl.classList.remove('hidden');
+  } catch {
+    loadingEl.classList.add('hidden');
+    emptyEl.classList.remove('hidden');
+    emptyEl.textContent = 'Failed to load product sales.';
+  }
 }
 
 async function loadDailySummary() {
-  const dateInput = document.getElementById('analyticsDate').value;
-  const date      = dateInput || new Date().toISOString().split('T')[0];
+  const date = document.getElementById('analyticsDate').value || new Date().toISOString().split('T')[0];
   document.getElementById('dailySummaryLoading').classList.remove('hidden');
   document.getElementById('dailySummaryTable').classList.add('hidden');
   try {
-    const res  = await apiFetch(`/api/admin/analytics/daily/summary/?date=${date}`);
+    const res  = await apiFetch(`/admin/analytics/daily/summary/?date=${date}`);
     const data = await res.json();
     const rows = data.summary || [];
     if (!rows.length) {
@@ -1606,8 +2550,7 @@ async function loadDailySummary() {
         <td class="td-sub px-4 py-3">${r.date}</td>
         <td class="td-sub px-4 py-3">${(r.total_sold || 0).toLocaleString()}</td>
         <td class="td-amt px-4 py-3">KES ${Number(r.total_revenue || 0).toLocaleString('en-KE', {minimumFractionDigits:2})}</td>
-      </tr>
-    `).join('');
+      </tr>`).join('');
     document.getElementById('dailySummaryLoading').classList.add('hidden');
     document.getElementById('dailySummaryTable').classList.remove('hidden');
   } catch {
@@ -1619,15 +2562,38 @@ async function loadMonthlySummary() {
   const month = document.getElementById('analyticsMonth').value;
   const year  = document.getElementById('analyticsYear').value || new Date().getFullYear();
   document.getElementById('monthlySummaryLoading').classList.remove('hidden');
+  document.getElementById('monthlyBranchList').classList.add('hidden');
   document.getElementById('monthlySummaryTable').classList.add('hidden');
+  document.getElementById('monthTotalRevenueBanner').innerHTML = '<span class="skeleton inline-block w-28 h-6 rounded"></span>';
   try {
-    const res  = await apiFetch(`/api/admin/analytics/monthly/summary/?month=${month}&year=${year}`);
+    const res  = await apiFetch(`/admin/analytics/monthly/summary/?month=${month}&year=${year}`);
     const data = await res.json();
     const rows = data.summary || [];
+    const totalRevenue = rows.reduce((s, r) => s + parseFloat(r.total_revenue || 0), 0);
+    document.getElementById('monthTotalRevenueBanner').textContent =
+      `KES ${totalRevenue.toLocaleString('en-KE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     if (!rows.length) {
       document.getElementById('monthlySummaryLoading').innerHTML = `<p class="text-sm text-muted text-center py-4">No data for this period.</p>`;
       return;
     }
+    const maxBranchRev = Math.max(...rows.map(r => parseFloat(r.total_revenue || 0)), 1);
+    document.getElementById('monthlyBranchList').innerHTML = rows.map(r => {
+      const rev    = parseFloat(r.total_revenue || 0);
+      const barPct = Math.max(4, Math.round((rev / maxBranchRev) * 100));
+      return `
+        <div class="monthly-branch-row">
+          <div class="min-w-0 flex-1">
+            <p class="td-main truncate mb-1">${r.branch_name}</p>
+            <div class="product-bar-track" style="max-width:240px;">
+              <div class="product-bar-fill" style="width:${barPct}%;background:linear-gradient(90deg,#00A3FF,#00C896);"></div>
+            </div>
+          </div>
+          <div class="text-right ml-4 flex-shrink-0">
+            <p class="font-head font-bold text-sm text-wdtext">KES ${rev.toLocaleString('en-KE', {minimumFractionDigits:2})}</p>
+            <p class="text-xs" style="color:#7A9AB0;">${(r.total_sold || 0).toLocaleString()} units</p>
+          </div>
+        </div>`;
+    }).join('');
     document.getElementById('monthlySummaryBody').innerHTML = rows.map(r => `
       <tr style="border-bottom:1px solid rgba(0,200,150,0.06);" class="hover:bg-white/[0.02]">
         <td class="td-main px-4 py-3">${r.branch_name}</td>
@@ -1635,9 +2601,9 @@ async function loadMonthlySummary() {
         <td class="td-sub px-4 py-3">${r.year}</td>
         <td class="td-sub px-4 py-3">${(r.total_sold || 0).toLocaleString()}</td>
         <td class="td-amt px-4 py-3">KES ${Number(r.total_revenue || 0).toLocaleString('en-KE', {minimumFractionDigits:2})}</td>
-      </tr>
-    `).join('');
+      </tr>`).join('');
     document.getElementById('monthlySummaryLoading').classList.add('hidden');
+    document.getElementById('monthlyBranchList').classList.remove('hidden');
     document.getElementById('monthlySummaryTable').classList.remove('hidden');
   } catch {
     document.getElementById('monthlySummaryLoading').innerHTML = `<p class="text-sm text-muted text-center py-4">Failed to load.</p>`;
@@ -1652,31 +2618,35 @@ async function loadAlerts() {
   try {
     const resolved = document.getElementById('alertFilterResolved').value;
     const severity = document.getElementById('alertFilterSeverity').value;
-    let url = '/api/admin/alerts/?';
+    let url = '/admin/alerts/?';
     if (resolved !== '') url += `is_resolved=${resolved}&`;
     if (severity)        url += `severity=${severity}&`;
-    const res  = await apiFetch(url);
-    const data = await res.json();
+    const res    = await apiFetch(url);
+    const data   = await res.json();
     const alerts = data.alerts || [];
     if (!alerts.length) { showEmpty('alerts'); return; }
-    document.getElementById('alertsBody').innerHTML = alerts.map(a => `
-      <tr style="border-bottom:1px solid rgba(0,200,150,0.06);" class="hover:bg-white/[0.02] transition-colors">
-        <td class="td-id px-4 py-3">${a.id}</td>
-        <td class="td-sub px-4 py-3">${a.branch_name}</td>
-        <td class="td-main px-4 py-3">${a.product_name}</td>
-        <td class="td-sub px-4 py-3 text-center">${a.stock_at_alert}</td>
-        <td class="td-sub px-4 py-3 text-center" style="${a.current_stock <= a.threshold ? 'color:#ff6b6b;' : 'color:#00C896;'}">${a.current_stock}</td>
-        <td class="px-4 py-3"><span class="badge badge-${(a.severity || '').toLowerCase()}">${a.severity}</span></td>
-        <td class="px-4 py-3"><span class="badge ${a.is_resolved ? 'badge-resolved' : 'badge-critical'}">${a.is_resolved ? 'Resolved' : 'Open'}</span></td>
-        <td class="td-sub px-4 py-3">${a.resolved_by || '—'}</td>
-        <td class="td-date px-4 py-3">${fmtDate(a.created_at)}</td>
-        <td class="px-4 py-3">
-          ${!a.is_resolved
-            ? `<button class="action-btn action-btn-primary text-xs" onclick="resolveAlert(${a.id}, this)">Resolve</button>`
-            : `<span class="text-xs text-muted">Done</span>`}
-        </td>
-      </tr>
-    `).join('');
+    document.getElementById('alertsBody').innerHTML = alerts.map(a => {
+      const stillLow = a.current_stock <= a.threshold;
+      return `
+        <tr style="border-bottom:1px solid rgba(0,200,150,0.06);" class="hover:bg-white/[0.02] transition-colors">
+          <td class="td-id px-4 py-3">${a.id}</td>
+          <td class="td-sub px-4 py-3">${a.branch_name}</td>
+          <td class="td-main px-4 py-3">${a.product_name}</td>
+          <td class="td-sub px-4 py-3 text-center">${a.stock_at_alert}</td>
+          <td class="td-sub px-4 py-3 text-center" style="${stillLow ? 'color:#ff6b6b;' : 'color:#00C896;'}">${a.current_stock}</td>
+          <td class="px-4 py-3"><span class="badge badge-${(a.severity || '').toLowerCase()}">${a.severity}</span></td>
+          <td class="px-4 py-3"><span class="badge ${a.is_resolved ? 'badge-resolved' : 'badge-critical'}">${a.is_resolved ? 'Resolved' : 'Open'}</span></td>
+          <td class="td-sub px-4 py-3">${a.resolved_by || '—'}</td>
+          <td class="td-date px-4 py-3">${fmtDate(a.created_at)}</td>
+          <td class="px-4 py-3">
+            ${!a.is_resolved
+              ? stillLow
+                ? `<button class="action-btn action-btn-warning text-xs" onclick="goToRestock('${a.branch_name}','${a.branch_id || ''}')">Restock First</button>`
+                : `<button class="action-btn action-btn-primary text-xs" onclick="resolveAlert(${a.id},this)">Resolve</button>`
+              : `<span class="text-xs text-muted">Done</span>`}
+          </td>
+        </tr>`;
+    }).join('');
     showTable('alerts');
   } catch { showEmpty('alerts'); }
 }
@@ -1684,155 +2654,114 @@ async function loadAlerts() {
 async function resolveAlert(alertId, btn) {
   btn.disabled = true; btn.textContent = 'Resolving…';
   try {
-    const res  = await apiFetch(`/api/admin/alerts/${alertId}/resolve/`, { method: 'POST' });
+    const res  = await apiFetch(`/admin/alerts/${alertId}/resolve/`, { method:'POST' });
     const data = await res.json();
-    if (res.ok) {
-      showAlert(data.message || 'Alert resolved successfully.', 'ok');
-      loadAlerts(); loadAlertsCard();
-    } else {
-      showAlert(data.error || data.message || 'Failed to resolve alert.', 'error');
+    if (res.ok) { showAlert(data.message || 'Alert resolved successfully.', 'ok'); loadAlerts(); loadAlertsCard(); }
+    else {
+      const msg = data.units_needed
+        ? `${data.error || 'Failed.'} Need ${data.units_needed} more unit(s). Go to Restock to fix this.`
+        : (data.error || data.message || 'Failed to resolve alert.');
+      showAlert(msg, 'error');
       btn.disabled = false; btn.textContent = 'Resolve';
     }
-  } catch {
-    showAlert('Network error while resolving alert.', 'error');
-    btn.disabled = false; btn.textContent = 'Resolve';
+  } catch { showAlert('Network error while resolving alert.', 'error'); btn.disabled = false; btn.textContent = 'Resolve'; }
+}
+
+function goToRestock(branchName = null, branchId = null) {
+  showPanel('restock', document.getElementById('navRestock'));
+  if (branchId) {
+    const trySelect = (attempts = 0) => {
+      const select = document.getElementById('restockBranchSelect');
+      const option = Array.from(select.options).find(o => o.value === branchId);
+      if (option) { select.value = branchId; onRestockBranchChange(); }
+      else if (attempts < 15) { setTimeout(() => trySelect(attempts + 1), 200); }
+    };
+    trySelect();
   }
 }
 
-// ══════════════════════════════════════════════
-// RESTOCK
-// ══════════════════════════════════════════════
-async function loadRestockPanel() {
-  const select    = document.getElementById('restockBranchSelect');
-  const loadingEl = document.getElementById('restockBranchLoading');
-  select.innerHTML = '<option value="">— Choose a branch —</option>';
-  document.getElementById('restockProductsSection').classList.add('hidden');
-  loadingEl.classList.remove('hidden');
-  try {
-    const res  = await apiFetch('/api/admin/branches/');
-    const data = await res.json();
-    const branches = data.branches || [];
-    branches.forEach(b => {
-      const opt = document.createElement('option');
-      opt.value = b.branch_id;
-      opt.textContent = b.name + (b.is_active ? '' : ' (Inactive)');
-      select.appendChild(opt);
-    });
-  } catch {
-    showAlert('Failed to load branches for restock.', 'error');
-  }
-  loadingEl.classList.add('hidden');
+let scanOpen = false;
+function toggleScanResults() { if (scanOpen) closeScanResults(); else openScanResults(); }
+function closeScanResults() {
+  scanOpen = false;
+  document.getElementById('scanResultsSection').classList.remove('open');
+  const btn = document.getElementById('scanInventoryBtn');
+  btn.style.background = ''; btn.style.borderColor = '';
 }
-
-// ═══════════════════════════════════════════════════════════════════
-// onRestockBranchChange — FIX 2
-// BEFORE: /api/admin/inventory/branch/${branchId}/
-//   → "branch" captured as branch_id, actual branchId as product_id
-//   → hits AdminInventoryDetailView (PATCH only) → 405
-//
-// AFTER: /api/admin/inventory/${branchId}/
-//   → correctly hits AdminBranchInventoryView (GET) → 200
-//   → removed the broken 404-fallback block
-// ═══════════════════════════════════════════════════════════════════
-async function onRestockBranchChange() {
-  const branchId = document.getElementById('restockBranchSelect').value;
-  const section  = document.getElementById('restockProductsSection');
-  if (!branchId) { section.classList.add('hidden'); return; }
-
-  section.classList.remove('hidden');
-  document.getElementById('restockProductsLoading').classList.remove('hidden');
-  document.getElementById('restockProductsTable').classList.add('hidden');
-  document.getElementById('restockProductsEmpty').classList.add('hidden');
-
-  const branchName = document.getElementById('restockBranchSelect').selectedOptions[0].textContent;
-  document.getElementById('restockBranchLabel').textContent = '— ' + branchName;
-
+async function openScanResults() {
+  scanOpen = true;
+  document.getElementById('scanResultsSection').classList.add('open');
+  const btn = document.getElementById('scanInventoryBtn');
+  btn.style.background = 'rgba(255,180,0,0.2)'; btn.style.borderColor = 'rgba(255,180,0,0.5)';
+  document.getElementById('scanLoading').classList.remove('hidden');
+  document.getElementById('scanResultsBody').innerHTML = '';
+  document.getElementById('scanSummaryFooter').classList.add('hidden');
+  document.getElementById('scanTimestamp').textContent = '';
   try {
-    // FIX: correct URL → AdminBranchInventoryView (GET supported)
-    const res = await apiFetch(`/api/admin/inventory/${branchId}/`);
-
-    if (!res.ok) {
-      const errData = await res.json().catch(() => ({}));
-      const errMsg  = errData.error || errData.detail || `HTTP ${res.status}`;
-      document.getElementById('restockProductsLoading').classList.add('hidden');
-      showAlert(`Could not load inventory (${res.status}): ${errMsg}`, 'error');
+    await apiFetch('/admin/inventory/scan/', { method:'POST' });
+    const alertsRes  = await apiFetch('/admin/alerts/?is_resolved=false');
+    const alertsData = await alertsRes.json();
+    const alerts     = alertsData.alerts || [];
+    document.getElementById('scanLoading').classList.add('hidden');
+    document.getElementById('scanTimestamp').textContent = '· Scanned at ' + new Date().toLocaleTimeString('en-KE', { hour:'2-digit', minute:'2-digit' });
+    if (!alerts.length) {
+      document.getElementById('scanResultsBody').innerHTML = `
+        <div class="flex items-center gap-4 p-4 rounded-xl" style="background:rgba(0,200,150,0.06);border:1px solid rgba(0,200,150,0.2);">
+          <div style="width:36px;height:36px;border-radius:10px;background:rgba(0,200,150,0.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00C896" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <div><p class="font-head font-bold text-sm" style="color:#00C896;">All Clear — No Low Stock Detected</p><p class="text-xs text-muted mt-0.5">Every product in every branch is above its restock threshold.</p></div>
+        </div>`;
+      document.getElementById('scanBadge').classList.add('hidden');
       return;
     }
-
-    const data = await res.json();
-    // AdminBranchInventoryView returns a plain list directly
-    const records = Array.isArray(data) ? data : (data.results || data.inventory || []);
-
-    if (!records.length) {
-      document.getElementById('restockProductsLoading').classList.add('hidden');
-      document.getElementById('restockProductsEmpty').classList.remove('hidden');
-      return;
+    const byBranch = {};
+    alerts.forEach(a => { if (!byBranch[a.branch_name]) byBranch[a.branch_name] = []; byBranch[a.branch_name].push(a); });
+    let html = '';
+    for (const [branch, items] of Object.entries(byBranch)) {
+      const critCount = items.filter(i => i.severity === 'CRITICAL').length;
+      html += `<div class="mb-3">
+        <div class="flex items-center gap-2 mb-2">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#7A9AB0" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+          <span class="text-xs font-head font-bold text-wdtext">${branch}</span>
+          ${critCount > 0 ? `<span class="badge badge-critical ml-1">${critCount} CRITICAL</span>` : ''}
+        </div>
+        <div class="flex flex-col gap-2 pl-4">
+          ${items.map(a => {
+            const isCrit  = a.severity === 'CRITICAL';
+            const deficit = a.threshold - a.current_stock;
+            return `<div class="scan-result-card ${isCrit ? 'critical-card' : ''} flex items-center justify-between gap-4 flex-wrap">
+              <div class="flex items-center gap-3 min-w-0">
+                <div style="width:8px;height:8px;border-radius:50%;background:${isCrit ? '#ff6b6b' : '#ffc107'};flex-shrink:0;box-shadow:0 0 6px ${isCrit ? 'rgba(255,80,80,0.5)' : 'rgba(255,193,7,0.5)'};"></div>
+                <div class="min-w-0">
+                  <p class="td-main truncate">${a.product_name}</p>
+                  <p class="text-xs mt-0.5" style="color:#7A9AB0;">
+                    Stock: <span style="color:${isCrit ? '#ff6b6b' : '#ffc107'};font-weight:700;">${a.current_stock}</span>
+                    &nbsp;/&nbsp; Threshold: <span style="color:#B8D4E3;">${a.threshold}</span>
+                    &nbsp;·&nbsp; Need <span style="color:#ffc107;font-weight:700;">${deficit + 1}</span> more unit${deficit !== 0 ? 's' : ''}
+                  </p>
+                </div>
+              </div>
+              <span class="badge badge-${isCrit ? 'critical' : 'low'} flex-shrink-0">${a.severity}</span>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>`;
     }
-
-    document.getElementById('restockProductsBody').innerHTML = records.map(r => {
-      const stock    = r.stock ?? 0;
-      const thresh   = r.low_stock_threshold ?? 0;
-      const isLow    = r.is_low ?? (stock <= thresh);
-      const prodId   = r.product?.product_id ?? '';
-      const prodName = r.product?.name ?? '—';
-      const safeName = prodName.replace(/'/g, "\\'");
-      return `
-        <tr style="border-bottom:1px solid rgba(0,200,150,0.06);" class="hover:bg-white/[0.02] transition-colors">
-          <td class="td-main px-4 py-3">${prodName}</td>
-          <td class="td-amt px-4 py-3" style="${isLow ? 'color:#ff6b6b;' : ''}">${stock}</td>
-          <td class="td-sub px-4 py-3">${thresh}</td>
-          <td class="px-4 py-3">
-            ${isLow ? `<span class="badge badge-critical">Low</span>` : `<span class="badge badge-active">OK</span>`}
-          </td>
-          <td class="px-4 py-3">
-            <input type="number" min="1" placeholder="Units"
-              id="restockQty_${prodId}"
-              class="input-field text-xs w-24" style="padding:0.4rem 0.6rem;"/>
-          </td>
-          <td class="px-4 py-3">
-            <button class="action-btn action-btn-primary text-xs"
-              onclick="submitRestock('${branchId}', '${prodId}', '${safeName}', this)">
-              Restock
-            </button>
-          </td>
-        </tr>
-      `;
-    }).join('');
-
-    document.getElementById('restockProductsLoading').classList.add('hidden');
-    document.getElementById('restockProductsTable').classList.remove('hidden');
-  } catch(e) {
-    console.error('Restock load error:', e);
-    document.getElementById('restockProductsLoading').classList.add('hidden');
-    showAlert('Failed to load inventory for this branch.', 'error');
-  }
-}
-
-async function submitRestock(branchId, productId, productName, btn) {
-  const qtyInput = document.getElementById(`restockQty_${productId}`);
-  const qty = parseInt(qtyInput?.value, 10);
-  if (!qty || qty < 1) { showAlert('Please enter a valid quantity (minimum 1).', 'error'); return; }
-  btn.disabled = true; btn.textContent = 'Restocking…';
-  try {
-    const res  = await apiFetch(`/api/admin/inventory/${branchId}/${productId}/restock/`, {
-      method: 'POST',
-      body: JSON.stringify({ quantity: qty })
-    });
-    const data = await res.json();
-    if (res.ok) {
-      showAlert(data.message || `${productName} restocked. New stock: ${data.current_stock}`, 'ok');
-      if (qtyInput) qtyInput.value = '';
-      onRestockBranchChange();
-      loadAlertsCard();
-    } else {
-      const errMsg = data.error || data.detail || Object.values(data).flat().join(' ') || 'Restock failed.';
-      showAlert(errMsg, 'error');
-      btn.disabled = false; btn.textContent = 'Restock';
-    }
-  } catch(e) {
-    console.error('Restock submit error:', e);
-    showAlert('Network error during restock.', 'error');
-    btn.disabled = false; btn.textContent = 'Restock';
+    document.getElementById('scanResultsBody').innerHTML = html;
+    const badge = document.getElementById('scanBadge');
+    badge.textContent = alerts.length; badge.classList.remove('hidden');
+    const critTotal = alerts.filter(a => a.severity === 'CRITICAL').length;
+    const lowTotal  = alerts.filter(a => a.severity === 'LOW').length;
+    document.getElementById('scanSummaryText').innerHTML =
+      `Found <strong style="color:#E8F4F8;">${alerts.length}</strong> item${alerts.length !== 1 ? 's' : ''} below threshold across
+       <strong style="color:#E8F4F8;">${Object.keys(byBranch).length}</strong> branch${Object.keys(byBranch).length !== 1 ? 'es' : ''}&nbsp;·&nbsp;
+       <span style="color:#ff6b6b;">${critTotal} Critical</span>&nbsp;·&nbsp;
+       <span style="color:#ffc107;">${lowTotal} Low</span>`;
+    document.getElementById('scanSummaryFooter').classList.remove('hidden');
+  } catch {
+    document.getElementById('scanLoading').classList.add('hidden');
+    document.getElementById('scanResultsBody').innerHTML = `<p class="text-sm text-muted text-center py-4">Failed to scan inventory. Please try again.</p>`;
   }
 }
 
@@ -1854,10 +2783,10 @@ function showEmpty(section) {
   document.getElementById(section + 'Table').classList.add('hidden');
   document.getElementById(section + 'Empty')?.classList.remove('hidden');
 }
+
 function showAlert(msg, type = 'ok') {
-  const bar = document.getElementById('alertBar');
   document.getElementById('alertMsg').textContent = msg;
-  bar.className = `alert-bar show ${type}`;
+  document.getElementById('alertBar').className = `alert-bar show ${type}`;
   setTimeout(hideAlert, 5000);
 }
 function hideAlert() { document.getElementById('alertBar').classList.remove('show'); }

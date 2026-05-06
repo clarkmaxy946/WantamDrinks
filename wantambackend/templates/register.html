@@ -5,301 +5,275 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>WantamDrinks — Create Account</title>
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Epilogue:wght@300;400;500;600&display=swap" rel="stylesheet"/>
   <style>
-    :root {
-      --neon-purple:#b44fff; --neon-cyan:#00e5ff; --neon-amber:#ffb347;
-      --glass-bg:rgba(8,4,20,0.74); --glass-border:rgba(180,79,255,0.35);
-      --text:#f0e8ff; --muted:#a89bbf; --error:#ff5c7a;
+    :root{
+      --ink:#1a1714; --ink2:#5a534c; --ink3:#9a938c;
+      --bg:#f7f4ef; --surface:#fff;
+      --accent:#c84b2f; --accent-lt:#f5e8e3;
+      --border:rgba(26,23,20,0.1); --border-md:rgba(26,23,20,0.18);
+      --error:#c0392b; --error-lt:#fdf0ee;
+      --ease:cubic-bezier(0.22,1,0.36,1);
+      --head:"Playfair Display",Georgia,serif;
+      --body:"Epilogue",system-ui,sans-serif;
     }
-    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-    html,body{height:100%;}
-    body{
-      font-family:'DM Sans',sans-serif; min-height:100vh;
-      background: url("{% static 'images/WantamDrinksbackground.png' %}") center center / cover no-repeat fixed;
-      display:flex; align-items:center; justify-content:center;
-      position:relative; overflow-x:hidden;
-    }
-    body::before{content:'';position:fixed;inset:0;background:linear-gradient(135deg,rgba(8,4,20,.58) 0%,rgba(20,5,40,.48) 50%,rgba(8,4,20,.68) 100%);pointer-events:none;z-index:0;}
-    body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:1;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.04) 2px,rgba(0,0,0,.04) 4px);}
-    @keyframes fadeUp{from{opacity:0;transform:translateY(28px);}to{opacity:1;transform:translateY(0);}}
-    @keyframes neonPulse{0%,100%{text-shadow:0 0 8px var(--neon-purple),0 0 20px var(--neon-purple);}50%{text-shadow:0 0 4px var(--neon-cyan),0 0 16px var(--neon-cyan);}}
-    @keyframes borderGlow{0%,100%{box-shadow:0 0 0 1px rgba(180,79,255,.5),0 0 30px rgba(180,79,255,.15),inset 0 0 30px rgba(180,79,255,.05);}50%{box-shadow:0 0 0 1px rgba(0,229,255,.5),0 0 30px rgba(0,229,255,.15),inset 0 0 30px rgba(0,229,255,.05);}}
-    @keyframes spin{to{transform:rotate(360deg);}}
-    @keyframes shimmer{0%{left:-100%;}100%{left:200%;}}
-    .animate-fadeUp{animation:fadeUp .7s ease both;}
-    .animate-fadeUp2{animation:fadeUp .7s .12s ease both;}
-    /* FORM CARD */
-    .form-card{
-      background:var(--glass-bg);
-      backdrop-filter:blur(24px) saturate(1.4);
-      -webkit-backdrop-filter:blur(24px) saturate(1.4);
-      border-radius:24px; border:1px solid var(--glass-border);
-      animation:borderGlow 4s ease-in-out infinite;
-      padding:2rem 2rem; width:100%; max-width:440px;
-      position:relative; overflow:hidden;
-    }
-    .form-card::before{content:'';position:absolute;top:0;left:-100%;width:60%;height:100%;background:linear-gradient(90deg,transparent,rgba(180,79,255,.06),transparent);animation:shimmer 6s infinite;pointer-events:none;}
-    .logo-mark{width:55px;height:42px;border-radius:12px;background:linear-gradient(135deg,#b44fff,#00e5ff);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:1.1rem;color:#08040e;box-shadow:0 0 20px rgba(180,79,255,.6);flex-shrink:0;}
-    .neon-label{font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);margin-bottom:.4rem;display:block;}
-    .neon-input{width:100%;background:rgba(5,2,14,.7);border:1px solid rgba(180,79,255,.25);border-radius:11px;padding:.78rem 1rem .78rem 2.55rem;font-family:'DM Sans',sans-serif;font-size:.88rem;color:var(--text);outline:none;transition:border-color .2s,box-shadow .2s;}
-    .neon-input::placeholder{color:rgba(168,155,191,.4);}
-    .neon-input:focus{border-color:var(--neon-purple);box-shadow:0 0 0 3px rgba(180,79,255,.15),0 0 12px rgba(180,79,255,.2);}
-    .neon-input.invalid{border-color:var(--error)!important;box-shadow:0 0 0 3px rgba(255,92,122,.12)!important;}
-    input:-webkit-autofill{-webkit-box-shadow:0 0 0 30px #08040e inset!important;-webkit-text-fill-color:#f0e8ff!important;}
-    .neon-btn{width:100%;background:linear-gradient(135deg,#b44fff,#00e5ff);border:none;border-radius:12px;padding:.88rem;cursor:pointer;font-family:'Syne',sans-serif;font-weight:700;font-size:.95rem;color:#08040e;transition:transform .15s,box-shadow .15s,opacity .15s;box-shadow:0 4px 24px rgba(180,79,255,.45);display:flex;align-items:center;justify-content:center;gap:8px;position:relative;overflow:hidden;}
-    .neon-btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 32px rgba(180,79,255,.55);}
-    .neon-btn:disabled{opacity:.55;cursor:not-allowed;transform:none;}
-    .neon-btn .spinner{display:none;width:17px;height:17px;border:2px solid rgba(8,4,20,.3);border-top-color:#08040e;border-radius:50%;animation:spin .7s linear infinite;}
-    .neon-btn.loading .btn-text{opacity:.6;}
-    .neon-btn.loading .spinner{display:block;}
-    .alert-box{display:none;border-radius:10px;padding:.75rem 1rem;font-size:.83rem;margin-bottom:.9rem;align-items:flex-start;gap:8px;}
-    .alert-box.show{display:flex;}
-    .field-error{display:none;font-size:.72rem;color:var(--error);margin-top:3px;}
-    .field-error.show{display:block;}
-    .rate-banner{display:none;border-radius:10px;padding:.75rem 1rem;font-size:.83rem;margin-bottom:.9rem;align-items:flex-start;gap:8px;background:rgba(255,179,71,.1);border:1px solid rgba(255,179,71,.3);color:#ffb347;}
-    .rate-banner.show{display:flex;}
-    .neon-divider{width:100%;height:1px;background:linear-gradient(90deg,transparent,rgba(180,79,255,.4),rgba(0,229,255,.4),transparent);margin:1rem 0;}
-    .toggle-pw{position:absolute;right:11px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--muted);padding:0;transition:color .2s;display:flex;align-items:center;}
-    .toggle-pw:hover{color:var(--neon-purple);}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font:400 1rem/1.65 var(--body);background:var(--bg);color:var(--ink);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:32px 20px}
+    a{color:var(--accent);text-decoration:none}
+    a:hover{text-decoration:underline}
+
+    .page{display:grid;grid-template-columns:1fr 1fr;gap:72px;width:100%;max-width:960px;align-items:center}
+    /* Left brand panel */
+    .brand h1{font:700 clamp(2rem,3.5vw,2.8rem)/1.1 var(--head);color:var(--ink);margin:16px 0 14px}
+    .brand h1 em{font-style:italic;color:var(--accent)}
+    .brand .logo{display:flex;align-items:center;gap:9px;font:700 1.1rem var(--head);color:var(--ink)}
+    .brand .logo-mark{width:30px;height:30px;border-radius:6px;background:var(--accent);display:grid;place-items:center;color:#fff;font-size:11px;font-weight:700}
+    .brand p{font-size:.95rem;font-weight:300;color:var(--ink2);line-height:1.7;margin-bottom:28px}
+    .perks{display:flex;flex-direction:column;gap:12px}
+    .perk{display:flex;align-items:center;gap:12px;font-size:.875rem;color:var(--ink2)}
+    .perk-icon{width:34px;height:34px;border-radius:8px;background:var(--accent-lt);display:grid;place-items:center;flex-shrink:0}
+    .perk-icon svg{stroke:var(--accent)}
+
+    /* Card */
+    .card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:36px;width:100%}
+    .card h2{font:700 1.5rem/1.2 var(--head);color:var(--ink);margin-bottom:4px}
+    .card .sub{font-size:.875rem;color:var(--ink3);margin-bottom:24px}
+
     /* Steps */
-    .step-num{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;border:1.5px solid rgba(168,155,191,.35);color:#a89bbf;transition:all .3s;flex-shrink:0;}
-    .step.active .step-num{background:#b44fff;border-color:#b44fff;color:#08040e;}
-    .step.done .step-num{background:rgba(180,79,255,.2);border-color:#b44fff;color:#b44fff;}
-    .pw-strength{display:none;margin-top:6px;}
-    .pw-bar{height:3px;flex:1;background:rgba(168,155,191,.2);border-radius:2px;transition:background .3s;}
-    .pw-bar.filled.weak{background:#ff5c7a;}
-    .pw-bar.filled.fair{background:#ffb347;}
-    .pw-bar.filled.good{background:#b44fff;}
-    .pw-bar.filled.strong{background:#00e5ff;}
-    .pw-reqs{display:none;flex-direction:column;gap:3px;margin-top:6px;}
-    .pw-reqs.show{display:flex;}
-    .req-item{display:flex;align-items:center;gap:6px;font-size:.72rem;color:#a89bbf;transition:color .2s;}
-    .req-item.met{color:#b44fff;}
-    .req-item svg{width:11px;height:11px;flex-shrink:0;}
-    /* brand left side */
-    .brand-side{flex:1;max-width:360px;padding:1.5rem;}
+    .steps{display:flex;align-items:center;gap:0;margin-bottom:24px}
+    .s-item{display:flex;align-items:center;gap:6px;font-size:.75rem;font-weight:500;color:var(--ink3)}
+    .s-item.active .s-num{background:var(--accent);color:#fff;border-color:var(--accent)}
+    .s-item.done .s-num{border-color:var(--accent);color:var(--accent)}
+    .s-num{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--border-md);display:grid;place-items:center;font-size:.7rem;font-weight:600;transition:all .25s var(--ease)}
+    .s-line{flex:1;height:1px;background:var(--border);margin:0 8px}
+
+    /* Fields */
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+    .field{margin-bottom:14px}
+    .field:last-of-type{margin-bottom:20px}
+    label{display:block;font-size:.75rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--ink3);margin-bottom:5px}
+    .inp-wrap{position:relative}
+    .inp-wrap > svg{
+      position:absolute;
+      left:11px;top:50%;
+      transform:translateY(-50%);
+      width:15px;
+      height:15px;
+      stroke:var(--ink3);
+      pointer-events:none
+    }
+
+    input{width:100%;padding:.7rem 1rem .7rem 2.4rem;border:1px solid var(--border-md);border-radius:10px;font:400 .9rem var(--body);color:var(--ink);background:var(--bg);outline:none;transition:border-color .18s,box-shadow .18s}
+    input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-lt)}
+    input.err{border-color:var(--error);box-shadow:0 0 0 3px var(--error-lt)}
+    input:-webkit-autofill{-webkit-box-shadow:0 0 0 30px var(--bg) inset!important;-webkit-text-fill-color:var(--ink)!important}
+    .pw-wrap input{padding-right:2.8rem}
+    .eye-btn{
+      position:absolute;
+      right:10px;
+      top:50%;
+      transform:translateY(-50%);
+      background:none;
+      border:none;
+      cursor:pointer;
+      color:var(--ink3);
+      display:grid;
+      place-items:center;
+      transition:color .15s;
+      z-index:2;
+      padding:4px;
+    }
+    .eye-btn:hover{color:var(--ink)}
+    .ferr{display:none;font-size:.72rem;color:var(--error);margin-top:4px}
+    .ferr.show{display:block}
+
+    /* Password strength */
+    .pw-bars{display:none;gap:4px;margin-top:6px}
+    .pw-bars.show{display:flex}
+    .pw-bar{flex:1;height:3px;border-radius:2px;background:var(--border);transition:background .25s}
+    .pw-bar.w{background:#e74c3c}.pw-bar.f{background:#e67e22}.pw-bar.g{background:#c84b2f}.pw-bar.s{background:#27ae60}
+    .pw-hint{font-size:.72rem;color:var(--ink3);margin-top:4px;display:none}
+    .pw-hint.show{display:block}
+
+    /* Alert */
+    .alert{display:none;padding:10px 14px;border-radius:10px;font-size:.83rem;margin-bottom:14px;align-items:flex-start;gap:8px}
+    .alert.show{display:flex}
+    .alert.error{background:var(--error-lt);border:1px solid rgba(192,57,43,.2);color:var(--error)}
+    .alert.success{background:#edfaf1;border:1px solid rgba(39,174,96,.25);color:#1e8449}
+
+    /* Button */
+    .btn{width:100%;padding:.82rem;border-radius:10px;border:none;background:var(--accent);color:#fff;font:600 .95rem var(--body);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity .18s,transform .18s var(--ease)}
+    .btn:hover:not(:disabled){opacity:.88;transform:translateY(-1px)}
+    .btn:disabled{opacity:.55;cursor:not-allowed;transform:none}
+    .spinner{display:none;width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
+    .btn.loading .spinner{display:block}
+    .btn.loading .btn-text{opacity:.7}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    .divider{border:none;border-top:1px solid var(--border);margin:20px 0}
+    .sign-in{text-align:center;font-size:.875rem;color:var(--ink3)}
+
+    .fi{opacity:0;transform:translateY(16px);transition:opacity .5s var(--ease),transform .5s var(--ease)}
+    .fi.on{opacity:1;transform:none}
+
+    @media(max-width:720px){.page{grid-template-columns:1fr}.brand{display:none}}
   </style>
 </head>
 <body>
-<div class="relative z-10 w-full min-h-screen flex items-center justify-center px-6 py-8" style="gap:12rem; padding-top: 20vh; padding-right: 10vw;">
- 
-  <!-- LEFT: Brand -->
-  <div class="brand-side hidden md:flex flex-col animate-fadeUp" style="color:#f0e8ff">
-    <div class="flex items-center gap-3 mb-5">
-      <div class="logo-mark">WD</div>
-      <span style="font-family:Syne,sans-serif;font-weight:1000;font-size:1.3rem;color:#f0e8ff">Wantam<span style="color:#b44fff">Drinks</span></span>
-    </div>
-    <h1 style="font-family:Syne,sans-serif;font-weight:800;font-size:clamp(1.8rem,3.5vw,2.6rem);line-height:1.12;margin-bottom:.9rem;color:#f0e8ff;animation:neonPulse 3s ease-in-out infinite;text-shadow:0 0 8px #b44fff,0 0 20px #b44fff">
-      Join the<br/><em style="font-style:normal;background:linear-gradient(90deg,#b44fff,#00e5ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">WantamDrinks</em><br/>network.
-    </h1>
-    <p style="font-size:.9rem;color:#a89bbf;line-height:1.65;margin-bottom:1.5rem">
-      Why wait in line? Registered customers get the fastest service. See live stock levels at your nearest branch and pay instantly on your phone.
-    </p>
-    <div style="display:flex;flex-direction:column;gap:.75rem">
-      <div style="display:flex;align-items:center;gap:12px;font-size:.88rem;color:#a89bbf">
-        <div style="width:34px;height:34px;flex-shrink:0;background:rgba(180,79,255,.12);border:1px solid rgba(180,79,255,.3);border-radius:10px;display:flex;align-items:center;justify-content:center;color:#b44fff">
-          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-        </div>Secure JWT authentication with refresh tokens
-      </div>
-      <div style="display:flex;align-items:center;gap:12px;font-size:.88rem;color:#a89bbf">
-        <div style="width:34px;height:34px;flex-shrink:0;background:rgba(0,229,255,.1);border:1px solid rgba(0,229,255,.25);border-radius:10px;display:flex;align-items:center;justify-content:center;color:#00e5ff">
-          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-        </div>Real-time stock alerts across all branches
-      </div>
-      <div style="display:flex;align-items:center;gap:12px;font-size:.88rem;color:#a89bbf">
-        <div style="width:34px;height:34px;flex-shrink:0;background:rgba(255,179,71,.1);border:1px solid rgba(255,179,71,.25);border-radius:10px;display:flex;align-items:center;justify-content:center;color:#ffb347">
-          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-        </div>M-Pesa STK Push integrated payments
-      </div>
+
+<div class="page">
+  <div class="brand fi">
+    <div class="logo"><div class="logo-mark">WD</div>WantamDrinks</div>
+    <h1>Create your<br/><em>account.</em></h1>
+    <p>Registered customers see live stock at their nearest hub and check out with M-Pesa in seconds.</p>
+    <div class="perks">
+      <div class="perk"><div class="perk-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>JWT authentication with refresh tokens</div>
+      <div class="perk"><div class="perk-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>Live stock across all hubs</div>
+      <div class="perk"><div class="perk-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></div>M-Pesa STK Push checkout</div>
     </div>
   </div>
- 
-  <!-- RIGHT: Register Form Card -->
-  <div class="animate-fadeUp2" style="width:100%;max-width:440px">
-    <div class="form-card">
- 
-      <!-- Logo mobile -->
-      <div class="flex md:hidden items-center gap-3 mb-4">
-        <div class="logo-mark">WD</div>
-        <span style="font-family:Syne,sans-serif;font-weight:1000;font-size:1.3rem;color:#f0e8ff">Wantam<span style="color:#b44fff">Drinks</span></span>
-      </div>
- 
-      <h2 style="font-family:Syne,sans-serif;font-weight:700;font-size:1.45rem;color:#f0e8ff;margin-bottom:.15rem">Create Account</h2>
-      <p style="font-size:.83rem;color:#a89bbf;margin-bottom:1.1rem">Fill in your details to get started</p>
- 
-      <!-- Steps -->
-      <div style="display:flex;align-items:center;margin-bottom:1.1rem">
-        <div class="step active flex items-center gap-1.5 text-xs font-medium" id="step1" style="color:#a89bbf;font-family:'DM Sans',sans-serif">
-          <div class="step-num">1</div><span>Details</span>
-        </div>
-        <div style="flex:1;height:1px;background:rgba(168,155,191,.2);margin:0 6px"></div>
-        <div class="step flex items-center gap-1.5 text-xs font-medium" id="step2" style="color:#a89bbf;font-family:'DM Sans',sans-serif">
-          <div class="step-num">2</div><span>Sending</span>
-        </div>
-        <div style="flex:1;height:1px;background:rgba(168,155,191,.2);margin:0 6px"></div>
-        <div class="step flex items-center gap-1.5 text-xs font-medium" id="step3" style="color:#a89bbf;font-family:'DM Sans',sans-serif">
-          <div class="step-num">✓</div><span>Done</span>
-        </div>
-      </div>
- 
-      <!-- Rate banner -->
-      <div class="rate-banner" id="rateBanner">
-        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:1px"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-        <span>Too many registration attempts. Please wait a few minutes before trying again.</span>
-      </div>
- 
-      <!-- Alert -->
-      <div class="alert-box" id="alertBox">
-        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-        <span id="alertMsg"></span>
-      </div>
- 
-      <form id="registerForm" novalidate>
- 
-        <!-- Username + Phone row -->
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin-bottom:.85rem">
-          <div>
-            <label class="neon-label">Username</label>
-            <div style="position:relative">
-              <input type="text" id="username" class="neon-input" placeholder="Display name" autocomplete="username"/>
-              <svg style="position:absolute;left:12px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:#a89bbf;pointer-events:none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-            </div>
-            <div class="field-error" id="usernameErr">Username is required.</div>
-          </div>
-          <div>
-            <label class="neon-label">Phone Number</label>
-            <div style="position:relative">
-              <input type="tel" id="phone" class="neon-input" placeholder="07XXXXXXXX" autocomplete="tel" maxlength="10"/>
-              <svg style="position:absolute;left:12px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:#a89bbf;pointer-events:none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.58 3.49 2 2 0 0 1 3.55 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.69a16 16 0 0 0 5.36 5.36l.87-.87a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-            </div>
-            <div class="field-error" id="phoneErr">Valid number starting 07/01.</div>
-          </div>
-        </div>
- 
-        <!-- Email -->
-        <div style="margin-bottom:.85rem">
-          <label class="neon-label">Email Address</label>
-          <div style="position:relative">
-            <input type="email" id="email" class="neon-input" placeholder="you@gmail.com" autocomplete="email"/>
-            <svg style="position:absolute;left:12px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:#a89bbf;pointer-events:none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-          </div>
-          <div class="field-error" id="emailErr">Must be a @gmail.com address.</div>
-        </div>
- 
-        <!-- Password -->
-        <div style="margin-bottom:.85rem">
-          <label class="neon-label">Password</label>
-          <div style="position:relative">
-            <input type="password" id="password" class="neon-input" style="padding-right:2.5rem" placeholder="Create a strong password" autocomplete="new-password"/>
-            <svg style="position:absolute;left:12px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:#a89bbf;pointer-events:none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-            <button type="button" class="toggle-pw" id="togglePw1">
-              <svg id="eye1" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-            </button>
-          </div>
-          <div class="pw-strength" id="pwStrength">
-            <div style="display:flex;gap:4px;margin-bottom:3px"><div class="pw-bar" id="bar1"></div><div class="pw-bar" id="bar2"></div><div class="pw-bar" id="bar3"></div><div class="pw-bar" id="bar4"></div></div>
-            <div style="font-size:.72rem;color:#a89bbf" id="pwLabel"></div>
-          </div>
-          <div class="pw-reqs" id="pwReqs">
-            <div class="req-item" id="req-len"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/></svg>At least 8 characters</div>
-            <div class="req-item" id="req-upper"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/></svg>One uppercase letter</div>
-            <div class="req-item" id="req-lower"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/></svg>One lowercase letter</div>
-            <div class="req-item" id="req-num"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/></svg>One number</div>
-            <div class="req-item" id="req-special"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/></svg>One special character</div>
-          </div>
-          <div class="field-error" id="passwordErr">Password must meet all requirements.</div>
-        </div>
- 
-        <!-- Confirm Password -->
-        <div style="margin-bottom:1rem">
-          <label class="neon-label">Confirm Password</label>
-          <div style="position:relative">
-            <input type="password" id="confirm" class="neon-input" style="padding-right:2.5rem" placeholder="Repeat your password" autocomplete="new-password"/>
-            <svg style="position:absolute;left:12px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:#a89bbf;pointer-events:none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-            <button type="button" class="toggle-pw" id="togglePw2">
-              <svg id="eye2" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-            </button>
-          </div>
-          <div class="field-error" id="confirmErr">Passwords do not match.</div>
-        </div>
- 
-        <button type="submit" id="registerBtn" class="neon-btn">
-          <span class="btn-text">Create Account</span>
-          <div class="spinner"></div>
-        </button>
-      </form>
- 
-      <div class="neon-divider"></div>
-      <p style="text-align:center;font-size:.875rem;color:#a89bbf">
-        Already have an account? <a href="/login/" style="color:#b44fff;text-decoration:none;font-weight:500" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">Sign in</a>
-      </p>
+
+  <div class="card fi" style="transition-delay:.08s">
+    <h2>Create Account</h2>
+    <p class="sub">Fill in your details to get started</p>
+
+    <div class="steps">
+      <div class="s-item active" id="s1"><div class="s-num">1</div><span>Details</span></div>
+      <div class="s-line"></div>
+      <div class="s-item" id="s2"><div class="s-num">2</div><span>Sending</span></div>
+      <div class="s-line"></div>
+      <div class="s-item" id="s3"><div class="s-num">3</div><span>Done</span></div>
     </div>
+
+    <div class="alert" id="alert"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:2px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><span id="alertMsg"></span></div>
+
+    <form id="form" novalidate>
+      <div class="row">
+        <div>
+          <label>Username</label>
+          <div class="inp-wrap"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><input type="text" id="username" placeholder="Display name" autocomplete="username"/></div>
+          <div class="ferr" id="usernameErr">Username is required.</div>
+        </div>
+        <div>
+          <label>Phone</label>
+          <div class="inp-wrap"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.58 3.49 2 2 0 0 1 3.55 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.69a16 16 0 0 0 5.36 5.36l.87-.87a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg><input type="tel" id="phone" placeholder="07XXXXXXXX" maxlength="10"/></div>
+          <div class="ferr" id="phoneErr">Valid 07/01 number required.</div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Email</label>
+        <div class="inp-wrap"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg><input type="email" id="email" placeholder="you@gmail.com" autocomplete="email"/></div>
+        <div class="ferr" id="emailErr">Must be a @gmail.com address.</div>
+      </div>
+
+      <div class="field">
+        <label>Password</label>
+        <div class="inp-wrap pw-wrap"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><input type="password" id="password" placeholder="Create a strong password" autocomplete="new-password"/><button type="button" class="eye-btn" id="eyeBtn1"><svg id="eyeIcon1" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button></div>
+        <div class="pw-bars" id="pwBars"><div class="pw-bar" id="b1"></div><div class="pw-bar" id="b2"></div><div class="pw-bar" id="b3"></div><div class="pw-bar" id="b4"></div></div>
+        <div class="pw-hint" id="pwHint"></div>
+        <div class="ferr" id="passwordErr">Password must be 8+ chars with upper, lower, number and symbol.</div>
+      </div>
+
+      <div class="field">
+        <label>Confirm Password</label>
+        <div class="inp-wrap pw-wrap"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><input type="password" id="confirm" placeholder="Repeat your password" autocomplete="new-password"/><button type="button" class="eye-btn" id="eyeBtn2"><svg id="eyeIcon2" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button></div>
+        <div class="ferr" id="confirmErr">Passwords do not match.</div>
+      </div>
+
+      <button type="submit" class="btn" id="submitBtn"><span class="btn-text">Create Account</span><div class="spinner"></div></button>
+    </form>
+
+    <hr class="divider"/>
+    <p class="sign-in">Already have an account? <a href="/login/">Sign in</a></p>
   </div>
- 
 </div>
- 
+
 <script>
   const API='/api';
-  const MAX_REG_ATTEMPTS=3, REG_WINDOW_MS=5*60*1000;
-  const Storage={
-    save(k,v,p=true){(p?localStorage:sessionStorage).setItem(k,v);},
-    get(k){return localStorage.getItem(k)||sessionStorage.getItem(k);},
-    clear(){['access_token','refresh_token','is_staff','wnt_id','email'].forEach(k=>{sessionStorage.removeItem(k);localStorage.removeItem(k);});}
-  };
-  window.Storage=Storage;
-  const RegRateLimit={
-    getData(){const d=JSON.parse(sessionStorage.getItem('regAttempts')||'{"count":0,"since":0}');if(Date.now()-d.since>REG_WINDOW_MS)return{count:0,since:Date.now()};return d;},
-    increment(){const d=this.getData();d.count++;if(!d.since)d.since=Date.now();sessionStorage.setItem('regAttempts',JSON.stringify(d));return d.count;},
-    isLimited(){return this.getData().count>=MAX_REG_ATTEMPTS;}
-  };
-  function showErr(id,msg){const e=document.getElementById(id);if(!e)return;e.textContent=msg;e.classList.add('show');const i=document.getElementById(id.replace('Err',''));if(i&&i.tagName==='INPUT')i.classList.add('invalid');}
-  function clearErr(id){const e=document.getElementById(id);if(e)e.classList.remove('show');const i=document.getElementById(id.replace('Err',''));if(i&&i.tagName==='INPUT')i.classList.remove('invalid');}
-  function showAlert(msg,type='error'){const b=document.getElementById('alertBox');document.getElementById('alertMsg').textContent=msg;b.classList.add('show');b.style.display='flex';if(type==='error'){b.style.background='rgba(255,92,122,.1)';b.style.border='1px solid rgba(255,92,122,.3)';b.style.color='#ff9bb5';}else{b.style.background='rgba(180,79,255,.1)';b.style.border='1px solid rgba(180,79,255,.3)';b.style.color='#b44fff';}}
-  function hideAlert(){const b=document.getElementById('alertBox');b.classList.remove('show');b.style.display='none';}
-  function setStep(n){[1,2,3].forEach(i=>{const el=document.getElementById(`step${i}`);el.className=`step flex items-center gap-1.5 text-xs font-medium${i<n?' done':i===n?' active':''}`;el.style.color='#a89bbf';});}
-  function togglePassword(btnId,inputId,iconId){document.getElementById(btnId).addEventListener('click',()=>{const i=document.getElementById(inputId),ic=document.getElementById(iconId),s=i.type==='password';i.type=s?'text':'password';ic.innerHTML=s?'<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>':'<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';});}
-  togglePassword('togglePw1','password','eye1');
-  togglePassword('togglePw2','confirm','eye2');
-  const REQS={'req-len':v=>v.length>=8,'req-upper':v=>/[A-Z]/.test(v),'req-lower':v=>/[a-z]/.test(v),'req-num':v=>/[0-9]/.test(v),'req-special':v=>/[!@#$%^&*(),.?":{}|<>_]/.test(v)};
+  // Redirect if already logged in
+  if(localStorage.getItem('access_token'))
+    location.href=localStorage.getItem('is_staff')==='true'?'/admin_dashboard/':'/home/';
+
+  // Fade-in
+  const io=new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting){x.target.classList.add('on');io.unobserve(x.target);}}),{threshold:.1});
+  document.querySelectorAll('.fi').forEach(el=>io.observe(el));
+
+  // Eye toggle
+  function eyeToggle(btnId, inputId, iconId) {
+    document.getElementById(btnId).addEventListener('click', () => {
+      const inp = document.getElementById(inputId);
+      const show = inp.type === 'password';
+      inp.type = show ? 'text' : 'password';
+      const icon = document.getElementById(iconId);
+      icon.innerHTML = show
+        ? '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>'
+        : '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+      // Ensure inherited stroke attributes stay on the SVG, not just innerHTML
+      icon.setAttribute('stroke', 'currentColor');
+      icon.setAttribute('stroke-width', '2');
+      icon.setAttribute('fill', 'none');
+    });
+  }
+  eyeToggle('eyeBtn1','password','eyeIcon1');
+  eyeToggle('eyeBtn2','confirm','eyeIcon2');
+
+  // Password strength
+  const checks={len:v=>v.length>=8,upper:v=>/[A-Z]/.test(v),lower:v=>/[a-z]/.test(v),num:v=>/[0-9]/.test(v),sym:v=>/[!@#$%^&*(),.?":{}|<>_]/.test(v)};
+  const labels=['','Weak','Fair','Good','Strong','Strong'];
+  const cls=['','w','f','g','s','s'];
   document.getElementById('password').addEventListener('input',function(){
-    const val=this.value,strength=document.getElementById('pwStrength'),reqsEl=document.getElementById('pwReqs');
-    if(!val){strength.style.display='none';reqsEl.classList.remove('show');return;}
-    strength.style.display='block';reqsEl.classList.add('show');
-    Object.entries(REQS).forEach(([id,test])=>{const el=document.getElementById(id),met=test(val);el.classList.toggle('met',met);el.querySelector('svg').innerHTML=met?'<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>':'<circle cx="12" cy="12" r="10"/>';});
-    const score=Object.values(REQS).filter(t=>t(val)).length;
-    const levels=['weak','fair','fair','good','strong'],labels=['Weak','Fair','Fair','Good','Strong'],cls=levels[score-1]||'weak';
-    for(let i=1;i<=4;i++)document.getElementById(`bar${i}`).className='pw-bar'+(i<=Math.ceil(score*4/5)?` filled ${cls}`:'');
-    const lbl=document.getElementById('pwLabel');lbl.textContent=labels[score-1]||'Too short';lbl.style.color=score<=1?'#ff5c7a':score<=2?'#ffb347':score<=3?'#b44fff':'#00e5ff';
+    const v=this.value,score=Object.values(checks).filter(t=>t(v)).length;
+    const bars=document.getElementById('pwBars'),hint=document.getElementById('pwHint');
+    bars.classList.toggle('show',!!v);hint.classList.toggle('show',!!v);
+    for(let i=1;i<=4;i++){const b=document.getElementById('b'+i);b.className='pw-bar'+(i<=score?` ${cls[score]}`:'');}
+    hint.textContent=v?labels[score]||'Too short':'';
   });
-  ['username','phone','email','password','confirm'].forEach(id=>{document.getElementById(id).addEventListener('input',()=>clearErr(id+'Err'));});
-  document.getElementById('registerForm').addEventListener('submit',async(e)=>{
-    e.preventDefault();hideAlert();
-    if(RegRateLimit.isLimited()){document.getElementById('rateBanner').classList.add('show');return;}
-    let valid=true;
-    const username=document.getElementById('username').value.trim();
-    const phone=document.getElementById('phone').value.trim();
-    const email=document.getElementById('email').value.trim();
-    const password=document.getElementById('password').value;
-    const confirm=document.getElementById('confirm').value;
-    if(!username){showErr('usernameErr','Username is required.');valid=false;}
-    if(!phone||!/^(07|01)\d{8}$/.test(phone)){showErr('phoneErr','Enter a valid 10-digit number starting 07 or 01.');valid=false;}
-    if(!email||!email.toLowerCase().endsWith('@gmail.com')){showErr('emailErr','Email must be a @gmail.com address.');valid=false;}
-    if(!Object.values(REQS).every(t=>t(password))){showErr('passwordErr','Password must meet all the requirements shown above.');valid=false;}
-    if(password!==confirm){showErr('confirmErr','Passwords do not match.');valid=false;}
-    if(!valid)return;
-    RegRateLimit.increment();setStep(2);
-    const btn=document.getElementById('registerBtn');btn.classList.add('loading');btn.disabled=true;
+
+  // Field helpers
+  const fe=(id,msg)=>{const e=document.getElementById(id+'Err');e.textContent=msg;e.classList.add('show');document.getElementById(id)?.classList.add('err');};
+  const fc=id=>{document.getElementById(id+'Err')?.classList.remove('show');document.getElementById(id)?.classList.remove('err');};
+  ['username','phone','email','password','confirm'].forEach(id=>document.getElementById(id).addEventListener('input',()=>fc(id)));
+
+  // Step indicator
+  const setStep=n=>{['s1','s2','s3'].forEach((id,i)=>{const el=document.getElementById(id);el.className='s-item'+(i+1<n?' done':i+1===n?' active':'');});};
+
+  // Alert
+  const showAlert=(msg,type='error')=>{const b=document.getElementById('alert');document.getElementById('alertMsg').textContent=msg;b.className=`alert show ${type}`;};
+
+  // Rate limiting
+  const RL={key:'regAttempts',max:3,win:5*60*1000,get(){const d=JSON.parse(sessionStorage.getItem(this.key)||'{"c":0,"t":0}');return Date.now()-d.t>this.win?{c:0,t:Date.now()}:d;},inc(){const d=this.get();d.c++;if(!d.t)d.t=Date.now();sessionStorage.setItem(this.key,JSON.stringify(d));return d.c;},ok(){return this.get().c<this.max;}};
+
+  document.getElementById('form').addEventListener('submit',async e=>{
+    e.preventDefault();
+    if(!RL.ok()){showAlert('Too many attempts. Please wait a few minutes and try again.');return;}
+    let ok=true;
+    const g=id=>document.getElementById(id).value.trim();
+    const username=g('username'),phone=g('phone'),email=g('email');
+    const password=document.getElementById('password').value,confirm=document.getElementById('confirm').value;
+    if(!username){fe('username','Username is required.');ok=false;}
+    if(!/^(07|01)\d{8}$/.test(phone)){fe('phone','Enter a valid 10-digit number starting 07 or 01.');ok=false;}
+    if(!email.toLowerCase().endsWith('@gmail.com')){fe('email','Must be a @gmail.com address.');ok=false;}
+    if(!Object.values(checks).every(t=>t(password))){fe('password','8+ chars with upper, lower, number and symbol.');ok=false;}
+    if(password!==confirm){fe('confirm','Passwords do not match.');ok=false;}
+    if(!ok)return;
+    RL.inc();setStep(2);
+    const btn=document.getElementById('submitBtn');btn.classList.add('loading');btn.disabled=true;
     try{
       const res=await fetch(`${API}/auth/register/`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username,phone_number:phone,email,password,confirm_password:confirm})});
       const data=await res.json();
-      if(res.ok){setStep(3);showAlert('Account created successfully! Redirecting to login…','success');setTimeout(()=>{window.location.href='/login/';},1500);}
-      else{setStep(1);if(data.email)showErr('emailErr',Array.isArray(data.email)?data.email[0]:data.email);if(data.phone_number)showErr('phoneErr',Array.isArray(data.phone_number)?data.phone_number[0]:data.phone_number);if(data.username)showErr('usernameErr',Array.isArray(data.username)?data.username[0]:data.username);if(data.password)showErr('passwordErr',Array.isArray(data.password)?data.password[0]:data.password);const msg=data.non_field_errors?.[0]||data.detail||'Please fix the errors above.';showAlert(msg,'error');}
-    }catch{setStep(1);showAlert('Unable to connect to server. Please check your connection.','error');}
+      if(res.ok){setStep(3);showAlert('Account created. Redirecting to login…','success');setTimeout(()=>location.href='/login/',1500);}
+      else{
+        setStep(1);
+        if(data.email)fe('email',data.email[0]||data.email);
+        if(data.phone_number)fe('phone',data.phone_number[0]||data.phone_number);
+        if(data.username)fe('username',data.username[0]||data.username);
+        if(data.password)fe('password',data.password[0]||data.password);
+        showAlert(data.non_field_errors?.[0]||data.detail||'Please fix the errors above.');
+      }
+    }catch{setStep(1);showAlert('Unable to connect. Check your connection and try again.');}
     finally{btn.classList.remove('loading');btn.disabled=false;}
   });
-  if(Storage.get('access_token'))window.location.href=Storage.get('is_staff')==='true'?'/admin_dashboard/':'/home/';
 </script>
 </body>
 </html>

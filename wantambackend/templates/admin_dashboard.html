@@ -1008,8 +1008,9 @@
             <div class="flex items-center justify-between mb-5 flex-wrap gap-3">
               <div>
                 <p class="font-head text-sm font-bold text-wdtext">Sales by Product</p>
-                <p class="text-xs text-muted mt-0.5">Unit breakdown — daily &amp; monthly · hover a slice for details</p>
+                <p class="text-xs text-muted mt-0.5">Unit breakdown · hover a slice for details</p>
               </div>
+              <!-- ── SHARED CONTROLS: branch filter + refresh ── -->
               <div class="flex items-center gap-2 flex-wrap">
                 <select id="todayBranchFilter" class="input-field text-xs" onchange="loadBothPieCharts()" style="min-width:140px;">
                   <option value="">All Branches</option>
@@ -1025,30 +1026,60 @@
 
               <!-- DAILY PIE -->
               <div>
-                <p class="pie-section-header">Today's sales</p>
+                <!-- Daily pie header with its own date picker -->
+                <div class="flex items-center justify-between flex-wrap gap-2 mb-2">
+                  <p class="pie-section-header mb-0">Daily sales</p>
+                  <input
+                    type="date"
+                    id="pieDailyDate"
+                    class="input-field text-xs"
+                    onchange="loadDailyPieChart()"
+                    title="Pick a date to view that day's product sales"
+                    style="padding:0.3rem 0.6rem;"
+                  />
+                </div>
                 <div id="dailyPieLoading" class="text-center py-10">
                   <div class="spinner w-6 h-6 mx-auto mb-2"></div>
-                  <p class="text-xs text-muted">Loading today's data…</p>
+                  <p class="text-xs text-muted">Loading daily data…</p>
                 </div>
                 <div id="dailyPieWrapper" class="hidden">
                   <div class="pie-chart-wrapper">
                     <canvas id="dailySalesPieChart"
                             role="img"
-                            aria-label="Pie chart of today product sales by units sold">
-                      Today's product sales by units.
+                            aria-label="Pie chart of product sales by units sold for selected date">
+                      Product sales by units for selected date.
                     </canvas>
                   </div>
                   <div id="dailyPieLegend" class="flex flex-wrap gap-2 mt-3"></div>
                 </div>
-                <p id="dailyPieEmpty" class="hidden text-center py-10 text-muted text-sm">No sales data for today.</p>
+                <p id="dailyPieEmpty" class="hidden text-center py-10 text-muted text-sm">No sales data for this date.</p>
               </div>
 
               <!-- MONTHLY PIE -->
               <div>
-                <p class="pie-section-header">
-                  This month's sales
-                  <span id="monthlyPieLabel" class="ml-1" style="color:#00C896;text-transform:none;letter-spacing:normal;font-size:10px;"></span>
-                </p>
+                <!-- Monthly pie header with its own month + year pickers -->
+                <div class="flex items-center justify-between flex-wrap gap-2 mb-2">
+                  <p class="pie-section-header mb-0">
+                    Monthly sales
+                    <span id="monthlyPieLabel" class="ml-1" style="color:#00C896;text-transform:none;letter-spacing:normal;font-size:10px;"></span>
+                  </p>
+                  <div class="flex items-center gap-1.5">
+                    <select id="pieMonth" class="input-field text-xs" onchange="loadMonthlyPieChart()" style="padding:0.3rem 0.5rem;">
+                      <option value="1">Jan</option><option value="2">Feb</option><option value="3">Mar</option>
+                      <option value="4">Apr</option><option value="5">May</option><option value="6">Jun</option>
+                      <option value="7">Jul</option><option value="8">Aug</option><option value="9">Sep</option>
+                      <option value="10">Oct</option><option value="11">Nov</option><option value="12">Dec</option>
+                    </select>
+                    <input
+                      type="number"
+                      id="pieYear"
+                      class="input-field text-xs"
+                      placeholder="Year"
+                      onchange="loadMonthlyPieChart()"
+                      style="padding:0.3rem 0.5rem;width:72px;"
+                    />
+                  </div>
+                </div>
                 <div id="monthlyPieLoading" class="text-center py-10">
                   <div class="spinner w-6 h-6 mx-auto mb-2"></div>
                   <p class="text-xs text-muted">Loading monthly data…</p>
@@ -1057,8 +1088,8 @@
                   <div class="pie-chart-wrapper">
                     <canvas id="monthlySalesPieChart"
                             role="img"
-                            aria-label="Pie chart of this month product sales by units sold">
-                      Monthly product sales by units.
+                            aria-label="Pie chart of product sales by units sold for selected month">
+                      Monthly product sales by units for selected month.
                     </canvas>
                   </div>
                   <div id="monthlyPieLegend" class="flex flex-wrap gap-2 mt-3"></div>
@@ -2288,6 +2319,15 @@ let _revenueChart      = null;
 let _analyticsBranches = [];
 
 async function initAnalytics() {
+  // Set default values for pie chart date/month/year pickers
+  const _now = new Date();
+  const pieDateEl  = document.getElementById('pieDailyDate');
+  const pieMonthEl = document.getElementById('pieMonth');
+  const pieYearEl  = document.getElementById('pieYear');
+  if (pieDateEl  && !pieDateEl.value)  pieDateEl.value  = _now.toISOString().split('T')[0];
+  if (pieMonthEl && !pieMonthEl.value) pieMonthEl.value = _now.getMonth() + 1;
+  if (pieYearEl  && !pieYearEl.value)  pieYearEl.value  = _now.getFullYear();
+
   await _populateAnalyticsBranchFilters();
   await Promise.allSettled([
     loadAnalyticsKpiCards(),
@@ -2473,18 +2513,12 @@ function refreshRevenueChart() { buildRevenueChart(); }
 // ANALYTICS — PIE CHARTS (dynamic, color-stable)
 // ══════════════════════════════════════════════
 
-// 15-color palette — handles up to 15 distinct products;
-// new products auto-pick the next available slot when the
-// registry first encounters their name in this session.
 const PIE_PALETTE = [
   '#1D9E75', '#378ADD', '#D85A30', '#7F77DD', '#BA7517',
   '#D4537E', '#639922', '#E24B4A', '#0F6E56', '#185FA5',
   '#993C1D', '#534AB7', '#854F0B', '#993556', '#3B6D11',
 ];
 
-// Persistent registry — product name → hex color.
-// Populated on first encounter; survives tab switches within
-// the same session so colors never shift between refreshes.
 const _productColorRegistry = {};
 
 function getProductColor(productName) {
@@ -2494,13 +2528,9 @@ function getProductColor(productName) {
   return _productColorRegistry[productName];
 }
 
-// Chart.js instances — destroyed before each redraw to
-// avoid canvas reuse errors and memory leaks.
 let _dailyPieChart   = null;
 let _monthlyPieChart = null;
 
-// Build the legend strip below each chart.
-// Shows: color swatch · product name · percentage
 function buildPieLegend(legendEl, labels, colors, data, total) {
   legendEl.innerHTML = labels.map((label, i) => {
     const pct = total > 0 ? ((data[i] / total) * 100).toFixed(1) : '0.0';
@@ -2511,10 +2541,7 @@ function buildPieLegend(legendEl, labels, colors, data, total) {
   }).join('');
 }
 
-// Core renderer — accepts a productMap {name: {sold, revenue}},
-// builds the pie and legend, destroys any previous chart instance.
 function renderPieChart(canvasId, legendId, productMap, existingChart) {
-  // Sort descending by units sold so the largest slice starts at top
   const labels   = Object.keys(productMap).sort((a, b) => productMap[b].sold - productMap[a].sold);
   const soldData = labels.map(l => productMap[l].sold);
   const colors   = labels.map(l => getProductColor(l));
@@ -2522,7 +2549,6 @@ function renderPieChart(canvasId, legendId, productMap, existingChart) {
 
   buildPieLegend(document.getElementById(legendId), labels, colors, soldData, total);
 
-  // Destroy stale instance before creating a new one on the same canvas
   if (existingChart) { existingChart.destroy(); }
 
   const ctx = document.getElementById(canvasId).getContext('2d');
@@ -2545,7 +2571,6 @@ function renderPieChart(canvasId, legendId, productMap, existingChart) {
       plugins: {
         legend: { display: false },
         tooltip: {
-          // Dark panel tooltip matching the dashboard's aesthetic
           backgroundColor: 'rgba(6,22,42,0.96)',
           borderColor: 'rgba(0,200,150,0.35)',
           borderWidth: 1,
@@ -2555,11 +2580,9 @@ function renderPieChart(canvasId, legendId, productMap, existingChart) {
           bodyFont: { family: 'DM Sans, sans-serif', size: 12 },
           padding: 14,
           callbacks: {
-            // Title = product name
             title: (items) => items[0].label,
-            // Body lines: units sold + percentage share
             label: (item) => {
-              const val = item.parsed;   // units for this slice
+              const val = item.parsed;
               const tot = item.dataset.data.reduce((a, b) => a + b, 0);
               const pct = tot > 0 ? ((val / tot) * 100).toFixed(1) : '0.0';
               return [
@@ -2574,8 +2597,7 @@ function renderPieChart(canvasId, legendId, productMap, existingChart) {
   });
 }
 
-// ── Loaders ─────────────────────────────────────────────────────────────────
-
+// ── Daily pie — uses #pieDailyDate picker ──────────────────────────────────
 async function loadDailyPieChart() {
   const loadingEl = document.getElementById('dailyPieLoading');
   const wrapperEl = document.getElementById('dailyPieWrapper');
@@ -2585,8 +2607,10 @@ async function loadDailyPieChart() {
   emptyEl.classList.add('hidden');
 
   try {
-    const today    = new Date().toISOString().split('T')[0];
-    const branchId = document.getElementById('todayBranchFilter')?.value || '';
+    // Read date from the new picker; fall back to today
+    const pieDateEl = document.getElementById('pieDailyDate');
+    const today     = pieDateEl?.value || new Date().toISOString().split('T')[0];
+    const branchId  = document.getElementById('todayBranchFilter')?.value || '';
     let url = `/admin/analytics/daily/?date=${today}`;
     if (branchId) url += `&branch_id=${branchId}`;
 
@@ -2600,8 +2624,6 @@ async function loadDailyPieChart() {
       return;
     }
 
-    // Aggregate by product — the API returns one row per branch×product
-    // so when "All Branches" is selected we sum across branches.
     const productMap = {};
     reports.forEach(r => {
       const key = r.product_name;
@@ -2621,6 +2643,7 @@ async function loadDailyPieChart() {
   }
 }
 
+// ── Monthly pie — uses #pieMonth / #pieYear pickers ─────────────────────────
 async function loadMonthlyPieChart() {
   const loadingEl = document.getElementById('monthlyPieLoading');
   const wrapperEl = document.getElementById('monthlyPieWrapper');
@@ -2631,12 +2654,13 @@ async function loadMonthlyPieChart() {
   emptyEl.classList.add('hidden');
 
   try {
-    const now      = new Date();
-    const month    = now.getMonth() + 1;
-    const year     = now.getFullYear();
-    const branchId = document.getElementById('todayBranchFilter')?.value || '';
+    const now        = new Date();
+    const pieMonthEl = document.getElementById('pieMonth');
+    const pieYearEl  = document.getElementById('pieYear');
+    const month      = parseInt(pieMonthEl?.value || (now.getMonth() + 1), 10);
+    const year       = parseInt(pieYearEl?.value  || now.getFullYear(),   10);
+    const branchId   = document.getElementById('todayBranchFilter')?.value || '';
 
-    // Update the section subtitle so the admin knows which month is shown
     const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
     if (labelEl) labelEl.textContent = `— ${monthNames[month - 1]} ${year}`;
 
@@ -2653,7 +2677,6 @@ async function loadMonthlyPieChart() {
       return;
     }
 
-    // Same aggregation pattern as daily
     const productMap = {};
     reports.forEach(r => {
       const key = r.product_name;
@@ -2673,8 +2696,7 @@ async function loadMonthlyPieChart() {
   }
 }
 
-// Single entry-point — called by the branch dropdown and Refresh button.
-// Both charts share the same todayBranchFilter value.
+// Single entry-point — branch filter change or Refresh button
 function loadBothPieCharts() {
   loadDailyPieChart();
   loadMonthlyPieChart();

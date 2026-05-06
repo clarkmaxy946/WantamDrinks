@@ -197,7 +197,7 @@ SIMPLE_JWT = {
 
 
 
-FRONTEND_URL = "http://127.0.0.1:8000, https://wantamdrinks.onrender.com"  # used to build the link in the email
+FRONTEND_URL =  "https://wantamdrinks.onrender.com" # used to build the link in the email
 PASSWORD_RESET_TIMEOUT = 259200   
 
 
@@ -221,7 +221,7 @@ DEFAULT_FROM_EMAIL = f'WantamDrinks <{config("EMAIL_HOST_USER")}>'# 3 days in se
 CORS_ALLOWED_ORIGINS = ['http://localhost:8000', 'http://127.0.0.1:8000', 'https://wantamdrinks.onrender.com']  # wherever your HTML is served from
 CORS_ALLOW_CREDENTIALS = True
 
-FRONTEND_URL = 'https://wantamdrinks.onrender.com'  # used in PasswordResetRequestView to build the reset link
+# used in PasswordResetRequestView to build the reset link
 
 import os
 import dj_database_url
